@@ -41,6 +41,8 @@ public:
 
     void get_union_of_partial_functions(int num_inputs, vector<PartialFunction> &union_of_partial_functions,
                                         map<int, int> *idx_to_branch);
+
+    bool is_empty();
 };
 
 class DecisionTree {
@@ -79,5 +81,9 @@ public:
 vector<pair<int, int> > get__idxs_and_branches(PartialFunction partial_function);
 
 Node* get_new_node();
+
+int get__global_num_decision_tree_nodes();
+
+int get__empty_slots_count();
 
 #endif //COMPACTPOSET_DECISIONTREE_H

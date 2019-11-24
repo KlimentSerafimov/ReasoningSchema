@@ -7,6 +7,7 @@
 #include <vector>
 #include <queue>
 #include <iostream>
+#include <stack>
 
 using namespace std;
 
@@ -30,26 +31,34 @@ vector<pair<int, int> > get__idxs_and_branches(PartialFunction partial_function)
     return idxs_and_branches;
 }
 
-#define MAX_NUM_NODES 2000000
+#define MAX_NUM_NODES 4000000
 
-int at_node = 0;
-queue<int> empty_slots;
+static int global_num_decision_tree_nodes = 0;
+vector<int> empty_slots;
 Node all_nodes[MAX_NUM_NODES];
 
 Node* get_new_node()
 {
-    assert(at_node < MAX_NUM_NODES);
+    assert(global_num_decision_tree_nodes < MAX_NUM_NODES);
     if(empty_slots.empty()) {
-        all_nodes[at_node] = Node(at_node);
-        return &all_nodes[at_node++];
+        all_nodes[global_num_decision_tree_nodes] = Node(global_num_decision_tree_nodes);
+        return &all_nodes[global_num_decision_tree_nodes++];
     }
     else
     {
-        int new_id = empty_slots.front();
-        empty_slots.pop();
+        int new_id = empty_slots.back();
+        empty_slots.pop_back();
         all_nodes[new_id] = Node(new_id);
         return &all_nodes[new_id];
     }
+}
+
+int get__global_num_decision_tree_nodes() {
+    return global_num_decision_tree_nodes;
+}
+
+int get__empty_slots_count() {
+    return empty_slots.size();
 }
 
 
@@ -148,9 +157,14 @@ DecisionTree DecisionTree::copy() {
 }
 
 bool DecisionTree::is_empty() {
-    if(root->node_type == leaf_node)
+    return root->is_empty();
+}
+
+bool Node::is_empty()
+{
+    if(node_type == leaf_node)
     {
-        if(root->value)
+        if(value == true)
         {
             return false;
         }
@@ -161,7 +175,18 @@ bool DecisionTree::is_empty() {
     }
     else
     {
-        return false;
+        if(branches[0]->node_type == leaf_node && branches[1]->node_type == leaf_node)
+        {
+            if (branches[0]->value == branches[1]->value)
+            {
+                node_type = leaf_node;
+                value = branches[0]->value;
+                branches[0]->my_delete();
+                branches[1]->my_delete();
+                return is_empty();
+            }
+        }
+        return branches[0]->is_empty() && branches[1]->is_empty();
     }
 }
 
@@ -202,6 +227,7 @@ void Node::apply_operation(OperationType operation_type, Node *other, map<int, i
             vector<Node*> mine_nodes;
             other_nodes.push_back(other);
             mine_nodes.push_back(this);
+            stack<vector<Node*> > new_layers_of_nodes;
             while(other_nodes.size() != 0)
             {
                 vector<Node*> next_other_nodes;
@@ -260,10 +286,30 @@ void Node::apply_operation(OperationType operation_type, Node *other, map<int, i
                         }
                     }
                 }
+                new_layers_of_nodes.push(mine_nodes);
                 other_nodes = next_other_nodes;
                 mine_nodes = next_mine_nodes;
                 assert(other_nodes.size() == mine_nodes.size());
             }
+//            while(!new_layers_of_nodes.empty())
+//            {
+//                vector<Node*> last_layer = new_layers_of_nodes.top();
+//                new_layers_of_nodes.pop();
+//                for(int i = 0;i<last_layer.size();i++) {
+//                    Node* at_node = last_layer[i];
+//                    if(at_node->node_type == internal_node) {
+//                        if (at_node->branches[0]->node_type == leaf_node &&
+//                            at_node->branches[1]->node_type == leaf_node) {
+//                            if (at_node->branches[0]->value == at_node->branches[1]->value) {
+//                                at_node->node_type = leaf_node;
+//                                at_node->value = branches[0]->value;
+////                                at_node->branches[0]->my_delete();
+////                                at_node->branches[1]->my_delete();
+//                            }
+//                        }
+//                    }
+//                }
+//            }
         }
         else
         {
@@ -278,6 +324,7 @@ string Node::to_string(int num_tabs, int num_inputs) {
     string ret;
     if(node_type == leaf_node) {
         ret += tabs(num_tabs)+"value = " + int_to_bool_string[value];
+        assert(value == 0 || value == 1);
     }
     else
     {
@@ -330,7 +377,7 @@ void Node::my_delete() {
         branches[0]->my_delete();
         branches[1]->my_delete();
     }
-    empty_slots.push(global_id);
+    empty_slots.push_back(global_id);
 }
 
 vector<PartialFunction> DecisionTree::get_union_of_partial_functions(int num_inputs)

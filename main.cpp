@@ -132,6 +132,9 @@
 //};
 //
 
+int min_num_examples;
+int max_num_examples;
+
 class AllMetaExamples
 {
 public:
@@ -170,30 +173,30 @@ public:
 
                 meta_examples[partition][compact_partial_outputs].push_back(local_meta_example);
                 skip_meta_examples[partition][compact_partial_outputs].push_back(vector<MetaExample>());
-                int size_of_generalization = function_size - size_of_partial_function;
 
-                int num_partition_expansions = (1<<size_of_generalization);
-
-                int local_generalization_id = (int) skip_meta_examples[partition][compact_partial_outputs].size()-1;
-                assert(skip_meta_examples[partition][compact_partial_outputs][local_generalization_id].empty());
-                for(int partition_expansion = 1; partition_expansion < num_partition_expansions; partition_expansion++)
-                {
-                    int over_partition = partition;
-                    for(int i = 0, j=0;i<function_size;i++)
-                    {
-                        if(!get_bit(partition, i))
-                        {
-                            over_partition += get_bit(partition_expansion, j)*(1<<i);
-                            j++;
-                        }
-                    }
-                    MetaExample exstended_meta_example = MetaExample(num_inputs, output_bits, over_partition);
-
-                    skip_meta_examples[partition][compact_partial_outputs][local_generalization_id].push_back(
-                            exstended_meta_example
-                    );
-                }
-                assert(skip_meta_examples[partition][compact_partial_outputs][local_generalization_id].size() == num_partition_expansions-1);
+//                int size_of_generalization = function_size - size_of_partial_function;
+//                int num_partition_expansions = (1<<size_of_generalization);
+//
+//                int local_generalization_id = (int) skip_meta_examples[partition][compact_partial_outputs].size()-1;
+//                assert(skip_meta_examples[partition][compact_partial_outputs][local_generalization_id].empty());
+//                for(int partition_expansion = 1; partition_expansion < num_partition_expansions; partition_expansion++)
+//                {
+//                    int over_partition = partition;
+//                    for(int i = 0, j=0;i<function_size;i++)
+//                    {
+//                        if(!get_bit(partition, i))
+//                        {
+//                            over_partition += get_bit(partition_expansion, j)*(1<<i);
+//                            j++;
+//                        }
+//                    }
+//                    MetaExample exstended_meta_example = MetaExample(num_inputs, output_bits, over_partition);
+//
+//                    skip_meta_examples[partition][compact_partial_outputs][local_generalization_id].push_back(
+//                            exstended_meta_example
+//                    );
+//                }
+//                assert(skip_meta_examples[partition][compact_partial_outputs][local_generalization_id].size() == num_partition_expansions-1);
             }
         }
 
@@ -252,9 +255,6 @@ public:
 
 AllMetaExamples all_meta_examples = AllMetaExamples();
 
-int min_num_examples;
-int max_num_examples;
-
 
 ofstream current_file;
 
@@ -299,23 +299,40 @@ void enumerate_meta_training_sets(
             local_partition_index = 0;
             if(partition_size > max_num_examples || partition_size >= all_meta_examples.ordering_of_partition_per_size.size())
             {
-//                poset.record();
                 num_dones += 1;
+//                poset.record();
 //                poset.to_string();
                 if(num_dones%FREQUENCY_DONE_PRINT == 0)
                 {
-                    cout << "DONE #" << num_dones << " time: " << (double)time(nullptr) - local_time << endl;
-//                    if(num_dones%10000000 == 0)
-//                    {
-//                        cout << " : " <<endl;
-//                        poset.to_string();
-//                        cout << endl;
-//                    }
-//                    else
-//                    {
-//                        cout << endl;
-//                    }
+                    cout << "DONE #" << num_dones
+                    << " num_nodes = " << poset.get_num_nodes()
+                    << " num_remaining_meta_edges = " << poset.get_num_meta_edges()
+                    << " num_inserted_meta_edges = " << poset.get_num_inserts()
+                    << " num_decision_tree_nodes = " << get__global_num_decision_tree_nodes()
+                    << " num_empty_slots = " << get__empty_slots_count()
+                    << " time: " << (double)time(nullptr) - local_time << endl;
+
                 }
+
+                CompactPoset poset_copy = CompactPoset(&poset);
+
+                if(poset_copy.there_exist_redundant_meta_edge())
+                {
+
+                    cout << "DONE #" << num_dones
+                         << " num_nodes = " << poset_copy.get_num_nodes()
+                         << " num_remaining_meta_edges = " << poset_copy.get_num_meta_edges()
+                         << " num_inserted_meta_edges = " << poset_copy.get_num_inserts()
+                         << " num_decision_tree_nodes = " << get__global_num_decision_tree_nodes()
+                         << " num_empty_slots = " << get__empty_slots_count()
+                         << " time: " << (double)time(nullptr) - local_time << endl;
+                    cout << "redundant edges = " << (poset.get_num_meta_edges() - poset_copy.get_num_meta_edges()) << endl;
+//                    assert(false);
+                }
+
+                poset_copy.add_edges_back();
+                poset_copy.clear();
+
                 return ;
             }
         }
@@ -323,51 +340,33 @@ void enumerate_meta_training_sets(
         assert(partition_id < all_meta_examples.meta_examples.size());
     }
 
-//    if(poset.skip_meta_examples[partition_id][partial_assignment_id])
-//    {
-////        cout << "SKIP" << endl;
-//        enumerate_meta_training_sets(
-//                partition_size, local_partition_index, partial_assignment_id+1,
-//                poset, tab + 1);
-//    }
-//    else {
-
-        for (int generalization_id = 0;
-             generalization_id < all_meta_examples.meta_examples[partition_id][partial_assignment_id].size();
-             generalization_id++) {
-            if (tab < DEPTH_TREEE_PRINT) {
-                for (int j = 0; j < tab; j++) {
-                    cout << "  ";
-                }
-                cout << "(" << partition_id << ", " << partial_assignment_id << ", " << generalization_id << "); "
-                     << endl;
+    for
+    (
+        int generalization_id = 0;
+        generalization_id < all_meta_examples.meta_examples[partition_id][partial_assignment_id].size();
+        generalization_id++
+    )
+    {
+        if (tab < DEPTH_TREEE_PRINT) {
+            for (int j = 0; j < tab; j++) {
+                cout << "  ";
             }
-            if (poset.append(all_meta_examples.meta_examples[partition_id][partial_assignment_id][generalization_id])) {
-//                poset.print();
-                enumerate_meta_training_sets(
-                        partition_size, local_partition_index, partial_assignment_id + 1,
-                        poset, tab + 1);
-            } else {
-//                poset.to_string();
-//
-//                poset.pop();
-//
-//                poset.to_string();
-//
-//                assert(false);
-
-//            int saved = count_possible_meta_example_sets(
-//                    meta_examples, partition_id, partial_assignment_id+1, min_num_examples, max_num_examples);
-//            if(saved >= 2) {
-//                num_early_invalids+=1;
-//                leafs_saved_per_invalid.push_back(saved);
-//                sum_saved += saved;
-//            }
-            }
-            poset.pop();
+            cout << "(" << partition_id << ", " << partial_assignment_id << ", " << generalization_id << "); " << endl;
         }
-//    }
-//    enumerate_meta_training_sets(meta_examples, partition_id, partial_assignment_id+1, poset);
+
+        if (poset.append(all_meta_examples.meta_examples[partition_id][partial_assignment_id][generalization_id]))
+        {
+//            cout << "enter " << poset.get_num_nodes() << endl;
+            enumerate_meta_training_sets(partition_size, local_partition_index, partial_assignment_id + 1, poset, tab + 1);
+        }
+        else
+        {
+//            cout << "exit" <<endl;
+//            poset.print();
+//            cout << endl;
+        }
+        poset.pop();
+    }
 }
 
 
@@ -377,8 +376,8 @@ void enumerate_sets_of_meta_examples()
 
     all_meta_examples = AllMetaExamples(n, false);
 
-    min_num_examples = 0;
-    max_num_examples = 1;
+    min_num_examples = 2;
+    max_num_examples = 2;
 
     if(n == 2)
     {
@@ -387,12 +386,12 @@ void enumerate_sets_of_meta_examples()
             if(max_num_examples == 3)
             {
                 DEPTH_TREEE_PRINT = 10;
-                FREQUENCY_DONE_PRINT = 200000;
+                FREQUENCY_DONE_PRINT = 1;
             }
             else if(max_num_examples == 2)
             {
                 DEPTH_TREEE_PRINT = 6;
-                FREQUENCY_DONE_PRINT = 20000;
+                FREQUENCY_DONE_PRINT = 1;
             }
             else if(max_num_examples == 1)
             {
@@ -407,7 +406,7 @@ void enumerate_sets_of_meta_examples()
         else if(min_num_examples == 2)
         {
             DEPTH_TREEE_PRINT = 6;
-            FREQUENCY_DONE_PRINT = 20000;
+            FREQUENCY_DONE_PRINT = 1;
         }
         else
         {
@@ -419,13 +418,21 @@ void enumerate_sets_of_meta_examples()
         DEPTH_TREEE_PRINT = 0;
         FREQUENCY_DONE_PRINT = 100;
     }
-    else if(n == 3)
+    else if(n >= 3)
     {
         if(min_num_examples <= 1) {
             if (max_num_examples == 1) {
-                DEPTH_TREEE_PRINT = 12;
-                FREQUENCY_DONE_PRINT = 4000;
+                DEPTH_TREEE_PRINT = 0;
+                FREQUENCY_DONE_PRINT = 100;
             }
+            else
+            {
+                assert(false);
+            }
+        }
+        else
+        {
+            assert(false);
         }
     }
     else
@@ -444,12 +451,12 @@ void enumerate_sets_of_meta_examples()
 
 //    cout << "num possible: " << num_possible << endl;
 
-    CompactPoset new_poset = CompactPoset(n);
+    CompactPoset new_poset_with_hard_pop = CompactPoset(n);
     enumerate_meta_training_sets(
             0,
             0,
             0,
-            new_poset,
+            new_poset_with_hard_pop,
             0);
 
     cout << "NUM CALLS = " << num_calls << endl;

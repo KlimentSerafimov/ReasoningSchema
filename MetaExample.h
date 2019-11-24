@@ -16,6 +16,8 @@ public:
     PartialFunction partial_function;
     PartialFunction total_function;
 
+    MetaExample() = default;
+
     MetaExample(int _num_inputs, int _total_function, int _partition);
     MetaExample(PartialFunction partial_function);
 
