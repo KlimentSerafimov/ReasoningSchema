@@ -20,6 +20,7 @@ public:
     vector<int> new_union_nodes;
     pair<int, int> new_meta_edge;
     vector<pair<int, int> > new_union_edges;
+    bool removed_after_the_fact = false;
     DeltaCompactPoset() = default;
 };
 

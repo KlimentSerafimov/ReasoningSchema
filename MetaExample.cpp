@@ -4,17 +4,18 @@
 
 #include "MetaExample.h"
 #include "util.h"
+#include <iostream>
 
 MetaExample::MetaExample(
         int _num_inputs, int _total_function, int _partition) {
     partial_function = PartialFunction(_num_inputs, _total_function, _partition);
-    total_function = PartialFunction(_num_inputs, _total_function, (1<<partial_function.function_size)-1);
+    total_function = PartialFunction(_num_inputs, _total_function, -1);
 }
 
 MetaExample::MetaExample(PartialFunction _partial_function){
     partial_function = _partial_function;
     total_function = PartialFunction(
-            partial_function.num_inputs, partial_function.total_function,  (1<<partial_function.function_size)-1);
+            partial_function.num_inputs, partial_function.total_function, -1);
 }
 
 
@@ -98,4 +99,9 @@ string MetaExample::linear_string(int tab)
     ret += ")";
     ret += "}";
     return ret;
+}
+
+void MetaExample::print()
+{
+    cout << linear_string() << endl;
 }

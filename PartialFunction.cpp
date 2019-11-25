@@ -12,6 +12,10 @@ PartialFunction::PartialFunction(int _num_inputs, int _total_function, int _part
     num_inputs = _num_inputs;
     function_size = (1<<num_inputs);
     total_function = _total_function;
+    if(_partition == -1)
+    {
+        _partition = (1<<function_size)-1;
+    }
     partition = _partition;
 }
 
@@ -29,4 +33,13 @@ string PartialFunction::to_string() {
         }
     }
     return ret;
+}
+
+bool PartialFunction::is_generalization_of(PartialFunction other_partial_function) {
+    assert(num_inputs == other_partial_function.num_inputs);
+    assert(partition == (1<<(1<<num_inputs))-1);
+    bool ret = ((total_function & other_partial_function.partition) -
+            (other_partial_function.total_function & other_partial_function.partition) == 0);
+    return ret;
+
 }

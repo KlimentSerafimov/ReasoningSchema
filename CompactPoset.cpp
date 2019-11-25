@@ -514,13 +514,17 @@ string CompactPoset::to_string() {
     ret += "meta_example_stack: \n";
     for(int i = 0;i<delta_stack.size();i++)
     {
+
+        ret += delta_stack[i].meta_example.linear_string(1);
         if(delta_stack[i].was_poped)
         {
-            ret += "\tpopped\n";
+            ret += " popped";
         }
-        else {
-            ret += delta_stack[i].meta_example.linear_string(1) + "\n";
+        if(delta_stack[i].removed_after_the_fact)
+        {
+            ret += " removed_after_the_fact";
         }
+        ret += "\n";
     }
 
     return ret;
@@ -726,7 +730,7 @@ bool CompactPoset::there_exist_redundant_meta_edge()
 {
     bool removed_meta_edge = false;
 
-    for(int i = 0;i<delta_stack.size();i++)
+    for(int i = delta_stack.size()-1;i>=0;i--)
     {
         if(!delta_stack[i].was_poped)
         {
@@ -751,6 +755,8 @@ bool CompactPoset::there_exist_redundant_meta_edge()
                 removed_meta_edge = true;
                 it_dominated = find(meta_edges[dominator].begin(), meta_edges[dominator].end(), dominated);
                 it_dominator = find(reverse_meta_edges[dominated].begin(), reverse_meta_edges[dominated].end(), dominator);
+
+                delta_stack[i].removed_after_the_fact = true;
 
                 meta_edges[dominator].erase(it_dominated);
                 reverse_meta_edges[dominated].erase(it_dominator);
@@ -805,10 +811,12 @@ void CompactPoset::add_edges_back() {
         reverse_meta_edges[dominated].insert(it_dominator, dominator);
         num_meta_edges+=1;
     }
+    removed_edges.clear();
 }
 
 void CompactPoset::clear()
 {
+    add_edges_back();
     while(!empty())
     {
         pop();

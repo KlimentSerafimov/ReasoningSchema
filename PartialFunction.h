@@ -22,6 +22,8 @@ public:
     PartialFunction(int _num_inputs, int _total_function, int _partition);
 
     string to_string();
+
+    bool is_generalization_of(PartialFunction other);
 };
 
 #endif //COMPACTPOSET_PARTIALFUNCTION_H

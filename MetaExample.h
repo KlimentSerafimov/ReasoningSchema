@@ -27,6 +27,8 @@ public:
     string linear_string(int tab);
 
     string linear_string();
+
+    void print();
 };
 
 

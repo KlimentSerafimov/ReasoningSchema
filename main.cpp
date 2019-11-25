@@ -1,6 +1,7 @@
 #include <iostream>
 #include "CompactPoset.h"
 #include <fstream>
+#include "LanguagesOverBooleanFunctions.h"
 
 
 
@@ -302,6 +303,8 @@ void enumerate_meta_training_sets(
                 num_dones += 1;
 //                poset.record();
 //                poset.to_string();
+                CompactPoset poset_copy = CompactPoset(&poset);
+
                 if(num_dones%FREQUENCY_DONE_PRINT == 0)
                 {
                     cout << "DONE #" << num_dones
@@ -314,11 +317,10 @@ void enumerate_meta_training_sets(
 
                 }
 
-                CompactPoset poset_copy = CompactPoset(&poset);
-
-                if(poset_copy.there_exist_redundant_meta_edge())
+                bool there_exist_redundant_meta_edge = poset_copy.there_exist_redundant_meta_edge();
+                int diff_in_meta_edges = (poset.get_num_meta_edges() - poset_copy.get_num_meta_edges());
+                if(there_exist_redundant_meta_edge &&  diff_in_meta_edges >= 5)
                 {
-
                     cout << "DONE #" << num_dones
                          << " num_nodes = " << poset_copy.get_num_nodes()
                          << " num_remaining_meta_edges = " << poset_copy.get_num_meta_edges()
@@ -326,11 +328,15 @@ void enumerate_meta_training_sets(
                          << " num_decision_tree_nodes = " << get__global_num_decision_tree_nodes()
                          << " num_empty_slots = " << get__empty_slots_count()
                          << " time: " << (double)time(nullptr) - local_time << endl;
-                    cout << "redundant edges = " << (poset.get_num_meta_edges() - poset_copy.get_num_meta_edges()) << endl;
+                    cout << "redundant edges = " << diff_in_meta_edges << endl;
 //                    assert(false);
+
+                    if(poset_copy.get_num_meta_edges() <= 10)
+                    {
+                        poset_copy.print();
+                    }
                 }
 
-                poset_copy.add_edges_back();
                 poset_copy.clear();
 
                 return ;
@@ -391,7 +397,7 @@ void enumerate_sets_of_meta_examples()
             else if(max_num_examples == 2)
             {
                 DEPTH_TREEE_PRINT = 6;
-                FREQUENCY_DONE_PRINT = 1;
+                FREQUENCY_DONE_PRINT = 10000;
             }
             else if(max_num_examples == 1)
             {
@@ -406,7 +412,7 @@ void enumerate_sets_of_meta_examples()
         else if(min_num_examples == 2)
         {
             DEPTH_TREEE_PRINT = 6;
-            FREQUENCY_DONE_PRINT = 1;
+            FREQUENCY_DONE_PRINT = 10000;
         }
         else
         {
@@ -477,7 +483,64 @@ void enumerate_sets_of_meta_examples()
 
 int main() {
 
-    enumerate_sets_of_meta_examples();
+    bool do__enumerate_sets_of_meta_examples = false;
+    if(do__enumerate_sets_of_meta_examples)
+    {
+        enumerate_sets_of_meta_examples();
+    }
+    else
+    {
+        for(int language_id = 0; language_id < 8+16;language_id++)
+        {
+            if(language_id == 8 || language_id == 11 || language_id == 13 || language_id == 18 || language_id == 20 || language_id == 23)
+            {
+                continue;
+            }
+            int num_inputs = 3;
+            LanguagesOverBooleanFunctions language = LanguagesOverBooleanFunctions(num_inputs, language_id);
+            language.enumerate();
+
+            int function_size = (1 << num_inputs);
+            int num_functions = (1 << function_size);
+            int num_partitions = num_functions;
+
+            vector<MetaExample> meta_examples;
+
+            for (int partition = 0; partition < num_partitions - 1; partition++) {
+                int partition_size = __builtin_popcount(partition);
+                int num_partition_assignments = (1 << partition_size);
+                for (int partial_assignment = 0; partial_assignment < num_partition_assignments; partial_assignment++) {
+                    int total_function = 0;
+                    for (int i = 0, j = 0; i < function_size; i++) {
+                        if (get_bit(partition, i)) {
+                            total_function += (1 << i) * get_bit(partial_assignment, j);
+                            j++;
+                        }
+                    }
+                    MetaExample local_meta_example = language.get_meta_example(
+                            PartialFunction(num_inputs, total_function, partition));
+//                local_meta_example.print();
+                    meta_examples.push_back(local_meta_example);
+                }
+            }
+
+            CompactPoset poset = CompactPoset(num_inputs);
+
+            for (int i = 0; i < meta_examples.size(); i++) {
+                cout << "here " << i << endl;
+                assert(poset.append(meta_examples[i]));
+            }
+
+//        poset.print();
+
+            poset.there_exist_redundant_meta_edge();
+
+            poset.clear();
+
+//        poset.print();
+        }
+
+    }
 
     cout << "TIME: " << (double) time(nullptr) - local_time << endl;
 
