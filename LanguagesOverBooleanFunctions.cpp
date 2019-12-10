@@ -5,22 +5,32 @@
 #include "LanguagesOverBooleanFunctions.h"
 #include "util.h"
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #define MAX_NUM_PROGRAM_NODES 400000
 
 static int global_num_program_nodes = 0;
-//vector<int> empty_slots;
+vector<int> empty_slots__program_nodes;
 ProgramNode all_program_nodes[MAX_NUM_PROGRAM_NODES];
 
 ProgramNode* get_new_program_node(Primitive primitive)
 {
-    if(global_num_program_nodes>=MAX_NUM_PROGRAM_NODES)
-    {
-        cout << "expand MAX_NUM_PROGRAM_NODES" <<endl;
-        assert(false);
+    if(empty_slots__program_nodes.empty()) {
+        if (global_num_program_nodes >= MAX_NUM_PROGRAM_NODES) {
+            cout << "expand MAX_NUM_PROGRAM_NODES" << endl;
+            assert(false);
+        }
+        all_program_nodes[global_num_program_nodes] = ProgramNode(global_num_program_nodes, primitive);
+        return &all_program_nodes[global_num_program_nodes++];
     }
-    all_program_nodes[global_num_program_nodes] = ProgramNode(primitive);
-    return &all_program_nodes[global_num_program_nodes++];
+    else
+    {
+        int new_node_id = empty_slots__program_nodes.back();
+        empty_slots__program_nodes.pop_back();
+        all_program_nodes[new_node_id] = ProgramNode(new_node_id, primitive);
+        return &all_program_nodes[new_node_id];
+    }
 }
 
 void LanguagesOverBooleanFunctions::append_inputs()
@@ -34,6 +44,8 @@ void LanguagesOverBooleanFunctions::append_inputs()
 LanguagesOverBooleanFunctions::LanguagesOverBooleanFunctions(int _num_inputs, int language_id) {
 
     num_inputs = _num_inputs;
+
+    boolean_functions = vector<int>((1<<(1<<num_inputs)), 0);
     primitives_by_num_inputs = vector<vector<Primitive> >(3, vector<Primitive>());
 
     cout << "language = " << language_id << " :: ";
@@ -42,7 +54,9 @@ LanguagesOverBooleanFunctions::LanguagesOverBooleanFunctions(int _num_inputs, in
         primitives_by_num_inputs[0].push_back(Primitive(PartialFunction(2, 0, -1), "0"));
         primitives_by_num_inputs[0].push_back(Primitive(PartialFunction(2, 15, -1), "1"));
         append_inputs();
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 1, -1), "nor"));
+        primitives_by_num_inputs[1].push_back(Primitive(PartialFunction(2, 1, -1), "not"));
+        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 14, -1), "or"));
+//        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 1, -1), "nor"));
     }
     else if(language_id == 1)
     {
@@ -74,37 +88,60 @@ LanguagesOverBooleanFunctions::LanguagesOverBooleanFunctions(int _num_inputs, in
     else if(language_id == 4)
     {
         append_inputs();
-        primitives_by_num_inputs[0].push_back(Primitive(PartialFunction(2, 0, -1), "0"));
-        primitives_by_num_inputs[0].push_back(Primitive(PartialFunction(2, 15, -1), "1"));
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 6, -1), "xor"));
+        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 1, -1), "nor"));
     }
     else if(language_id == 5)
     {
         append_inputs();
-        primitives_by_num_inputs[0].push_back(Primitive(PartialFunction(2, 0, -1), "0"));
-        primitives_by_num_inputs[0].push_back(Primitive(PartialFunction(2, 15, -1), "1"));
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 9, -1), "xnor"));
+        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 7, -1), "nand"));
     }
-    if(language_id == 6) {
-        append_inputs();
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 1, -1), "nor"));
-    }
-    else if(language_id == 7)
-    {
+    else if(language_id == 6) {
         append_inputs();
         primitives_by_num_inputs[1].push_back(Primitive(PartialFunction(2, 1, -1), "not"));
         primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 8, -1), "and"));
         primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 14, -1), "or"));
     }
-    else if(language_id >= 8)
+    else if(language_id == 7)
     {
         append_inputs();
         primitives_by_num_inputs[1].push_back(Primitive(PartialFunction(2, 1, -1), "not"));
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, language_id-8, -1), "custom"));
+        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 14, -1), "or"));
+        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 8, -1), "and"));
+    }
+    else
+    {
+        assert(false);
     }
 }
 
 void LanguagesOverBooleanFunctions::enumerate() {
+
+    if(num_inputs == 4)
+    {
+        ifstream fin;
+
+        fin.open("ordering.in");
+
+        string line;
+        assert(fin.is_open());
+        int i = 0;
+        while(getline(fin, line))
+        {
+            int num;
+            stringstream ss;
+            ss << line;
+            ss >> num;
+
+//            cout << num << " ";
+            ordering_over_boolean_functions.push_back(PartialFunction(num_inputs, num, -1));
+
+        }
+        cout << endl;
+//        assert(false);
+        return;
+
+    }
+
     //size = 0
     program_roots_by_size.push_back(vector<ProgramNode*>());
 
@@ -117,24 +154,22 @@ void LanguagesOverBooleanFunctions::enumerate() {
         ProgramNode *new_program = get_new_program_node(primitives_by_num_inputs[0][i]);
         int total_function = get_total_function(num_inputs, new_program);
 
-        if(boolean_functions.find(total_function) == boolean_functions.end())
+        if(!boolean_functions__contains(total_function))
         {
-            boolean_functions.insert(total_function);
+            boolean_functions__insert(total_function);
             ordering_over_boolean_functions.push_back(PartialFunction(num_inputs, total_function, -1));
             program_roots_by_size[1].push_back(new_program);
 //                                new_program->print();
+        }else
+        {
+            new_program->my_delete();
         }
     }
 
-    int max_size = 26;
     //size >= 2
-    for(int size = 2; size<=max_size; size++)
+    int num_functions = (1<<(1<<num_inputs))-1;
+    for(int size = 2; ordering_over_boolean_functions.size() < num_functions; size++)
     {
-        if(ordering_over_boolean_functions.size() >= (1<<(1<<num_inputs)))
-        {
-            break;
-        }
-//        cout << size <<endl;
         program_roots_by_size.push_back(vector<ProgramNode*>());
         for(int local_num_inputs = 1; local_num_inputs < primitives_by_num_inputs.size(); local_num_inputs++)
         {
@@ -145,21 +180,24 @@ void LanguagesOverBooleanFunctions::enumerate() {
                 {
                     for(int j = 0;j<program_roots_by_size[size-1].size();j++)
                     {
-                        if(program_roots_by_size[size-1][j]->is_constant())
-                        {
-                            continue;
-                        }
+//                        if(program_roots_by_size[size-1][j]->is_constant())
+//                        {
+//                            continue;
+//                        }
 
                         ProgramNode *new_program = get_new_program_node(primitives_by_num_inputs[local_num_inputs][i]);
                         new_program->inputs.push_back(program_roots_by_size[size-1][j]);
                         int total_function = get_total_function(num_inputs, new_program);
 
-                        if(boolean_functions.find(total_function) == boolean_functions.end())
+                        if(!boolean_functions__contains(total_function))
                         {
-                            boolean_functions.insert(total_function);
+                            boolean_functions__insert(total_function);
                             ordering_over_boolean_functions.push_back(PartialFunction(num_inputs, total_function, -1));
                             program_roots_by_size[size].push_back(new_program);
 //                                new_program->print();
+                        }else
+                        {
+                            new_program->my_delete();
                         }
                     }
                 }
@@ -177,25 +215,28 @@ void LanguagesOverBooleanFunctions::enumerate() {
                         {
                             for(int j1 = 0;j1<program_roots_by_size[right_input_size].size();j1++)
                             {
-                                if(program_roots_by_size[left_input_size][j0]->is_constant() &&
-                                        program_roots_by_size[right_input_size][j1]->is_constant())
-                                {
-                                    continue;
-                                }
+//                                if(program_roots_by_size[left_input_size][j0]->is_constant() &&
+//                                        program_roots_by_size[right_input_size][j1]->is_constant())
+//                                {
+//                                    continue;
+//                                }
 
                                 ProgramNode *new_program = get_new_program_node(primitives_by_num_inputs[local_num_inputs][i]);
                                 new_program->inputs.push_back(program_roots_by_size[left_input_size][j0]);
                                 new_program->inputs.push_back(program_roots_by_size[right_input_size][j1]);
 
                                 int total_function = get_total_function(num_inputs, new_program);
-//                               todo: update_ordering_over_boolean_functions(size, total_function);
+//                               todo: update_ordering_over_boolean_functions(size, generalization);
                                 
-                                if(boolean_functions.find(total_function) == boolean_functions.end())
+                                if(!boolean_functions__contains(total_function))
                                 {
-                                    boolean_functions.insert(total_function);
+                                    boolean_functions__insert(total_function);
                                     ordering_over_boolean_functions.push_back(PartialFunction(num_inputs, total_function, -1));
                                     program_roots_by_size[size].push_back(new_program);
 //                                new_program->print();
+                                } else
+                                {
+                                    new_program->my_delete();
                                 }
 
                             }
@@ -204,26 +245,18 @@ void LanguagesOverBooleanFunctions::enumerate() {
                 }
             }
         }
+        cout << "size = " << size << " num_functions_discovered = "<< ordering_over_boolean_functions.size() << endl;
     }
 
-    int count = 0;
-    for(int size = 0; size <= max_size; size++)
+    for(int size = 0; size < program_roots_by_size.size(); size++)
     {
-//        cout << "size = " << size <<endl;
         for (int i = 0; i < program_roots_by_size[size].size(); i++)
         {
-            count+=1;
-            int total_function = 0;
-//            cout << "count = " << count << endl;
+            int total_function = get_total_function(num_inputs, program_roots_by_size[size][i]);
 //            program_roots_by_size[size][i]->print();
-            for (int x = 0; x < (1 << num_inputs); x++) {
-                int result = program_roots_by_size[size][i]->execute(x);
-                total_function+=(1<<x)*result;
-//                cout << bitvector_to_str(x, 2) << " " << result << endl;
-            }
             cout << total_function <<" ";
-//            cout << endl;
         }
+//        cout << endl;
     }
     cout << endl;
 }
@@ -232,6 +265,7 @@ MetaExample LanguagesOverBooleanFunctions::get_meta_example(PartialFunction part
     for(int i = 0;i<ordering_over_boolean_functions.size();i++)
     {
         PartialFunction boolean_function = ordering_over_boolean_functions[i];
+//        is_generalization_counter += __builtin_popcount(partial_function.partition);
         if(boolean_function.is_generalization_of(partial_function))
         {
             return MetaExample(boolean_function.num_inputs, boolean_function.total_function, partial_function.partition);
@@ -240,16 +274,32 @@ MetaExample LanguagesOverBooleanFunctions::get_meta_example(PartialFunction part
     assert(false);
 }
 
+bool LanguagesOverBooleanFunctions::boolean_functions__contains(int function_id) {
+    return boolean_functions[function_id] == 1;
+}
+
+void LanguagesOverBooleanFunctions::boolean_functions__insert(int function_id) {
+    boolean_functions[function_id] = 1;
+}
+
 int get_total_function(int num_inputs, ProgramNode* program_node)
 {
-    int total_function = 0;
+    if(!program_node->executed) {
+        int total_function = 0;
 //    program_node->print();
-    for (int x = 0; x < (1 << num_inputs); x++) {
-        int result = program_node->execute(x);
-        total_function+=(1<<x)*result;
+        int num_rows = (1 << num_inputs);
+        for (int x = 0; x < num_rows; x++) {
+            total_function += (program_node->execute(x) << x);
 //        cout << bitvector_to_str(x, 2) << " " << result << endl;
+        }
+        program_node->total_function = total_function;
+        program_node->executed = true;
+        return total_function;
     }
-    return total_function;
+    else
+    {
+        return program_node->total_function;
+    }
 }
 
 Primitive::Primitive(PartialFunction _partial_function, string _name) {
@@ -275,7 +325,8 @@ int Primitive::execute(int x) {
     }
 }
 
-ProgramNode::ProgramNode(Primitive _primitive) {
+ProgramNode::ProgramNode(int _global_id, Primitive _primitive) {
+    global_id = _global_id;
     primitive = _primitive;
 }
 
@@ -308,19 +359,27 @@ bool ProgramNode::is_constant() {
 }
 
 int ProgramNode::execute(int x) {
-    if(inputs.size()>=1) {
-        vector<int> results;
-        for (int i = 0; i < inputs.size(); i++) {
-            results.push_back(inputs[i]->execute(x));
+    if(!executed) {
+        if (inputs.size() >= 1) {
+            vector<int> results;
+            int root_x = 0;
+            for (int i = 0; i < inputs.size(); i++) {
+                root_x += (inputs[i]->execute(x) << i);
+            }
+            return primitive.execute(root_x);
+        } else
+        {
+            return primitive.execute(x);
         }
-        int root_x = 0;
-        for (int i = 0; i < results.size(); i++) {
-            root_x += (1 << i) * results[i];
-        }
-        return primitive.execute(root_x);
-    } else
-    {
-        return primitive.execute(x);
     }
+    else
+    {
+        return get_bit(total_function, x);
+    }
+}
+
+void ProgramNode::my_delete() {
+    empty_slots__program_nodes.push_back(global_id);
+    inputs.clear();
 }
 

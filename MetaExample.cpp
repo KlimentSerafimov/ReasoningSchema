@@ -9,12 +9,19 @@
 MetaExample::MetaExample(
         int _num_inputs, int _total_function, int _partition) {
     partial_function = PartialFunction(_num_inputs, _total_function, _partition);
-    total_function = PartialFunction(_num_inputs, _total_function, -1);
+    generalization = PartialFunction(_num_inputs, _total_function, -1);
 }
+
+MetaExample::MetaExample(int _num_inputs, int _total_function, int _partition, int generalization_partition) {
+
+    partial_function = PartialFunction(_num_inputs, _total_function, _partition);
+    generalization = PartialFunction(_num_inputs, _total_function, generalization_partition);
+}
+
 
 MetaExample::MetaExample(PartialFunction _partial_function){
     partial_function = _partial_function;
-    total_function = PartialFunction(
+    generalization = PartialFunction(
             partial_function.num_inputs, partial_function.total_function, -1);
 }
 
@@ -54,50 +61,13 @@ string MetaExample::linear_string(int tab)
     {
         ret+="\t";
     }
-    ret += "{";
+//    ret += "{";
     ret += "(";
-    bool is_first = true;
-    for(int i = 0;i<partial_function.function_size;i++)
-    {
-        if(get_bit(partial_function.partition, i))
-        {
-            if(!is_first)
-            {
-                ret += " && ";
-            }
-            else
-            {
-                is_first = false;
-            }
-            ret += bitvector_to_str(i, partial_function.num_inputs);
-            ret += "->";
-            ret += bitvector_to_str(get_bit(partial_function.total_function, i), 1);
-
-        }
-    }
-    ret += ") ";
-    ret += "-->";
-    ret += " (";
-    is_first = true;
-    for(int i = 0;i<partial_function.function_size;i++)
-    {
-        if(!get_bit(partial_function.partition, i))
-        {
-            if(!is_first)
-            {
-                ret += " && ";
-            }
-            else
-            {
-                is_first = false;
-            }
-            ret += bitvector_to_str(i, partial_function.num_inputs);
-            ret += "->";
-            ret += bitvector_to_str(get_bit(partial_function.total_function, i), 1);
-        }
-    }
+    ret += partial_function.to_string();
+    ret += " -> ";
+    ret += generalization.to_string();
     ret += ")";
-    ret += "}";
+//    ret += "}";
     return ret;
 }
 

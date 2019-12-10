@@ -24,6 +24,16 @@ public:
     string to_string();
 
     bool is_generalization_of(PartialFunction other);
+
+    PartialFunction get_composition(PartialFunction other);
+
+    int has_output(int idx);
+
+    int get_output(int idx);
+
+    void apply_intersection(PartialFunction apply_intersection);
+
+    int partition_size();
 };
 
 #endif //COMPACTPOSET_PARTIALFUNCTION_H

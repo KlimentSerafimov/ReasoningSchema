@@ -33,7 +33,6 @@ public:
 };
 
 enum CompactPosetNodeType {base_node, union_node, inactive_node};
-static string node_type_name[2] = {"base_node", "union_node"};
 
 class CompactPosetNode: public DecisionTree
 {
@@ -45,11 +44,22 @@ public:
 
     vector<AppliedOperation> applied_operations;
 
+    DecisionTree downstream_union;
+    DecisionTree dominator_union;
+
+    int open_visited_mark = -1;
+    int closed_visited_mark = -1;
+
+    int num_incoming_meta_edges = 0;
+    int num_incoming_union_edges = 0;
+
     CompactPosetNode() = default;
 
     explicit CompactPosetNode(PartialFunction partial_function);
 
     explicit CompactPosetNode(DecisionTree partial_function);
+
+    explicit CompactPosetNode(DecisionTree *partial_function);
 
     explicit CompactPosetNode(CompactPosetNode *compact_poset_node);
 
@@ -58,6 +68,10 @@ public:
     CompactPosetNode copy();
 
     void apply_operation(OperationType operation_type, CompactPosetNode *other);
+
+    void my_delete();
+
+    string to_string(int i, int num_inputs);
 
 };
 

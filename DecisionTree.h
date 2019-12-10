@@ -12,9 +12,11 @@ using namespace std;
 
 static string operation_name[2] = {"difference", "intersection"};
 
-enum OperationType {difference, intersection};
+enum OperationType {difference, intersection, my_union};
 
 enum NodeType {leaf_node, internal_node};
+
+static int contains_counter;
 
 class Node
 {
@@ -23,7 +25,7 @@ public:
     NodeType node_type;
 
     //if node_type == internal_node
-    Node* branches[2];
+    Node* branches[2] = {NULL, NULL};
     int idx;
 
     //if node_type == leaf_node
@@ -39,14 +41,19 @@ public:
 
     string to_string(int num_tabs, int num_inputs);
 
-    void get_union_of_partial_functions(int num_inputs, vector<PartialFunction> &union_of_partial_functions,
-                                        map<int, int> *idx_to_branch);
+    void get_union_of_partial_functions(
+            int num_inputs, vector<PartialFunction> &union_of_partial_functions, map<int, int> *idx_to_branch);
+
+    void get_union_of_partial_functions_that_contain_partial_function(
+            int num_inputs, PartialFunction partial_function, vector<PartialFunction> *union_of_partial_functions, map<int, int> *idx_to_branch);
 
     bool is_empty();
+
+    bool contains(PartialFunction partial_function);
 };
 
 class DecisionTree {
-    Node* root;
+    Node* root = NULL;
 
 public:
     DecisionTree();
@@ -75,7 +82,12 @@ public:
 
     vector<PartialFunction> get_union_of_partial_functions(int num_inputs);
 
+    void append_union_of_partial_functions_that_contain_partial_function(
+            int num_inputs, PartialFunction partial_function, vector<PartialFunction>* ret);
+
     string get_string_of_union_of_partial_functions(int num_tabs, int num_inputs);
+
+    bool contains(PartialFunction partial_function);
 };
 
 vector<pair<int, int> > get__idxs_and_branches(PartialFunction partial_function);

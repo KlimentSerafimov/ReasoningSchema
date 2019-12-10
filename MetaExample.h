@@ -14,11 +14,12 @@ class MetaExample
 {
 public:
     PartialFunction partial_function;
-    PartialFunction total_function;
+    PartialFunction generalization;
 
     MetaExample() = default;
 
     MetaExample(int _num_inputs, int _total_function, int _partition);
+    MetaExample(int _num_inputs, int _total_function, int _partition, int generalization_partition);
     MetaExample(PartialFunction partial_function);
 
     int get_compact_partial_outputs();
@@ -29,6 +30,11 @@ public:
     string linear_string();
 
     void print();
+
+    bool operator < (const MetaExample &other) const
+    {
+        return generalization.total_function < other.generalization.total_function;
+    }
 };
 
 

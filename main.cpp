@@ -2,6 +2,7 @@
 #include "CompactPoset.h"
 #include <fstream>
 #include "LanguagesOverBooleanFunctions.h"
+#include <queue>
 
 
 
@@ -302,7 +303,7 @@ void enumerate_meta_training_sets(
             {
                 num_dones += 1;
 //                poset.record();
-//                poset.to_string();
+                poset.print();
                 CompactPoset poset_copy = CompactPoset(&poset);
 
                 if(num_dones%FREQUENCY_DONE_PRINT == 0)
@@ -319,7 +320,7 @@ void enumerate_meta_training_sets(
 
                 bool there_exist_redundant_meta_edge = poset_copy.there_exist_redundant_meta_edge();
                 int diff_in_meta_edges = (poset.get_num_meta_edges() - poset_copy.get_num_meta_edges());
-                if(there_exist_redundant_meta_edge &&  diff_in_meta_edges >= 5)
+                if(there_exist_redundant_meta_edge)
                 {
                     cout << "DONE #" << num_dones
                          << " num_nodes = " << poset_copy.get_num_nodes()
@@ -378,12 +379,12 @@ void enumerate_meta_training_sets(
 
 void enumerate_sets_of_meta_examples()
 {
-    int n = 2;
+    int n = 1;
 
     all_meta_examples = AllMetaExamples(n, false);
 
-    min_num_examples = 2;
-    max_num_examples = 2;
+    min_num_examples = 0;
+    max_num_examples = 1;
 
     if(n == 2)
     {
@@ -490,54 +491,285 @@ int main() {
     }
     else
     {
-        for(int language_id = 0; language_id < 8+16;language_id++)
+        int id = 0;
+        for(int language_id = 0; language_id < 8;language_id++)
         {
-            if(language_id == 8 || language_id == 11 || language_id == 13 || language_id == 18 || language_id == 20 || language_id == 23)
-            {
-                continue;
-            }
             int num_inputs = 3;
+            int max_partition_size = -1;
+            int macro_partition = 6;
             LanguagesOverBooleanFunctions language = LanguagesOverBooleanFunctions(num_inputs, language_id);
             language.enumerate();
 
             int function_size = (1 << num_inputs);
             int num_functions = (1 << function_size);
-            int num_partitions = num_functions;
+            int num_partitions = num_functions-1;
+
+            if(macro_partition != -1)
+            {
+                num_partitions = (1<<macro_partition);
+            }
 
             vector<MetaExample> meta_examples;
 
-            for (int partition = 0; partition < num_partitions - 1; partition++) {
-                int partition_size = __builtin_popcount(partition);
-                int num_partition_assignments = (1 << partition_size);
-                for (int partial_assignment = 0; partial_assignment < num_partition_assignments; partial_assignment++) {
-                    int total_function = 0;
-                    for (int i = 0, j = 0; i < function_size; i++) {
-                        if (get_bit(partition, i)) {
-                            total_function += (1 << i) * get_bit(partial_assignment, j);
-                            j++;
-                        }
-                    }
-                    MetaExample local_meta_example = language.get_meta_example(
-                            PartialFunction(num_inputs, total_function, partition));
-//                local_meta_example.print();
-                    meta_examples.push_back(local_meta_example);
-                }
+            auto partitions_by_size = vector<vector<int> >(function_size, vector<int>());
+            auto meta_examples_per_total_function = vector<vector<MetaExample> >(num_functions, vector<MetaExample>());
+
+//            auto meta_examples_per_total_function = vector<DecisionTree>(num_functions, PartialFunction(num_inputs, 0, 0));
+
+
+            for (int partition = 0; partition < num_partitions; partition++) {
+                partitions_by_size[__builtin_popcount(partition)].push_back(partition);
+            }
+            if(max_partition_size == -1)
+            {
+                max_partition_size = partitions_by_size.size()-1;
             }
 
-            CompactPoset poset = CompactPoset(num_inputs);
 
-            for (int i = 0; i < meta_examples.size(); i++) {
-                cout << "here " << i << endl;
+            for(int partition_size = 0;partition_size<=max_partition_size;partition_size++) {
+//                cout << "partition_size = " << partition_size << " time: " << (double)time(nullptr) - local_time << endl;
+                for (int partition_idx = 0; partition_idx < partitions_by_size[partition_size].size(); partition_idx++) {
+                    int partition = partitions_by_size[partition_size][partition_idx];
+                    int num_partition_assignments = (1 << partition_size);
+                    for (int partial_assignment = 0;
+                         partial_assignment < num_partition_assignments; partial_assignment++) {
+                        int total_function = 0;
+                        for (int i = 0, j = 0; i < function_size; i++) {
+                            if (get_bit(partition, i)) {
+                                total_function += (get_bit(partial_assignment, j) << i);
+                                j++;
+                            }
+                        }
+                        MetaExample local_meta_example =
+                                language.get_meta_example(PartialFunction(num_inputs, total_function, partition));
+
+                        bool add =
+                                    true;
+//                                !meta_examples_per_total_function[local_meta_example.generalization.generalization].contains(
+//                                local_meta_example.partial_function);
+                        for(int i = 0; i<meta_examples_per_total_function[local_meta_example.generalization.total_function].size(); i++)
+                        {
+                            MetaExample smaller_meta_example = meta_examples_per_total_function[local_meta_example.generalization.total_function][i];
+
+                            if(local_meta_example.partial_function.is_generalization_of(smaller_meta_example.partial_function))
+                            {
+                                add = false;
+                                break;
+                            }
+                        }
+
+//                    cout << "is_generalization_of_counter " << language.is_generalization_counter <<endl;
+//                local_meta_example.print();
+                        if(add) {
+                            meta_examples.push_back(local_meta_example);
+                            meta_examples_per_total_function[local_meta_example.generalization.total_function].push_back(local_meta_example);
+//                            meta_examples_per_total_function[local_meta_example.generalization.generalization].apply_operation(
+//                                    my_union, new DecisionTree(local_meta_example.partial_function));
+                        }
+                    }
+                }
+                cout << "partition_size = " << partition_size << " num_of_meta_examples = " << meta_examples.size() << " time: " << (double)time(nullptr) - local_time << endl;
+            }
+
+//            vector<CompactPoset> compact_posets;
+//            compact_posets.push_back(CompactPoset(num_inputs));
+//            priority_queue<pair<int, int> > beam;
+//            beam.push(make_pair(-1, 0));
+//            for(int iter = 0;;iter++)
+//            {
+//                CompactPoset* at_compact_poset = &compact_posets[beam.top().second];
+//                cout << at_compact_poset->get_num_nodes() << endl;
+//                cout << "iter = "<< iter
+//                     << " num_nodes = " << at_compact_poset->get_num_nodes()
+//                     << " num_remaining_meta_edges = " << at_compact_poset->get_num_meta_edges()
+//                     << " num_inserted_meta_edges = " << at_compact_poset->get_num_inserts()
+//                     << " num_decision_tree_nodes = " << get__global_num_decision_tree_nodes()
+//                     << " num_empty_slots = " << get__empty_slots_count()
+//                     << " time: " << (double)time(nullptr) - local_time << endl;
+//                beam.pop();
+//                for(int i = 0; i<meta_examples.size();i++)
+//                {
+//                    compact_posets.push_back(CompactPoset(at_compact_poset));
+//                    compact_posets.back().append(meta_examples[i]);
+//                    if(compact_posets.back().get_num_nodes() > at_compact_poset->get_num_nodes())
+//                    {
+//                        beam.push(make_pair(-compact_posets.back().get_num_nodes()+10*compact_posets.back().get_num_inserts(), compact_posets.size()-1));
+//                        cout << compact_posets.back().get_num_nodes() << " ";
+//                    } else{
+//                        compact_posets.back().clear();
+//                    }
+//                }
+//                cout << endl;
+//            }
+
+
+            CompactPoset poset = CompactPoset(num_inputs);
+            assert(poset.get_num_nodes() == 1);
+            for (int i = 0; i < meta_examples.size() ; i++) {
+//                for (int i = meta_examples.size()-1; i >=0  ; i--) {
+                cout << "meta_example_id = "<< i
+                     << " num_nodes = " << poset.get_num_nodes()
+                     << " num_remaining_meta_edges = " << poset.get_num_meta_edges()
+                     << " num_inserted_meta_edges = " << poset.get_num_inserts()
+                     << " num_decision_tree_nodes = " << get__global_num_decision_tree_nodes()
+                     << " num_empty_slots = " << get__empty_slots_count()
+                     << " time: " << (double)time(nullptr) - local_time << endl;
                 assert(poset.append(meta_examples[i]));
+//                poset.print();
+//                poset.classify_nodes();
             }
 
 //        poset.print();
+
+            int prev_num_meta_edges = poset.get_num_meta_edges();
 
             poset.there_exist_redundant_meta_edge();
 
-            poset.clear();
+            cout << poset.meta_examples_to_string() << endl;
 
-//        poset.print();
+//            poset.print();
+
+            int diff_in_meta_edges = (prev_num_meta_edges - poset.get_num_meta_edges());
+
+                cout << "DONE #" << num_dones
+                     << " num_nodes = " << poset.get_num_nodes()
+                     << " num_remaining_meta_edges = " << poset.get_num_meta_edges()
+                     << " num_inserted_meta_edges = " << poset.get_num_inserts()
+                     << " num_decision_tree_nodes = " << get__global_num_decision_tree_nodes()
+                     << " num_empty_slots = " << get__empty_slots_count()
+                     << " time: " << (double)time(nullptr) - local_time << endl;
+                cout << "redundant edges = " << diff_in_meta_edges << endl;
+//                    assert(false);
+
+//            cout << "poset.compress() = " << poset.compress() <<endl;
+
+            vector<CompactPoset> subdomain_poset = vector<CompactPoset>(num_functions, CompactPoset(num_inputs));
+            vector<bool> consistent_subdomains = vector<bool>(num_functions, true);
+
+            for(int i = (int) meta_examples.size()-1; i >= 0; i--)
+            {
+                poset.pop();
+
+                poset.calc_dominator_unions();
+                poset.calc_dominated_unions();
+
+                vector<PartialFunction> results = poset.query(meta_examples[i].partial_function);
+                cout << "meta_example:" << endl;
+                meta_examples[i].print();
+                cout << "results:" << endl;
+                for(int j = 0; j < results.size(); j++)
+                {
+                    cout << results[j].to_string() << endl;
+                }
+
+                bool contains_solution = false;
+
+                PartialFunction subpartial_intersection;
+                for(int j = 0;j<results.size();j++)
+                {
+                    if(j == 0)
+                    {
+                        subpartial_intersection = results[0];
+                    }
+                    else
+                    {
+                        subpartial_intersection.apply_intersection(results[j]);
+                    }
+
+                    if(results[j].total_function == meta_examples[i].generalization.total_function)
+                    {
+                        contains_solution = true;
+//                        break;
+                    }
+                }
+                assert(contains_solution);
+
+                cout << "intersection = " << endl << subpartial_intersection.to_string() << endl;
+
+                if(subpartial_intersection.partition_size() < function_size) {
+
+
+
+                    vector<int> subdomains;
+
+                    int main_subdomain = (1 << function_size) - 1 - subpartial_intersection.partition;
+                    int max_exstended_subdomain_size = subpartial_intersection.partition_size();
+                    int num_exstended_subdomains = (1 << max_exstended_subdomain_size);
+                    for (int exstended_subdomain_bits = 0;
+                         exstended_subdomain_bits < num_exstended_subdomains; exstended_subdomain_bits++) {
+                        int subdomain = 0;
+                        for (int j = 0, k = 0; j < function_size; j++) {
+                            if (!subpartial_intersection.has_output(j)) {
+                                subdomain |= (1 << j);
+                            } else {
+                                subdomain |= (get_bit(exstended_subdomain_bits, k) << j);
+                                k++;
+                            }
+                        }
+                        subdomains.push_back(subdomain);
+                    }
+
+//                    cout << "subdomain masks:" << endl;
+//                    for (int j = 0; j < subdomains.size(); j++) {
+//                        cout << bitvector_to_str(subdomains[j], function_size) << endl;
+//                    }
+
+                    for (int j = 0; j < subdomains.size(); j++) {
+                        if (consistent_subdomains[subdomains[j]]) {
+                            int local_partition = subdomains[j] - main_subdomain;
+                            MetaExample partial_meta_example = MetaExample(
+                                    num_inputs, meta_examples[i].generalization.total_function, local_partition,
+                                    subdomains[j]);
+                            if (!subdomain_poset[subdomains[j]].append(partial_meta_example)) {
+                                consistent_subdomains[subdomains[j]] = false;
+                                cout << "inconsistent" << endl;
+                            }
+                            else
+                            {
+                                partial_meta_example.print();
+                            }
+                        }
+                        else
+                        {
+                            cout << "already inconsistent" << endl;
+                        }
+                    }
+                }
+                cout << "i = " << i << " num_nodes =  " << poset.get_num_nodes() << endl;
+
+            }
+
+            assert(poset.empty());
+
+            assert(false);
+
+            poset.calc_dominator_unions();
+            poset.calc_dominated_unions();
+
+            contains_counter = 0;
+
+            poset.num_visited_nodes_during_query = 0;
+
+            for(int i = 0;i<meta_examples.size();i++)
+            {
+                vector<PartialFunction> result = poset.query(meta_examples[i].partial_function);
+                cout << "meta_example:" << endl;
+                meta_examples[i].print();
+                cout << "result:" << endl;
+                for(int j = 0; j < result.size(); j++)
+                {
+                    cout << result[j].to_string() << endl;
+                }
+                assert(result.size() == 1);
+                assert(result[0].total_function == meta_examples[i].generalization.total_function);
+            }
+
+            cout << "poset.num_visited_nodes_during_query = " << poset.num_visited_nodes_during_query <<endl;
+
+            cout << "is_generalization_counter = " << language.is_generalization_counter << endl;
+            cout << "contains_counter = " << contains_counter << endl;
+
+            poset.clear();
         }
 
     }
@@ -617,6 +849,4 @@ int main() {
 
     return 0;
 }
-
-
 

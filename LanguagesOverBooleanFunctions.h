@@ -34,14 +34,16 @@ class ProgramNode
 {
 public:
 
+    int global_id;
+
     Primitive primitive;
     vector<ProgramNode*> inputs;
 
     int executed = false;
-    PartialFunction partial_function;
+    int total_function;
 
     ProgramNode() = default;
-    ProgramNode(Primitive _primitive);
+    ProgramNode(int global_id, Primitive _primitive);
 
     string to_string(int num_tabs);
     void print();
@@ -49,7 +51,10 @@ public:
     bool is_constant();
 
     int execute(int x);
+
+    void my_delete();
 };
+
 
 class LanguagesOverBooleanFunctions {
 
@@ -58,17 +63,25 @@ class LanguagesOverBooleanFunctions {
 
     vector<vector<ProgramNode*> > program_roots_by_size;
 
-    set<int> boolean_functions;
+//    set<int> boolean_functions;
+    vector<int> boolean_functions;
     vector<PartialFunction> ordering_over_boolean_functions;
 
     void append_inputs();
 
 public:
+
+    int is_generalization_counter = 0;
+
     LanguagesOverBooleanFunctions(int num_inputs, int language_id);
 
     void enumerate();
 
     MetaExample get_meta_example(PartialFunction partial_function);
+
+    bool boolean_functions__contains(int function_id);
+
+    void boolean_functions__insert(int function_id);
 
 };
 

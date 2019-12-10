@@ -48,7 +48,11 @@ class CompactPoset {
 
     vector<pair<int, pair<vector<int>::iterator, vector<int>::iterator> > > removed_edges;
 
+
 public:
+
+    int num_visited_nodes_during_query = 0;
+
     CompactPoset(int num_inputs);
 
     CompactPoset(CompactPoset *poset);
@@ -57,14 +61,27 @@ public:
 
     int push_back_new_node__and__get_id(CompactPosetNode decision_tree, vector<int> to_union_nodes);
 
+    vector<int> get__set_cover(CompactPosetNode *target_set);
+
+    int multi_split_and_union(vector<int> ids__base_node_cover, CompactPosetNode *target_set);
+
     bool append(MetaExample meta_example);
 
     void pop();
 
     void simple_pop();
 
-    int split_dominated_base(CompactPosetNode *dominated, int id__dominator_base,
-                             vector<int> ids__dominated_base);
+    int compress();
+
+    DecisionTree* get_dominated_union(int at);
+
+    void calc_dominated_unions();
+
+    DecisionTree* get_dominator_union(int at);
+
+    void calc_dominator_unions();
+
+    vector<PartialFunction> query(PartialFunction partial_function);
 
     bool is_valid_node(int at);
 
@@ -90,6 +107,8 @@ public:
 
     void make_union_node(int new_union_node);
 
+    string meta_examples_to_string();
+
     string to_string();
 
     void print();
@@ -113,6 +132,8 @@ public:
     void clear();
 
     void add_edges_back();
+
+    void classify_nodes();
 };
 
 
