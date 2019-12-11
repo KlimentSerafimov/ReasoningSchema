@@ -103,6 +103,7 @@ int CompactPoset::multi_split_and_union(vector<int> ids__base_node_cover, Compac
     }
     else
     {
+        assert(ids__base_node_cover.size() == 1);
         remaining_target = target_set->copy();
     }
 
@@ -236,9 +237,13 @@ bool CompactPoset::append(MetaExample meta_example) {
 
     int dominator_node = multi_split_and_union(dominator_set_cover, &dominator);
 
+    dominator.my_delete();
+
     vector<int> dominated_set_cover = get__set_cover(&dominated);
 
     int dominated_node = multi_split_and_union(dominated_set_cover, &dominated);
+
+    dominated.my_delete();
 
     meta_edges[dominator_node].push_back(dominated_node);
     reverse_meta_edges[dominated_node].push_back(dominator_node);
@@ -578,6 +583,41 @@ void CompactPoset::simple_pop() {
     num_meta_edges-=1;
 }
 
+
+void CompactPoset::soft_delete(int id) {
+    if(delta_stack[id].was_poped || delta_stack[id].removed_after_the_fact)
+    {
+        return;
+    }
+    int dominator = delta_stack[id].new_meta_edge.first;
+    int dominated = delta_stack[id].new_meta_edge.second;
+    vector<int>::iterator dominated_it = find(meta_edges[dominator].begin(), meta_edges[dominator].end(), dominated);
+    vector<int>::iterator dominator_it = find(reverse_meta_edges[dominated].begin(), reverse_meta_edges[dominated].end(), dominator);
+    if(dominated_it == meta_edges[dominator].end())
+    {
+        cout << delta_stack[id].meta_example.linear_string() << endl;
+    }
+    meta_edges[dominator].erase(dominated_it);
+    reverse_meta_edges[dominated].erase(dominator_it);
+    num_meta_edges-=1;
+    delta_stack[id].soft_delete_iterators = make_pair(dominator_it, dominated_it);
+}
+
+
+void CompactPoset::re_insert(int id) {
+    if(delta_stack[id].was_poped || delta_stack[id].removed_after_the_fact)
+    {
+        return;
+    }
+    int dominator = delta_stack[id].new_meta_edge.first;
+    int dominated = delta_stack[id].new_meta_edge.second;
+    meta_edges[dominator].insert(delta_stack[id].soft_delete_iterators.second, dominated);
+    reverse_meta_edges[dominated].insert(delta_stack[id].soft_delete_iterators.first, dominator);
+    num_meta_edges+=1;
+}
+
+
+
 void CompactPoset::mark_dominated_init(int origin)
 {
     visited_mark += 1;
@@ -664,6 +704,7 @@ void CompactPoset::mark_dominated(int at) {
     }
     open_visited[at] = -1;
     closed_visited[at] = visited_mark;
+    nodes[at].dominated_mark = visited_mark;
 //    if(nodes[at].node_type == base_node)
 //    {
 //        cout << "dominated: " << at << endl;
@@ -681,6 +722,12 @@ int CompactPoset::get_num_inserts() {
 
 bool CompactPoset::there_exist_redundant_meta_edge()
 {
+
+    if(removed_edges.size() >= 1)
+    {
+        return false;
+    }
+
     bool removed_meta_edge = false;
 
     for(int i = delta_stack.size()-1;i>=0;i--)
@@ -769,31 +816,43 @@ void CompactPoset::add_edges_back() {
 
 void CompactPoset::clear()
 {
-    open_visited.clear();
-    closed_visited.clear();
-    visited_mark = 0;
-    for(int i = 0;i<delta_stack.size();i++)
+    while(!empty())
     {
-        delta_stack[i].new_nodes.clear();
-        delta_stack[i].new_union_nodes.clear();
-        delta_stack[i].new_union_edges.clear();
+        pop();
     }
-    delta_stack.clear();
-    min_cycles.clear();
-    removed_edges.clear();
-    for(int i = (int) nodes.size()-1; i>=0; i--)
-    {
-        nodes[i].my_delete();
-        nodes.pop_back();
-        is_union_of[i].clear();
-        is_union_of.pop_back();
-        is_contained_in[i].clear();
-        is_contained_in.pop_back();
-        meta_edges[i].clear();
-        meta_edges.pop_back();
-        reverse_meta_edges[i].clear();
-        reverse_meta_edges.pop_back();
-    }
+
+    assert(nodes.size() == 1);
+
+//    open_visited.clear();
+//    closed_visited.clear();
+//    visited_mark = 0;
+//    for(int i = 0;i<delta_stack.size();i++)
+//    {
+//        delta_stack[i].new_nodes.clear();
+//        delta_stack[i].new_union_nodes.clear();
+//        delta_stack[i].new_union_edges.clear();
+//    }
+//    delta_stack.clear();
+//    min_cycles.clear();
+//    removed_edges.clear();
+//    for(int i = (int) nodes.size()-1; i>=0; i--)
+//    {
+//        nodes[i].my_delete();
+//        nodes.pop_back();
+//        is_union_of[i].clear();
+//        is_union_of.pop_back();
+//        is_contained_in[i].clear();
+//        is_contained_in.pop_back();
+//        meta_edges[i].clear();
+//        meta_edges.pop_back();
+//        reverse_meta_edges[i].clear();
+//        reverse_meta_edges.pop_back();
+//    }
+//    nodes.clear();
+//    is_union_of.clear();
+//    is_contained_in.clear();
+//    meta_edges.clear();
+//    reverse_meta_edges.clear();
 }
 
 int CompactPoset::compress() {
@@ -802,7 +861,7 @@ int CompactPoset::compress() {
 
     vector<int> deleted_nodes;
     for (int i = 0; i < nodes.size(); i++) {
-        if (nodes[i].node_type == union_node && meta_edges[i].size() == 0) {
+        if (nodes[i].node_type == union_node && meta_edges[i].size() == 0 && reverse_meta_edges[i].size() == 0) {
             for (int j = 0; j < is_contained_in[i].size(); j++) {
                 vector<int>::iterator erase_it = find(
                         is_union_of[is_contained_in[i][j]].begin(),
@@ -843,7 +902,7 @@ int CompactPoset::compress() {
                     reverse_meta_edges[meta_edges[i][k]].erase(erase_it__reverse_meta_edge);
                 }
             }
-            cout << "delete " << i << endl;
+//            cout << "delete " << i << endl;
             deleted_nodes.push_back(i);
             nodes[i].my_delete();
             is_contained_in[i].clear();
@@ -856,7 +915,7 @@ int CompactPoset::compress() {
     {
         if(nodes[i].node_type != inactive_node)
         {
-            cout << "here " << i << endl;
+//            cout << "here " << i << endl;
             assert(is_union_of[i].size() == 0);
         }
     }
@@ -867,25 +926,25 @@ int CompactPoset::compress() {
     return ret;
 }
 
-DecisionTree* CompactPoset::get_dominated_union(int at)
+DecisionTree* CompactPoset::get_downstream_union(int at)
 {
     assert(open_visited[at] != visited_mark);
     open_visited[at] = visited_mark;
     if(closed_visited[at] != visited_mark) {
         if (nodes[at].node_type == union_node) {
             assert(is_union_of[at].size() >= 1);
-            nodes[at].downstream_union = get_dominated_union(is_union_of[at][0])->copy();
+            nodes[at].downstream_union = get_downstream_union(is_union_of[at][0])->copy();
             nodes[at].downstream_union.apply_operation(my_union, &nodes[is_union_of[at][0]]);
             for (int i = 1; i < is_union_of[at].size(); i++) {
-                nodes[at].downstream_union.apply_operation(my_union, get_dominated_union(is_union_of[at][i]));
+                nodes[at].downstream_union.apply_operation(my_union, get_downstream_union(is_union_of[at][i]));
                 nodes[at].downstream_union.apply_operation(my_union, &nodes[is_union_of[at][i]]);
             }
         } else if (meta_edges[at].size() >= 1)
         {
-            nodes[at].downstream_union = get_dominated_union(meta_edges[at][0])->copy();
+            nodes[at].downstream_union = get_downstream_union(meta_edges[at][0])->copy();
             nodes[at].downstream_union.apply_operation(my_union, &nodes[meta_edges[at][0]]);
             for (int i = 1; i < meta_edges[at].size(); i++) {
-                nodes[at].downstream_union.apply_operation(my_union, get_dominated_union(meta_edges[at][i]));
+                nodes[at].downstream_union.apply_operation(my_union, get_downstream_union(meta_edges[at][i]));
                 nodes[at].downstream_union.apply_operation(my_union, &nodes[meta_edges[at][i]]);
             }
         }
@@ -910,13 +969,17 @@ DecisionTree* CompactPoset::get_dominated_union(int at)
     return &nodes[at].downstream_union;
 }
 
-void CompactPoset::calc_dominated_unions()
+void CompactPoset::calc_downstream_unions()
 {
     visited_mark+=1;
     for(int i = 0;i<nodes.size();i++)
     {
+        nodes[i].downstream_union.my_delete();
+    }
+    for(int i = 0;i<nodes.size();i++)
+    {
         if(closed_visited[i] != visited_mark && nodes[i].node_type != inactive_node) {
-            get_dominated_union(i);
+            get_downstream_union(i);
         }
     }
 }
@@ -967,6 +1030,10 @@ void CompactPoset::calc_dominator_unions()
     visited_mark+=1;
     for(int i = 0;i<nodes.size();i++)
     {
+        nodes[i].dominator_union.my_delete();
+    }
+    for(int i = 0;i<nodes.size();i++)
+    {
         if(closed_visited[i] != visited_mark) {
             get_dominator_union(i);
         }
@@ -975,39 +1042,55 @@ void CompactPoset::calc_dominator_unions()
 
 vector<PartialFunction> CompactPoset::query(PartialFunction partial_function)
 {
-    cout << endl;
-    cout << partial_function.to_string() << endl;
+//    cout << endl;
+//    cout << partial_function.to_string() << endl;
     queue<int> q;
-    visited_mark+=1;
+    int local_visited_mark = ++visited_mark;
     for(int i = 0;i<nodes.size();i++)
     {
         if(nodes[i].node_type != inactive_node && reverse_meta_edges[i].size() == 0 && is_contained_in[i].size() == 0)
         {
-            nodes[i].open_visited_mark = visited_mark;
+            nodes[i].open_visited_mark = local_visited_mark;
+            nodes[i].num_incoming_meta_edges = 0;
+            nodes[i].num_incoming_union_edges = 0;
             assert(nodes[i].num_incoming_meta_edges == reverse_meta_edges[i].size());
             assert(nodes[i].num_incoming_union_edges == is_contained_in[i].size());
 
-            if (!nodes[i].dominator_union.contains(partial_function))
+//            if (!nodes[i].dominator_union.contains(partial_function))
             {
-                nodes[i].closed_visited_mark = visited_mark;
+                nodes[i].closed_visited_mark = local_visited_mark;
                 q.push(i);
             }
         }
     }
+
+    int init_dominated_mark = visited_mark;
+
     vector<PartialFunction> ret;
     while(!q.empty())
     {
         num_visited_nodes_during_query++;
         int at = q.front();
-//        cout <<"at " << at << endl;
         q.pop();
+
+        if(init_dominated_mark <= nodes[at].dominated_mark && nodes[at].dominated_mark <= visited_mark)
+        {
+            assert(false);
+            continue;
+        }
+
+//        cout <<"at " << at << endl;
         if(nodes[at].node_type == base_node)
         {
             if(nodes[at].contains(partial_function))
             {
+//                assert(!nodes[at].dominator_union.contains(partial_function));
                 assert(nodes[at].num_incoming_meta_edges == reverse_meta_edges[at].size());
                 assert(nodes[at].num_incoming_union_edges == is_contained_in[at].size());
                 nodes[at].append_union_of_partial_functions_that_contain_partial_function(num_inputs, partial_function, &ret);
+
+                mark_dominated_init(at);
+
 //                if(ret.size() >= 6)
 //                {
 //                    for(int i = 0;i<ret.size();i++) {
@@ -1022,24 +1105,30 @@ vector<PartialFunction> CompactPoset::query(PartialFunction partial_function)
             }
             else if(meta_edges[at].size() >= 1)
             {
-                if(nodes[at].downstream_union.contains(partial_function))
+//                if(nodes[at].downstream_union.contains(partial_function))
                 {
                     for(int i = 0;i<meta_edges[at].size();i++){
                         int next = meta_edges[at][i];
-                        if(closed_visited[next] != visited_mark) {
-                            if(open_visited[next] != visited_mark)
+                        if(nodes[next].closed_visited_mark != local_visited_mark) {
+                            if(nodes[next].open_visited_mark != local_visited_mark)
                             {
                                 nodes[next].num_incoming_meta_edges = 0;
                                 nodes[next].num_incoming_union_edges = 0;
-                                open_visited[next] = visited_mark;
+                                nodes[next].open_visited_mark = local_visited_mark;
                             }
                             nodes[next].num_incoming_meta_edges+=1;
                             if(nodes[next].num_incoming_meta_edges == reverse_meta_edges[next].size()
                                && nodes[next].num_incoming_union_edges == is_contained_in[next].size())
                             {
-                                if (!nodes[next].dominator_union.contains(partial_function))
+                                if(init_dominated_mark <= nodes[at].dominated_mark && nodes[at].dominated_mark <= visited_mark)
                                 {
-                                    closed_visited[next] = visited_mark;
+                                    assert(false);
+                                    continue;
+                                }
+//                                if (!nodes[next].dominator_union.contains(partial_function))
+
+                                {
+                                    nodes[next].closed_visited_mark = local_visited_mark;
                                     q.push(next);
                                 }
                             }
@@ -1050,25 +1139,30 @@ vector<PartialFunction> CompactPoset::query(PartialFunction partial_function)
         }
         else if(nodes[at].node_type == union_node)
         {
-            if(nodes[at].downstream_union.contains(partial_function))
+//            if(nodes[at].downstream_union.contains(partial_function))
             {
                 for(int i = 0;i<is_union_of[at].size();i++)
                 {
                     int next = is_union_of[at][i];
-                    if(closed_visited[next] != visited_mark) {
-                        if(open_visited[next] != visited_mark)
+                    if(nodes[next].closed_visited_mark != local_visited_mark) {
+                        if(nodes[next].open_visited_mark != local_visited_mark)
                         {
                             nodes[next].num_incoming_meta_edges = 0;
                             nodes[next].num_incoming_union_edges = 0;
-                            open_visited[next] = visited_mark;
+                            nodes[next].open_visited_mark = local_visited_mark;
                         }
                         nodes[next].num_incoming_union_edges+=1;
                         if(nodes[next].num_incoming_meta_edges == reverse_meta_edges[next].size()
                             && nodes[next].num_incoming_union_edges == is_contained_in[next].size())
                         {
-                            if (!nodes[next].dominator_union.contains(partial_function))
+                            if(init_dominated_mark <= nodes[at].dominated_mark && nodes[at].dominated_mark <= visited_mark)
                             {
-                                closed_visited[next] = visited_mark;
+                                assert(false);
+                                continue;
+                            }
+//                            if (!nodes[next].dominator_union.contains(partial_function))
+                            {
+                                nodes[next].closed_visited_mark = local_visited_mark;
                                 q.push(next);
                             }
                         }
@@ -1086,7 +1180,7 @@ vector<PartialFunction> CompactPoset::query(PartialFunction partial_function)
 
 void CompactPoset::classify_nodes()
 {
-    calc_dominated_unions();
+    calc_downstream_unions();
     calc_dominator_unions();
 
     for(int i = 0;i<nodes.size();i++)

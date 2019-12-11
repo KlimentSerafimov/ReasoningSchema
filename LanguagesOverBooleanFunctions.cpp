@@ -60,12 +60,11 @@ LanguagesOverBooleanFunctions::LanguagesOverBooleanFunctions(int _num_inputs, in
     }
     else if(language_id == 1)
     {
-        primitives_by_num_inputs[0].push_back(Primitive(PartialFunction(2, 0, -1), "0"));
         primitives_by_num_inputs[0].push_back(Primitive(PartialFunction(2, 15, -1), "1"));
+        primitives_by_num_inputs[0].push_back(Primitive(PartialFunction(2, 0, -1), "0"));
         append_inputs();
         primitives_by_num_inputs[1].push_back(Primitive(PartialFunction(2, 1, -1), "not"));
         primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 8, -1), "and"));
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 14, -1), "or"));
     }
     else if(language_id == 2)
     {
@@ -105,7 +104,6 @@ LanguagesOverBooleanFunctions::LanguagesOverBooleanFunctions(int _num_inputs, in
     {
         append_inputs();
         primitives_by_num_inputs[1].push_back(Primitive(PartialFunction(2, 1, -1), "not"));
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 14, -1), "or"));
         primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 8, -1), "and"));
     }
     else

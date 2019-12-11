@@ -19,6 +19,7 @@ public:
     vector<int> new_nodes;
     vector<int> new_union_nodes;
     pair<int, int> new_meta_edge;
+    pair<vector<int>::iterator, vector<int>::iterator> soft_delete_iterators;
     vector<pair<int, int> > new_union_edges;
     bool removed_after_the_fact = false;
     DeltaCompactPoset() = default;
@@ -53,6 +54,8 @@ public:
 
     int num_visited_nodes_during_query = 0;
 
+    CompactPoset() = default;
+
     CompactPoset(int num_inputs);
 
     CompactPoset(CompactPoset *poset);
@@ -73,9 +76,13 @@ public:
 
     int compress();
 
-    DecisionTree* get_dominated_union(int at);
+    void soft_delete(int id);
 
-    void calc_dominated_unions();
+    void re_insert(int id);
+
+    DecisionTree* get_downstream_union(int at);
+
+    void calc_downstream_unions();
 
     DecisionTree* get_dominator_union(int at);
 

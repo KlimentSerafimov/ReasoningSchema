@@ -49,6 +49,7 @@ public:
 
     int open_visited_mark = -1;
     int closed_visited_mark = -1;
+    int dominated_mark = -1;
 
     int num_incoming_meta_edges = 0;
     int num_incoming_union_edges = 0;

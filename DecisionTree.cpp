@@ -31,7 +31,7 @@ vector<pair<int, int> > get__idxs_and_branches(PartialFunction partial_function)
     return idxs_and_branches;
 }
 
-#define MAX_NUM_NODES 5000000
+#define MAX_NUM_NODES 10000000
 
 static int global_num_decision_tree_nodes = 0;
 vector<int> empty_slots;

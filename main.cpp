@@ -496,7 +496,7 @@ int main() {
         {
             int num_inputs = 3;
             int max_partition_size = -1;
-            int macro_partition = 6;
+            int macro_partition = -1;
             LanguagesOverBooleanFunctions language = LanguagesOverBooleanFunctions(num_inputs, language_id);
             language.enumerate();
 
@@ -534,7 +534,8 @@ int main() {
                     for (int partial_assignment = 0;
                          partial_assignment < num_partition_assignments; partial_assignment++) {
                         int total_function = 0;
-                        for (int i = 0, j = 0; i < function_size; i++) {
+                        int j = 0;
+                        for (int i = 0; i < function_size; i++) {
                             if (get_bit(partition, i)) {
                                 total_function += (get_bit(partial_assignment, j) << i);
                                 j++;
@@ -604,79 +605,99 @@ int main() {
 
 
             CompactPoset poset = CompactPoset(num_inputs);
-            assert(poset.get_num_nodes() == 1);
-            for (int i = 0; i < meta_examples.size() ; i++) {
-//                for (int i = meta_examples.size()-1; i >=0  ; i--) {
-                cout << "meta_example_id = "<< i
-                     << " num_nodes = " << poset.get_num_nodes()
-                     << " num_remaining_meta_edges = " << poset.get_num_meta_edges()
-                     << " num_inserted_meta_edges = " << poset.get_num_inserts()
-                     << " num_decision_tree_nodes = " << get__global_num_decision_tree_nodes()
-                     << " num_empty_slots = " << get__empty_slots_count()
-                     << " time: " << (double)time(nullptr) - local_time << endl;
-                assert(poset.append(meta_examples[i]));
-//                poset.print();
-//                poset.classify_nodes();
-            }
+//            assert(poset.get_num_nodes() == 1);
+//            for (int i = 0; i < meta_examples.size() ; i++) {
+////                for (int i = meta_examples.size()-1; i >=0  ; i--) {
+//                cout << "meta_example_id = "<< i
+//                     << " num_nodes = " << poset.get_num_nodes()
+//                     << " num_remaining_meta_edges = " << poset.get_num_meta_edges()
+//                     << " num_inserted_meta_edges = " << poset.get_num_inserts()
+//                     << " num_decision_tree_nodes = " << get__global_num_decision_tree_nodes()
+//                     << " num_empty_slots = " << get__empty_slots_count()
+//                     << " time: " << (double)time(nullptr) - local_time << endl;
+//                assert(poset.append(meta_examples[i]));
+//
+////                poset.print();
+////                poset.classify_nodes();
+//            }
+//
+////        poset.print();
+//
+//            int prev_num_meta_edges = poset.get_num_meta_edges();
+//
+//            poset.there_exist_redundant_meta_edge();
+//
+//            cout << poset.meta_examples_to_string() << endl;
+//
+////            poset.print();
+//
+//            int diff_in_meta_edges = (prev_num_meta_edges - poset.get_num_meta_edges());
+//
+//                cout << "DONE #" << num_dones
+//                     << " num_nodes = " << poset.get_num_nodes()
+//                     << " num_remaining_meta_edges = " << poset.get_num_meta_edges()
+//                     << " num_inserted_meta_edges = " << poset.get_num_inserts()
+//                     << " num_decision_tree_nodes = " << get__global_num_decision_tree_nodes()
+//                     << " num_empty_slots = " << get__empty_slots_count()
+//                     << " time: " << (double)time(nullptr) - local_time << endl;
+//                cout << "redundant edges = " << diff_in_meta_edges << endl;
+////                    assert(false);
+//
+////            cout << "poset.compress() = " << poset.compress() <<endl;
+//            cout << "pre init subdomain poset " << get__global_num_decision_tree_nodes() << " empty slots "<< get__empty_slots_count() << endl;
 
-//        poset.print();
 
-            int prev_num_meta_edges = poset.get_num_meta_edges();
-
-            poset.there_exist_redundant_meta_edge();
-
-            cout << poset.meta_examples_to_string() << endl;
-
-//            poset.print();
-
-            int diff_in_meta_edges = (prev_num_meta_edges - poset.get_num_meta_edges());
-
-                cout << "DONE #" << num_dones
-                     << " num_nodes = " << poset.get_num_nodes()
-                     << " num_remaining_meta_edges = " << poset.get_num_meta_edges()
-                     << " num_inserted_meta_edges = " << poset.get_num_inserts()
-                     << " num_decision_tree_nodes = " << get__global_num_decision_tree_nodes()
-                     << " num_empty_slots = " << get__empty_slots_count()
-                     << " time: " << (double)time(nullptr) - local_time << endl;
-                cout << "redundant edges = " << diff_in_meta_edges << endl;
-//                    assert(false);
-
-//            cout << "poset.compress() = " << poset.compress() <<endl;
+//            for(int j = (int) meta_examples.size()-1; j >= 0; j--)
+//            {
+//                poset.pop();
+//            }
 
             vector<CompactPoset> subdomain_poset = vector<CompactPoset>(num_functions, CompactPoset(num_inputs));
-            vector<bool> consistent_subdomains = vector<bool>(num_functions, true);
+            vector<vector<MetaExample> > inconsistent_meta_examples = vector<vector<MetaExample> >(num_functions, vector<MetaExample>());
 
-            for(int i = (int) meta_examples.size()-1; i >= 0; i--)
+
+            for(int j = (int) meta_examples.size()-1; j >= 0; j--)
             {
-                poset.pop();
+//                poset.soft_delete(j);
+//                poset.pop();
 
-                poset.calc_dominator_unions();
-                poset.calc_dominated_unions();
+                double pre_query = (double)time(nullptr);
+//                poset.calc_dominator_unions();
+//                poset.calc_downstream_unions();
 
-                vector<PartialFunction> results = poset.query(meta_examples[i].partial_function);
+//                cout << "precompute took = " << (double)time(nullptr) - pre_query << endl;
+
+                pre_query = (double)time(nullptr);
+
+                vector<PartialFunction> results = poset.query(meta_examples[j].partial_function);
+
+//                cout << "poset.num_visited_nodes_during_query = " << poset.num_visited_nodes_during_query <<endl;
+//                cout << "query took = " << (double)time(nullptr) - pre_query << endl;
+
+                cout << endl;
                 cout << "meta_example:" << endl;
-                meta_examples[i].print();
+                meta_examples[j].print();
                 cout << "results:" << endl;
-                for(int j = 0; j < results.size(); j++)
+                for(int k = 0; k < results.size(); k++)
                 {
-                    cout << results[j].to_string() << endl;
+                    cout << results[k].to_string() << endl;
                 }
 
                 bool contains_solution = false;
 
                 PartialFunction subpartial_intersection;
-                for(int j = 0;j<results.size();j++)
+                for(int k = 0;k<results.size();k++)
                 {
-                    if(j == 0)
+                    if(k == 0)
                     {
                         subpartial_intersection = results[0];
                     }
                     else
                     {
-                        subpartial_intersection.apply_intersection(results[j]);
+                        subpartial_intersection.apply_intersection(results[k]);
                     }
 
-                    if(results[j].total_function == meta_examples[i].generalization.total_function)
+                    if(results[k].total_function == meta_examples[j].generalization.total_function)
                     {
                         contains_solution = true;
 //                        break;
@@ -688,86 +709,197 @@ int main() {
 
                 if(subpartial_intersection.partition_size() < function_size) {
 
-
-
                     vector<int> subdomains;
 
                     int main_subdomain = (1 << function_size) - 1 - subpartial_intersection.partition;
-                    int max_exstended_subdomain_size = subpartial_intersection.partition_size();
-                    int num_exstended_subdomains = (1 << max_exstended_subdomain_size);
-                    for (int exstended_subdomain_bits = 0;
-                         exstended_subdomain_bits < num_exstended_subdomains; exstended_subdomain_bits++) {
-                        int subdomain = 0;
-                        for (int j = 0, k = 0; j < function_size; j++) {
-                            if (!subpartial_intersection.has_output(j)) {
-                                subdomain |= (1 << j);
-                            } else {
-                                subdomain |= (get_bit(exstended_subdomain_bits, k) << j);
-                                k++;
-                            }
+
+                    for(int k = 0;k < (1<<function_size);k++)
+                    {
+                        if((k & main_subdomain) != 0) {
+                            subdomains.push_back(k);
                         }
-                        subdomains.push_back(subdomain);
                     }
 
-//                    cout << "subdomain masks:" << endl;
-//                    for (int j = 0; j < subdomains.size(); j++) {
-//                        cout << bitvector_to_str(subdomains[j], function_size) << endl;
-//                    }
-
-                    for (int j = 0; j < subdomains.size(); j++) {
-                        if (consistent_subdomains[subdomains[j]]) {
-                            int local_partition = subdomains[j] - main_subdomain;
-                            MetaExample partial_meta_example = MetaExample(
-                                    num_inputs, meta_examples[i].generalization.total_function, local_partition,
-                                    subdomains[j]);
-                            if (!subdomain_poset[subdomains[j]].append(partial_meta_example)) {
-                                consistent_subdomains[subdomains[j]] = false;
-                                cout << "inconsistent" << endl;
-                            }
-                            else
-                            {
-                                partial_meta_example.print();
-                            }
+                    for (int k = 0; k < subdomains.size(); k++) {
+                        int local_partition = subdomains[k] - (main_subdomain & subdomains[k]);
+                        MetaExample partial_meta_example = MetaExample(
+                                num_inputs, meta_examples[j].generalization.total_function, local_partition,
+                                subdomains[k]);
+                        if (!subdomain_poset[subdomains[k]].append(partial_meta_example)) {
+                            subdomain_poset[subdomains[k]].pop();
+                            inconsistent_meta_examples[subdomains[k]].push_back(meta_examples[j]);
                         }
-                        else
-                        {
-                            cout << "already inconsistent" << endl;
-                        }
+//                      cout << partial_meta_example.linear_string() << " subdomains[k] = " << bitvector_to_str(subdomains[k], function_size) << " num_meta_edges = " << subdomain_poset[subdomains[k]].get_num_meta_edges() << " num_unhandled = " << inconsistent_meta_examples[subdomains[k]].size() << endl;
                     }
                 }
-                cout << "i = " << i << " num_nodes =  " << poset.get_num_nodes() << endl;
-
+                cout
+                    << "j = " << j
+                    << " num_decision_tree_nodes = " << get__global_num_decision_tree_nodes()
+                    << " num_empty_slots = " << get__empty_slots_count()
+                    << " time: " << (double)time(nullptr) - local_time << endl;
+//                poset.re_insert(j);
             }
 
-            assert(poset.empty());
+            vector<pair<int, int> > best_factorizations;
+            pair<int, int> best_factorization = make_pair(meta_examples.size(), -1);
 
-            assert(false);
+            cout << endl;
+            cout << "ANALYZE FACTORING" <<endl;
 
-            poset.calc_dominator_unions();
-            poset.calc_dominated_unions();
+            vector<CompactPoset> remainders = vector<CompactPoset>(subdomain_poset.size()/2, CompactPoset(num_inputs));
 
-            contains_counter = 0;
-
-            poset.num_visited_nodes_during_query = 0;
-
-            for(int i = 0;i<meta_examples.size();i++)
+            for(int j = 0; j<subdomain_poset.size()/2;j++)
             {
-                vector<PartialFunction> result = poset.query(meta_examples[i].partial_function);
-                cout << "meta_example:" << endl;
-                meta_examples[i].print();
-                cout << "result:" << endl;
-                for(int j = 0; j < result.size(); j++)
+                int j_complement = (1<<function_size)-1-j;
+
+                cout << endl;
+                cout << "consistent factoring: " << bitvector_to_str(j, function_size) << " " << bitvector_to_str(j_complement, function_size) << endl;
+//              cout << "left pre_compress = " << subdomain_poset[j].get_num_meta_edges() << endl;
+                subdomain_poset[j].there_exist_redundant_meta_edge();
+                cout << "left necessary = " << subdomain_poset[j].get_num_meta_edges() << endl;
+
+//              cout << "right pre_compress = " << subdomain_poset[j_complement].get_num_meta_edges() << endl;
+                subdomain_poset[j_complement].there_exist_redundant_meta_edge();
+                cout << "right necessary = " <<subdomain_poset[j_complement].get_num_meta_edges() << endl;
+//              cout << "pre remainder init poset " << get__global_num_decision_tree_nodes() << " empty slots "<< get__empty_slots_count() << endl;
+
+                cout << "num_meta_examples_to_insert_in_remainder = " << inconsistent_meta_examples[j].size() << " + "<< inconsistent_meta_examples[j_complement].size() << " = " << inconsistent_meta_examples[j].size() + inconsistent_meta_examples[j_complement].size() << endl;
+
+                for(int k = 0;k<inconsistent_meta_examples[j].size();k++)
                 {
-                    cout << result[j].to_string() << endl;
+                    assert(remainders[j].append(inconsistent_meta_examples[j][k]));
                 }
-                assert(result.size() == 1);
-                assert(result[0].total_function == meta_examples[i].generalization.total_function);
+
+                for(int k = 0;k<inconsistent_meta_examples[j_complement].size();k++)
+                {
+                    assert(remainders[j].append(inconsistent_meta_examples[j_complement][k]));
+                }
+
+//              cout << "remainder pre_compress = " << remainders[j].get_num_meta_edges() << endl;
+                remainders[j].there_exist_redundant_meta_edge();
+                cout << "remainder necessary = " << remainders[j].get_num_meta_edges() << " num_decision_tree_nodes "<<  get__global_num_decision_tree_nodes() << " empty slots "<< get__empty_slots_count()  << " time: " << (double)time(nullptr) - local_time << endl;
+
+                int local_num_meta_examples_of_decomposition = remainders[j].get_num_meta_edges() + subdomain_poset[j].get_num_meta_edges() + subdomain_poset[j_complement].get_num_meta_edges();
+
+                best_factorizations.push_back(make_pair(local_num_meta_examples_of_decomposition, j));
+
+                int prev_best_j = best_factorization.second;
+
+                best_factorization = min(best_factorization, make_pair(local_num_meta_examples_of_decomposition, j));
+
+                if(best_factorization.second != j)
+                {
+                    remainders[j].clear();
+                }
+                else if(prev_best_j != -1)
+                {
+                    remainders[prev_best_j].clear();
+                }
+
             }
 
-            cout << "poset.num_visited_nodes_during_query = " << poset.num_visited_nodes_during_query <<endl;
+            sort(best_factorizations.begin(), best_factorizations.end());
 
-            cout << "is_generalization_counter = " << language.is_generalization_counter << endl;
-            cout << "contains_counter = " << contains_counter << endl;
+            cout << endl;
+            cout << "SORT FACTORINGS" <<endl;
+
+            for(int j = 0;j<best_factorizations.size();j++)
+            {
+                int k = best_factorizations[j].second;
+                int k_complement = (1<<function_size) - 1 - k;
+                cout << "factorization = " << bitvector_to_str(k, function_size) <<" "<< bitvector_to_str(k_complement, function_size) <<" num_meta_examples " << best_factorizations[j].first << endl;
+            }
+
+            int best_subdomain = best_factorizations[0].second;
+            int best_subdomain_complement = (1<<function_size) - 1 - best_subdomain;
+
+            cout << "BEST LEFT: " << endl;
+            cout << subdomain_poset[best_subdomain].meta_examples_to_string() << endl;
+            cout << "BEST RIGHT: " << endl;
+            cout << subdomain_poset[best_subdomain_complement].meta_examples_to_string() << endl;
+            cout << "BEST REMAINDER: " << endl;
+            cout << remainders[best_subdomain].meta_examples_to_string() << endl;
+
+
+            for(int j = 0;j<meta_examples.size();j++)
+            {
+                vector<PartialFunction> result = remainders[best_subdomain].query(meta_examples[j].partial_function);
+                cout << "meta_example:" << endl;
+                meta_examples[j].print();
+                cout << "result:" << endl;
+                for(int k = 0; k < result.size(); k++)
+                {
+                    cout << result[k].to_string() << endl;
+                }
+                if(result.size() == 1 && __builtin_popcount(result[0].partition) == function_size) {
+                    assert(result[0].total_function == meta_examples[j].generalization.total_function);
+                }
+                else
+                {
+                    vector<PartialFunction> left_result = subdomain_poset[best_subdomain].query(meta_examples[j].partial_function);
+                    cout << "left_result:" << endl;
+                    for(int k = 0; k < left_result.size(); k++)
+                    {
+                        cout << left_result[k].to_string() << endl;
+                    }
+                    vector<PartialFunction> right_result = subdomain_poset[best_subdomain_complement].query(meta_examples[j].partial_function);
+                    cout << "right_result:" << endl;
+                    for(int k = 0; k < right_result.size(); k++)
+                    {
+                        cout << right_result[k].to_string() << endl;
+                    }
+                    assert(left_result.size() == 1);
+                    assert(right_result.size() == 1);
+                    PartialFunction composed_result = left_result[0].get_composition(right_result[0]);
+                    assert(__builtin_popcount(composed_result.partition) == function_size);
+                    assert(composed_result.total_function == meta_examples[j].generalization.total_function);
+                }
+            }
+
+
+
+//            assert(false);
+
+//            tests model stored in poset.
+//            poset.calc_dominator_unions();
+//            poset.calc_downstream_unions();
+
+//            contains_counter = 0;
+//
+//            poset.num_visited_nodes_during_query = 0;
+//
+//            for(int j = 0;j<meta_examples.size();j++)
+//            {
+//                vector<PartialFunction> result = poset.query(meta_examples[j].partial_function);
+//                cout << "meta_example:" << endl;
+//                meta_examples[j].print();
+//                cout << "result:" << endl;
+//                for(int k = 0; k < result.size(); k++)
+//                {
+//                    cout << result[k].to_string() << endl;
+//                }
+//                assert(result.size() == 1);
+//                assert(result[0].total_function == meta_examples[i].generalization.total_function);
+//            }
+//
+//            cout << "poset.num_visited_nodes_during_query = " << poset.num_visited_nodes_during_query <<endl;
+//
+//            cout << "is_generalization_counter = " << language.is_generalization_counter << endl;
+//            cout << "contains_counter = " << contains_counter << endl;
+
+            for(int j = 0; j<subdomain_poset.size();j++)
+            {
+                subdomain_poset[j].clear();
+            }
+
+            for(int j = 0;j<remainders.size();j++)
+            {
+                remainders[j].clear();
+            }
+
+            subdomain_poset.clear();
+
+            remainders.clear();
 
             poset.clear();
         }
