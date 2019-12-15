@@ -8,13 +8,14 @@
 
 #include <vector>
 #include "Node.h"
+#include <set>
 
 using namespace std;
 
 class DeltaCompactPoset
 {
 public:
-    bool was_poped = false;
+    bool was_popped = false;
     MetaExample meta_example;
     vector<int> new_nodes;
     vector<int> new_union_nodes;
@@ -22,12 +23,15 @@ public:
     pair<vector<int>::iterator, vector<int>::iterator> soft_delete_iterators;
     vector<pair<int, int> > new_union_edges;
     bool removed_after_the_fact = false;
+    bool not_unique = false;
     DeltaCompactPoset() = default;
 };
 
 class CompactPoset {
 
     int num_inputs;
+    int generalization_mask;
+    int input_mask;
 
     vector<CompactPosetNode> nodes;
     vector<vector<int> > is_union_of;
@@ -49,6 +53,7 @@ class CompactPoset {
 
     vector<pair<int, pair<vector<int>::iterator, vector<int>::iterator> > > removed_edges;
 
+    set<pair<int, pair<int, int> > > uniques;
 
 public:
 
@@ -57,6 +62,8 @@ public:
     CompactPoset() = default;
 
     CompactPoset(int num_inputs);
+
+    CompactPoset(int num_inputs, int generalization_mask, int input_mask);
 
     CompactPoset(CompactPoset *poset);
 
@@ -71,6 +78,10 @@ public:
     bool append(MetaExample meta_example);
 
     void pop();
+
+    vector<MetaExample> get_necessary_meta_examples();
+
+    vector<MetaExample> get_all_meta_examples_without_duplicates();
 
     void simple_pop();
 
@@ -98,15 +109,17 @@ public:
 
     bool there_exist_redundant_meta_edge();
 
+    bool there_exist_redundant_meta_edge__partial(PartialFunction partial_function);
+
     int get_loop(int at, int count);
 
     int get_loop_from_node(int origin);
 
     void mark_dominated_init(int origin);
 
-    void mark_dominated(int origin);
+    void mark_dominated(int origin, bool is_origin);
 
-    bool there_are_new_dominated(int at);
+    bool there_are_new_dominated(int at, bool is_origin);
 
     bool there_are_new_dominated__init(int origin);
 

@@ -50,7 +50,7 @@ int MetaExample::get_compact_hidden_outputs() {
 }
 
 
-string MetaExample::linear_string() {
+string MetaExample::to_string() {
     return linear_string(0);
 }
 
@@ -62,16 +62,17 @@ string MetaExample::linear_string(int tab)
         ret+="\t";
     }
 //    ret += "{";
-    ret += "(";
+//    ret += "(";
+    ret += "   ";
     ret += partial_function.to_string();
     ret += " -> ";
     ret += generalization.to_string();
-    ret += ")";
+//    ret += ")";
 //    ret += "}";
     return ret;
 }
 
 void MetaExample::print()
 {
-    cout << linear_string() << endl;
+    cout << to_string() << endl;
 }

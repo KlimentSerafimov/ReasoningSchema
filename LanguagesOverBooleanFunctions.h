@@ -58,6 +58,7 @@ public:
 
 class LanguagesOverBooleanFunctions {
 
+    int language_id;
     int num_inputs;
     vector<vector<Primitive> > primitives_by_num_inputs;
 
@@ -67,13 +68,13 @@ class LanguagesOverBooleanFunctions {
     vector<int> boolean_functions;
     vector<PartialFunction> ordering_over_boolean_functions;
 
-    void append_inputs();
+    void append_inputs(int order);
 
 public:
 
     int is_generalization_counter = 0;
 
-    LanguagesOverBooleanFunctions(int num_inputs, int language_id);
+    LanguagesOverBooleanFunctions(int num_inputs, int _language_id);
 
     void enumerate();
 
