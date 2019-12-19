@@ -47,7 +47,10 @@ class CompactPoset {
 
     DeltaCompactPoset local_delta;
 
+    int cycle_init_id;
     vector<int> min_cycles;
+
+    map<pair<int, int>, int> edge_to_meta_example_id;
 
     int num_meta_edges = 0;
 
@@ -55,7 +58,10 @@ class CompactPoset {
 
     set<pair<int, pair<int, int> > > uniques;
 
+
 public:
+
+    vector<int> meta_example_ids_in_cycle;
 
     int num_visited_nodes_during_query = 0;
 
@@ -75,7 +81,7 @@ public:
 
     int multi_split_and_union(vector<int> ids__base_node_cover, CompactPosetNode *target_set);
 
-    bool append(MetaExample meta_example);
+    bool insert(MetaExample meta_example);
 
     void pop();
 
@@ -86,6 +92,8 @@ public:
     void simple_pop();
 
     int compress();
+
+    int soft_delete_meta_example_with_idx(int meta_example_idx);
 
     void soft_delete(int id);
 

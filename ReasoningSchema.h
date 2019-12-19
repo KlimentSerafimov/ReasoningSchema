@@ -8,6 +8,61 @@
 
 #include "CompactPoset.h"
 
+
+class SwitchMasks
+{
+public:
+    int generalization_mask;
+    int optional_training_mask;
+    int compulsory_training_mask;
+    SwitchMasks(
+            int _generalization_mask,
+            int _optional_training_mask,
+            int _compulsory_training_mask)
+
+    {
+        generalization_mask = _generalization_mask;
+        optional_training_mask = _optional_training_mask;
+        compulsory_training_mask = _compulsory_training_mask;
+    }
+};
+
+class SubdomainSwitchPosets
+{
+    int num_inputs;
+    int function_size;
+
+public:
+
+    int common_generalization_mask;
+    int common_optional_mask;
+    int all_subsets_compulsory_mask;
+
+    map<int, int> compusorty_mask_to_id;
+    vector<SwitchMasks> switch_masks;
+    vector<CompactPoset> subdomain_posets;
+
+    SubdomainSwitchPosets(int _num_inputs, int common_generalization_mask, int common_optional_mask, int all_subsets_compulsory_mask);
+
+    string masks_to_string(int id);
+};
+
+class SubdomainSwitchPosetsFactors
+{
+public:
+    int num_inputs;
+    vector<SubdomainSwitchPosets> factors;
+    vector<MetaExample> contained_meta_examples;
+    vector<MetaExample> inconsistent_meta_examples;
+
+    SubdomainSwitchPosetsFactors(int _num_inputs, pair<int, int> generalization_mask, pair<int, int> training_mask);
+
+    void insert(MetaExample meta_example);
+
+    void print();
+};
+
+
 enum ReasoningSchemaType {leaf_schema, factorization_schema, continuation_schema};
 
 class ReasoningSchema

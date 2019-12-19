@@ -64,7 +64,7 @@ int get__empty_slots_count() {
 
 void DecisionTree::init(PartialFunction partial_function)
 {
-
+    num_inputs = partial_function.num_inputs;
     vector<pair<int, int> > idxs_and_branches = get__idxs_and_branches(partial_function);
 
     root = get_new_node();
@@ -102,8 +102,9 @@ DecisionTree::DecisionTree() = default;
 
 
 void DecisionTree::apply_operation(OperationType operation_type, DecisionTree *other) {
-    map<int, int> idx_to_branch;
-    root->apply_operation(operation_type, other->root, &idx_to_branch);
+    PartialFunction idx_to_branch = PartialFunction(num_inputs, 0, 0);
+    root->apply_operation(operation_type, other->root, idx_to_branch);
+    assert(num_inputs == 3);
     assert(idx_to_branch.empty());
 }
 
@@ -156,8 +157,7 @@ DecisionTree DecisionTree::copy() {
         }
     }
 
-    DecisionTree ret;
-    ret.root = new_root;
+    DecisionTree ret = DecisionTree(num_inputs, new_root);
     return ret;
 }
 
@@ -195,7 +195,8 @@ bool Node::is_empty()
     }
 }
 
-DecisionTree::DecisionTree(Node *_root) {
+DecisionTree::DecisionTree(int _num_inputs, Node *_root) {
+    num_inputs = _num_inputs;
     root = _root;
 }
 
@@ -203,14 +204,14 @@ Node* DecisionTree::get_root() {
     return root;
 }
 
-void Node::apply_operation(OperationType operation_type, Node *other, map<int, int> *idx_to_branch) {
+void Node::apply_operation(OperationType operation_type, Node *other, PartialFunction idx_to_branch) {
     if(node_type == internal_node)
     {
-        (*idx_to_branch)[idx] = 0;
+        idx_to_branch.set_bit(idx, 0);
         branches[0]->apply_operation(operation_type, other, idx_to_branch);
-        (*idx_to_branch)[idx] = 1;
+        idx_to_branch.set_bit(idx, 1);
         branches[1]->apply_operation(operation_type, other, idx_to_branch);
-        idx_to_branch->erase(idx);
+        idx_to_branch.clear_bit(idx);
 
         if(branches[0]->node_type == leaf_node && branches[1]->node_type == leaf_node)
         {
@@ -232,7 +233,6 @@ void Node::apply_operation(OperationType operation_type, Node *other, map<int, i
             vector<Node*> mine_nodes;
             other_nodes.push_back(other);
             mine_nodes.push_back(this);
-            stack<vector<Node*> > new_layers_of_nodes;
             while(other_nodes.size() != 0)
             {
                 vector<Node*> next_other_nodes;
@@ -243,7 +243,7 @@ void Node::apply_operation(OperationType operation_type, Node *other, map<int, i
                     Node* at_mine = mine_nodes[i];
                     if (at_other->node_type == internal_node)
                     {
-                        if (idx_to_branch->find(at_other->idx) == idx_to_branch->end())
+                        if (!idx_to_branch.has_output(at_other->idx))
                         {
                             //need to split
                             at_mine->node_type = internal_node;
@@ -258,7 +258,7 @@ void Node::apply_operation(OperationType operation_type, Node *other, map<int, i
                         else
                         {
                             next_mine_nodes.push_back(at_mine);
-                            next_other_nodes.push_back(at_other->branches[(*idx_to_branch)[at_other->idx]]);
+                            next_other_nodes.push_back(at_other->branches[idx_to_branch.get_output(at_other->idx)]);
                         }
                     }
                     else
@@ -291,7 +291,6 @@ void Node::apply_operation(OperationType operation_type, Node *other, map<int, i
                         }
                     }
                 }
-                new_layers_of_nodes.push(mine_nodes);
                 other_nodes = next_other_nodes;
                 mine_nodes = next_mine_nodes;
                 assert(other_nodes.size() == mine_nodes.size());
@@ -445,7 +444,7 @@ void DecisionTree::append_union_of_partial_functions_that_contain_partial_functi
     root->get_union_of_partial_functions_that_contain_partial_function(num_inputs, partial_function, ret, &idx_to_branch);
 }
 
-string DecisionTree::get_string_of_union_of_partial_functions(int num_tabs, int num_inputs) {
+string DecisionTree::get_string_of_union_of_partial_functions(int num_tabs) {
     string ret;
     vector<PartialFunction> union_of_partial_functions = get_union_of_partial_functions(num_inputs);
     for(int i = 0; i<union_of_partial_functions.size();i++)
@@ -463,6 +462,12 @@ void DecisionTree::my_delete() {
 
 bool DecisionTree::contains(PartialFunction partial_function) {
     return root->contains(partial_function);
+}
+
+DecisionTree::DecisionTree(DecisionTree *to_point_to) {
+    num_inputs = to_point_to->num_inputs;
+    root = to_point_to->get_root();
+    assert(root->node_type == internal_node || root->node_type == leaf_node);
 }
 
 

@@ -33,7 +33,13 @@ public:
 
     void apply_intersection(PartialFunction apply_intersection);
 
+    void set_bit(int idx, int value);
+
+    void clear_bit(int idx);
+
     int partition_size();
+
+    bool empty();
 };
 
 #endif //COMPACTPOSET_PARTIALFUNCTION_H

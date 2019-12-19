@@ -63,7 +63,7 @@ string MetaExample::linear_string(int tab)
     }
 //    ret += "{";
 //    ret += "(";
-    ret += "   ";
+//    ret += "   ";
     ret += partial_function.to_string();
     ret += " -> ";
     ret += generalization.to_string();
@@ -75,4 +75,10 @@ string MetaExample::linear_string(int tab)
 void MetaExample::print()
 {
     cout << to_string() << endl;
+}
+
+MetaExample::MetaExample(int _num_inputs, int _total_function, int _partition, int generalization_partition, int _idx) {
+    partial_function = PartialFunction(_num_inputs, _total_function, _partition);
+    generalization = PartialFunction(_num_inputs, _total_function, generalization_partition);
+    idx = _idx;
 }

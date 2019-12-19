@@ -81,3 +81,22 @@ void PartialFunction::apply_intersection(PartialFunction other) {
 int PartialFunction::partition_size() {
     return __builtin_popcount(partition);
 }
+
+void PartialFunction::set_bit(int idx, int value) {
+    if(!get_bit(partition, idx))
+    {
+        partition |= (1 << idx);
+    }
+    total_function &= (1<<function_size)-1-(1<<idx);
+    total_function |= (value << idx);
+    assert(get_bit(total_function, idx) == value);
+}
+
+void PartialFunction::clear_bit(int idx) {
+    assert(get_bit(partition, idx) == 1);
+    partition -= (1<<idx);
+}
+
+bool PartialFunction::empty() {
+    return partition == 0;
+}

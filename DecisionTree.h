@@ -10,7 +10,7 @@
 
 using namespace std;
 
-static string operation_name[2] = {"difference", "intersection"};
+static string operation_name[3] = {"difference", "intersection", "my_union"};
 
 enum OperationType {difference, intersection, my_union};
 
@@ -37,7 +37,7 @@ public:
 
     void my_delete();
 
-    void apply_operation(OperationType operation_type, Node *other, map<int, int> *idx_to_branch);
+    void apply_operation(OperationType operation_type, Node *other, PartialFunction idx_to_branch);
 
     string to_string(int num_tabs, int num_inputs);
 
@@ -56,9 +56,12 @@ class DecisionTree {
     Node* root = NULL;
 
 public:
+    int num_inputs;
     DecisionTree();
 
-    DecisionTree(Node *_root);
+    DecisionTree(int _num_inputs, Node *_root);
+
+    DecisionTree(DecisionTree *to_point_to);
 
     DecisionTree(PartialFunction partial_function);
 
@@ -85,7 +88,7 @@ public:
     void append_union_of_partial_functions_that_contain_partial_function(
             int num_inputs, PartialFunction partial_function, vector<PartialFunction>* ret);
 
-    string get_string_of_union_of_partial_functions(int num_tabs, int num_inputs);
+    string get_string_of_union_of_partial_functions(int num_tabs);
 
     bool contains(PartialFunction partial_function);
 };

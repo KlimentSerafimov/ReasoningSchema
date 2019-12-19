@@ -19,12 +19,12 @@ CompactPosetNode::CompactPosetNode(PartialFunction partial_function, OperationTy
         : DecisionTree(partial_function, operation_type, other) {
 }
 
-CompactPosetNode::CompactPosetNode(DecisionTree partial_function): DecisionTree(partial_function.get_root()){
+CompactPosetNode::CompactPosetNode(DecisionTree partial_function): DecisionTree(&partial_function) {
 
 }
 
 
-CompactPosetNode::CompactPosetNode(DecisionTree *partial_function): DecisionTree(partial_function->get_root()){
+CompactPosetNode::CompactPosetNode(DecisionTree *partial_function): DecisionTree(partial_function) {
 
 }
 
@@ -35,6 +35,7 @@ CompactPosetNode::CompactPosetNode(CompactPosetNode* compact_poset_node) : Decis
 CompactPosetNode CompactPosetNode::copy() {
     CompactPosetNode ret = CompactPosetNode(DecisionTree::copy());
     ret.id_in_compact_poset = id_in_compact_poset;
+    assert(get_root() != ret.get_root());
     return ret;
 }
 
@@ -59,7 +60,7 @@ string CompactPosetNode::to_string(int i, int num_inputs)
     ret += tabs(1) + "id = " + std::to_string(i) + "\n";
     ret += tabs(1) + "node_type = " + node_type_name[node_type] + "\n";
     ret += tabs(1) + "union_of_partial_functions = \n";
-    ret += get_string_of_union_of_partial_functions(2, num_inputs);
+    ret += get_string_of_union_of_partial_functions(2);
     ret += tabs(1) + "applied_operations = \n";
     for(int j = 0;j<applied_operations.size();j++)
     {

@@ -15,17 +15,35 @@ class MetaExample
 public:
     PartialFunction partial_function;
     PartialFunction generalization;
+    int idx;
 
     MetaExample() = default;
 
     MetaExample(int _num_inputs, int _total_function, int _partition);
     MetaExample(int _num_inputs, int _total_function, int _partition, int generalization_partition);
+    MetaExample(int _num_inputs, int _total_function, int _partition, int generalization_partition, int _idx);
     MetaExample(PartialFunction partial_function);
 
     int get_compact_partial_outputs();
     int get_compact_hidden_outputs();
 
     string linear_string(int tab);
+
+    MetaExample get_application_of_subdomain(int subdomain_mask)
+    {
+        return MetaExample(
+                partial_function.num_inputs,
+                generalization.total_function & subdomain_mask,
+                partial_function.partition & subdomain_mask,
+                generalization.partition & subdomain_mask,
+                idx
+                );
+    }
+
+    bool fully_constrained()
+    {
+        return (partial_function.partition & generalization.partition) == generalization.partition;
+    }
 
     string to_string();
 

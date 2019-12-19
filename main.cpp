@@ -4,136 +4,9 @@
 #include "LanguagesOverBooleanFunctions.h"
 #include <queue>
 #include "ReasoningSchema.h"
+#include "MinimalFactoringSchema.h"
 
 
-
-//class MetaExample {
-//public:
-//    int num_inputs;
-//    int total_function_size;
-//    int total_function_output;
-//    int partition;
-//
-//    int partial_function_size;
-//    int generalization_size;
-//    int partial_function_outputs = 0;
-//    int generalization_outputs = 0;
-//
-//    vector<TotalFunction> dominated_total_functions;
-//
-//    MetaExample(int _num_inputs, int _total_function_output, int _partition){
-//        num_inputs = _num_inputs;
-//        total_function_size = (1<<num_inputs);
-//        total_function_output = _total_function_output;
-//        partition = _partition;
-//        partial_function_size = __builtin_popcount(partition);
-//        calc__partial_function_outputs();
-//    }
-//
-//    void prep_for_use()
-//    {
-//        calc__generalization_outputs();
-//        generalization_size = total_function_size - partial_function_size;
-//        int dominator_output_bits = generalization_outputs;
-//        for (int dominated_output_bits = 0;
-//             dominated_output_bits < (1 << generalization_size); dominated_output_bits++) {
-//            if (dominated_output_bits != dominator_output_bits) {
-//                int dominated_total_function = 0;
-//                for (int j = 0, k = 0; j < total_function_size; j++) {
-//                    if (!test_bit(partition, j)) {
-//                        dominated_total_function += (1 << j) * test_bit(dominated_output_bits, k);
-//                        k++;
-//                    } else {
-//                        dominated_total_function += (1 << j) * test_bit(total_function_output, j);
-//                    }
-//                }
-//                assert(dominated_total_function != total_function_output);
-//                dominated_total_functions.emplace_back(
-//                        TotalFunction(num_inputs, total_function_size, dominated_total_function));
-//            }
-//        }
-//    }
-//
-//    void calc__partial_function_outputs()
-//    {
-//        for(int i = 0, j = 0;i<total_function_size; i++) {
-//            if (test_bit(partition, i)) {
-//                partial_function_outputs += (1 << j) * test_bit(total_function_output, i);
-//                j++;
-//            }
-//        }
-//    }
-//
-//    void calc__generalization_outputs()
-//    {
-//        for(int i = 0, j = 0;i<total_function_size; i++) {
-//            if (!test_bit(partition, i)) {
-//                generalization_outputs += (1 << j) * test_bit(total_function_output, i);
-//                j++;
-//            }
-//        }
-//    }
-//
-//    string to_string(int tab)
-//    {
-//        string ret;
-//        for(int i = 0;i<tab;i++)
-//        {
-//            ret+="\t";
-//        }
-//        ret += "{";
-//        ret += "(";
-//        bool is_first = true;
-//        for(int i = 0;i<total_function_size;i++)
-//        {
-//            if(test_bit(partition, i))
-//            {
-//                if(!is_first)
-//                {
-//                    ret += " && ";
-//                }
-//                else
-//                {
-//                    is_first = false;
-//                }
-//                ret += bitvector_to_str(i, num_inputs);
-//                ret += "->";
-//                ret += bitvector_to_str(test_bit(total_function_output, i), 1);
-//
-//            }
-//        }
-//        ret += ") ";
-//        ret += "-->";
-//        ret += " (";
-//        is_first = true;
-//        for(int i = 0;i<total_function_size;i++)
-//        {
-//            if(!test_bit(partition, i))
-//            {
-//                if(!is_first)
-//                {
-//                    ret += " && ";
-//                }
-//                else
-//                {
-//                    is_first = false;
-//                }
-//                ret += bitvector_to_str(i, num_inputs);
-//                ret += "->";
-//                ret += bitvector_to_str(test_bit(total_function_output, i), 1);
-//            }
-//        }
-//        ret += ")";
-//        ret += "}";
-//        return ret;
-//    }
-//
-//    string to_string()
-//    {
-//        return to_string(0);
-//    }
-//};
-//
 
 int min_num_examples;
 int max_num_examples;
@@ -362,7 +235,7 @@ void enumerate_meta_training_sets(
             cout << "(" << partition_id << ", " << partial_assignment_id << ", " << generalization_id << "); " << endl;
         }
 
-        if (poset.append(all_meta_examples.meta_examples[partition_id][partial_assignment_id][generalization_id]))
+        if (poset.insert(all_meta_examples.meta_examples[partition_id][partial_assignment_id][generalization_id]))
         {
 //            cout << "enter " << poset.get_num_nodes() << endl;
             enumerate_meta_training_sets(partition_size, local_partition_index, partial_assignment_id + 1, poset, tab + 1);
@@ -574,6 +447,7 @@ int main() {
 //                local_meta_example.print();
                         local_total_num_meta_examples++;
                         if(add) {
+                            assert(local_meta_example.generalization.partition != local_meta_example.partial_function.partition);
                             local_total_without_trivial++;
 //                            local_meta_example.print();
                             meta_examples.push_back(local_meta_example);
@@ -594,7 +468,7 @@ int main() {
 
             CompactPoset poset = CompactPoset(num_inputs);
 
-            bool insert_in_monolith = true;
+            bool insert_in_monolith = false;
 
             if(insert_in_monolith) {
 
@@ -613,7 +487,7 @@ int main() {
                              << " time: " << (double) time(nullptr) - local_time << endl;
                         prev_time = (double) time(nullptr);
                     }
-                    assert(poset.append(meta_examples[i]));
+                    assert(poset.insert(meta_examples[i]));
 
 //                poset.print();
 //                poset.classify_nodes();
@@ -654,34 +528,37 @@ int main() {
 //                poset.pop();
 //            }
 
-            vector<pair<int, int> > masks;
-            vector<pair<int, int> > partition_masks;
+            bool run_reasoning_schema = false;
 
-            for(int j = 0;j<num_inputs;j++)
-            {
-                int mask = 0;
-                for(int k = 0;k<function_size;k++)
-                {
-                    if(get_bit(k, j))
-                    {
-                        mask |= (1<<k);
+            if(run_reasoning_schema) {
+
+                vector<pair<int, int> > masks;
+                vector<pair<int, int> > partition_masks;
+
+                for (int j = 0; j < num_inputs; j++) {
+                    int mask = 0;
+                    for (int k = 0; k < function_size; k++) {
+                        if (get_bit(k, j)) {
+                            mask |= (1 << k);
+                        }
                     }
+                    masks.push_back(make_pair(mask, (1 << function_size) - 1 - mask));
+                    partition_masks.push_back(make_pair(mask, (1 << function_size) - 1 - mask));
+
                 }
-                masks.push_back(make_pair(mask, (1<<function_size) - 1 - mask));
-                partition_masks.push_back(make_pair(mask, (1<<function_size) - 1 - mask));
-
-            }
 
 
-            int init_masks_size = masks.size();
-            for(int j = 0;j<init_masks_size;j++)
-            {
+                int init_masks_size = masks.size();
+                for (int j = 0; j < init_masks_size; j++) {
 //                masks.push_back(make_pair(masks[j].first, masks[j].second));
 //                partition_masks.push_back(make_pair((1<<function_size)-1, (1<<function_size)-1));
-                for(int k = j+1;k<init_masks_size;k++)
-                {
-//                    masks.push_back(make_pair(masks[j].first, masks[j].second));
-//                    partition_masks.push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
+
+                    masks.push_back(make_pair(masks[j].first, masks[j].second));
+                    partition_masks.push_back(make_pair((1 << function_size) - 1 - 1, (1 << (function_size)) - 1));
+                    for (int k = j + 1; k < init_masks_size; k++) {
+                        masks.push_back(make_pair(masks[j].first, masks[j].second));
+                        partition_masks.push_back(
+                                make_pair(masks[j].first | masks[k].first, masks[j].second | masks[k].second));
 //
 //                    masks.push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
 //                    partition_masks.push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
@@ -689,16 +566,17 @@ int main() {
 //                    masks.push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
 //                    partition_masks.push_back(make_pair((1<<function_size) - 1, (1<<function_size) - 1));
 //
-//                    masks.push_back(make_pair(masks[k].first, masks[k].second));
-//                    partition_masks.push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
+                        masks.push_back(make_pair(masks[k].first, masks[k].second));
+                        partition_masks.push_back(
+                                make_pair(masks[j].first | masks[k].first, masks[j].second | masks[k].second));
 //
 //                    masks.push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
 //                    partition_masks.push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
 //
 //                    masks.push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
 //                    partition_masks.push_back(make_pair((1<<function_size) - 1, (1<<function_size) - 1));
+                    }
                 }
-            }
 
 //            masks.push_back(make_pair((1<<function_size) - 1 - 1, (1<<(function_size-1)) - 1));
 //            partition_masks.push_back(make_pair((1<<function_size) - 1, (1<<function_size) - 1));
@@ -710,13 +588,14 @@ int main() {
 //
 //            masks.push_back(make_pair((1<<function_size)-1-1, (1<<(function_size-1))-1));
 
-            cout << "masks & partition_masks:" << endl;
-            for(int j = 0;j<masks.size();j++)
-            {
-                cout << bitvector_to_str(masks[j].first, function_size) <<" "<< bitvector_to_str(masks[j].second, function_size) << endl;
-                cout << bitvector_to_str(partition_masks[j].first, function_size) <<" "<< bitvector_to_str(partition_masks[j].second, function_size) << endl;
-                cout << endl;
-            }
+                cout << "masks & partition_masks:" << endl;
+                for (int j = 0; j < masks.size(); j++) {
+                    cout << bitvector_to_str(masks[j].first, function_size) << " "
+                         << bitvector_to_str(masks[j].second, function_size) << endl;
+                    cout << bitvector_to_str(partition_masks[j].first, function_size) << " "
+                         << bitvector_to_str(partition_masks[j].second, function_size) << endl;
+                    cout << endl;
+                }
 
 //            for(int j = 0;j<num_functions;j++)
 //            {
@@ -724,11 +603,23 @@ int main() {
 //                cout << bitvector_to_str(j, function_size) << endl;
 //            }
 
-            ReasoningSchema reasoning_schema = ReasoningSchema(num_inputs, meta_examples, masks, partition_masks);
 
-            schema_based_examples.push_back(reasoning_schema.get_num_necessary_meta_examples());
+                ReasoningSchema reasoning_schema = ReasoningSchema(num_inputs, meta_examples, masks, partition_masks);
 
-            reasoning_schema.test(meta_examples);
+                schema_based_examples.push_back(reasoning_schema.get_num_necessary_meta_examples());
+
+                reasoning_schema.test(meta_examples);
+
+            }
+
+            vector<int> unit_masks;
+
+
+            vector<CompactPoset> compact_posets;
+
+            MinimalFactoringSchema(num_inputs, meta_examples);
+
+
 
 //            assert(false);
 
@@ -774,19 +665,19 @@ int main() {
 
 //
 //    CompactPoset compact_poset = CompactPoset(2);
-//    cout << "is_valid_node: " << compact_poset.append(MetaExample(PartialFunction(2, 0, 0))) <<endl;
+//    cout << "is_valid_node: " << compact_poset.insert(MetaExample(PartialFunction(2, 0, 0))) <<endl;
 //    cout << "is_valid: " << compact_poset.is_valid() <<endl;
 //
 //    cout << "compact_poset:: " <<endl;
 //    cout << compact_poset.to_string() << endl;
 //
-//    cout << "is_valid_node: " << compact_poset.append(MetaExample(PartialFunction(2, 5, 1))) << endl;
+//    cout << "is_valid_node: " << compact_poset.insert(MetaExample(PartialFunction(2, 5, 1))) << endl;
 //    cout << "is_valid: " << compact_poset.is_valid() <<endl;
 //
 //    cout << "compact_poset:: " <<endl;
 //    cout << compact_poset.to_string() << endl;
 //
-//    cout << "is_valid_node: " << compact_poset.append(MetaExample(PartialFunction(2, 7, 1))) << endl;
+//    cout << "is_valid_node: " << compact_poset.insert(MetaExample(PartialFunction(2, 7, 1))) << endl;
 //    cout << "is_valid: " << compact_poset.is_valid() <<endl;
 //
 //    cout << "compact_poset:: " <<endl;
