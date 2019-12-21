@@ -104,7 +104,6 @@ DecisionTree::DecisionTree() = default;
 void DecisionTree::apply_operation(OperationType operation_type, DecisionTree *other) {
     PartialFunction idx_to_branch = PartialFunction(num_inputs, 0, 0);
     root->apply_operation(operation_type, other->root, idx_to_branch);
-    assert(num_inputs == 3);
     assert(idx_to_branch.empty());
 }
 

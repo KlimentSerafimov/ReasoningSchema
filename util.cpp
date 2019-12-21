@@ -51,3 +51,15 @@ string vector_of_vector_of_int_to_string(vector<vector<int> > to_print, string t
     }
     return ret;
 }
+
+int string_to_bitvector(string str)
+{
+    int ret = 0;
+    int power = 1;
+    for(int i = (int) str.size()-1;i>=0;i--)
+    {
+        ret+=(str[i]-'0')*power;
+        power*=2;
+    }
+    return ret;
+}

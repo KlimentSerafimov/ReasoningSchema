@@ -192,7 +192,7 @@ void enumerate_meta_training_sets(
 
                 }
 
-                bool there_exist_redundant_meta_edge = poset_copy.there_exist_redundant_meta_edge();
+                bool there_exist_redundant_meta_edge = poset_copy.soft_delete_redundant_edges();
                 int diff_in_meta_edges = (poset.get_num_meta_edges() - poset_copy.get_num_meta_edges());
                 if(there_exist_redundant_meta_edge)
                 {
@@ -246,7 +246,7 @@ void enumerate_meta_training_sets(
 //            poset.print();
 //            cout << endl;
         }
-        poset.pop();
+        poset.hard_pop();
     }
 }
 
@@ -450,6 +450,7 @@ int main() {
                             assert(local_meta_example.generalization.partition != local_meta_example.partial_function.partition);
                             local_total_without_trivial++;
 //                            local_meta_example.print();
+                            local_meta_example.idx = meta_examples.size();
                             meta_examples.push_back(local_meta_example);
                             meta_examples_per_total_function[local_meta_example.generalization.total_function].push_back(local_meta_example);
 //                            meta_examples_per_total_function[local_meta_example.generalization.generalization].apply_operation(
@@ -490,14 +491,14 @@ int main() {
                     assert(poset.insert(meta_examples[i]));
 
 //                poset.print();
-//                poset.classify_nodes();
+//                poset.compare_nodes();
                 }
 
 //            poset.print();
 
                 int prev_num_meta_edges = poset.get_num_meta_edges();
 
-                poset.there_exist_redundant_meta_edge();
+                poset.soft_delete_redundant_edges();
 
 //            cout << "classification of meta examples for language_" << language_id << " :: " << endl;
 //            cout << "partial -> total  classification" << endl;
@@ -525,7 +526,7 @@ int main() {
 
 //            for(int j = (int) meta_examples.size()-1; j >= 0; j--)
 //            {
-//                poset.pop();
+//                poset.hard_pop();
 //            }
 
             bool run_reasoning_schema = false;
@@ -617,7 +618,7 @@ int main() {
 
             vector<CompactPoset> compact_posets;
 
-            MinimalFactoringSchema(num_inputs, meta_examples);
+            MinimalFactoringSchema(num_inputs, meta_examples, nullptr);
 
 
 
@@ -683,17 +684,17 @@ int main() {
 //    cout << "compact_poset:: " <<endl;
 //    cout << compact_poset.to_string() << endl;
 //
-//    compact_poset.pop();
+//    compact_poset.hard_pop();
 //    cout << "is_valid_node: " << compact_poset.is_valid() << endl;
 //    cout << "compact_poset:: " <<endl;
 //    cout << compact_poset.to_string() << endl;
 //
-//    compact_poset.pop();
+//    compact_poset.hard_pop();
 //    cout << "is_valid_node: " << compact_poset.is_valid() << endl;
 //    cout << "compact_poset:: " <<endl;
 //    cout << compact_poset.to_string() << endl;
 //
-//    compact_poset.pop();
+//    compact_poset.hard_pop();
 //    cout << "is_valid_node: " << compact_poset.is_valid() << endl;
 //    cout << "compact_poset:: " <<endl;
 //    cout << compact_poset.to_string() << endl;

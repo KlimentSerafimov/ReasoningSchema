@@ -11,29 +11,6 @@
 
 using namespace std;
 
-int CompactPoset::push_back_new_node__and__get_id(CompactPosetNode decision_tree, vector<int> to_union_nodes) {
-    int ret = (int) nodes.size();
-    local_delta.new_nodes.push_back(ret);
-    assert(!decision_tree.is_empty());
-    nodes.push_back(decision_tree);
-    nodes[ret].id_in_compact_poset = ret;
-    is_union_of.push_back(vector<int>());
-    is_contained_in.push_back(vector<int>());
-    for(int i = 0;i<to_union_nodes.size();i++)
-    {
-        create_union_edge(ret, to_union_nodes[i]);
-    }
-    meta_edges.push_back(vector<int>());
-    reverse_meta_edges.push_back(vector<int>());
-    open_visited.push_back(-1);
-    closed_visited.push_back(-1);
-    return ret;
-}
-
-int CompactPoset::push_back_new_node__and__get_id(CompactPosetNode decision_tree) {
-    return push_back_new_node__and__get_id(decision_tree, vector<int>());
-}
-
 CompactPoset::CompactPoset(int _num_inputs)
 {
     num_inputs = _num_inputs;
@@ -49,6 +26,110 @@ CompactPoset::CompactPoset(int _num_inputs, int _generalization_mask, int _input
     input_mask = _input_mask;
     push_back_new_node__and__get_id(CompactPosetNode(PartialFunction(num_inputs, 0, 0)));
 }
+
+CompactPoset::CompactPoset(int _num_inputs, int _generalization_mask, int _input_mask, vector<MetaExample> &meta_examples)
+{
+    num_inputs = _num_inputs;
+    generalization_mask = _generalization_mask;
+    input_mask = _input_mask;
+
+    assert(generalization_mask == input_mask);
+
+    int subdomain_mask = input_mask;
+
+    push_back_new_node__and__get_id(CompactPosetNode(PartialFunction(num_inputs, 0, 0)));
+
+    vector<MetaExample> ret_meta_examples;
+    for (int id = 0; id < meta_examples.size(); id++) {
+        MetaExample local_insert_meta_example = meta_examples[id].get_application_of_subdomain(subdomain_mask);
+        if (!local_insert_meta_example.fully_constrained()) {
+            if(!insert(local_insert_meta_example))
+            {
+                hard_pop();
+            }
+            else
+            {
+                ret_meta_examples.push_back(meta_examples[id]);
+            }
+        }
+        else
+        {
+            ret_meta_examples.push_back(meta_examples[id]);
+        }
+    }
+    meta_examples = ret_meta_examples;
+}
+
+int CompactPoset::push_back_new_node__and__get_id(CompactPosetNode decision_tree) {
+    int ret = (int) nodes.size();
+    local_delta.new_nodes.push_back(ret);
+    assert(!decision_tree.is_empty());
+    nodes.push_back(decision_tree);
+    nodes[ret].id_in_compact_poset = ret;
+    is_union_of.push_back(vector<int>());
+    is_contained_in.push_back(vector<int>());
+    meta_edges.push_back(vector<int>());
+    reverse_meta_edges.push_back(vector<int>());
+    open_visited.push_back(-1);
+    closed_visited.push_back(-1);
+    return ret;
+}
+
+void CompactPoset::push_back_meta_edge(int dominator, int dominated, int meta_edge_id)
+{
+    meta_edges[dominator].push_back(dominated);
+    reverse_meta_edges[dominated].push_back(dominator);
+    edge_to_delta_stack_id[make_pair(dominator, dominated)] = meta_edge_id;
+    num_meta_edges+=1;
+}
+
+void CompactPoset::re_insert_meta_edge(int meta_edge_id)
+{
+    int dominator = delta_stack[meta_edge_id].new_meta_edge.first;
+    int dominated = delta_stack[meta_edge_id].new_meta_edge.second;
+    meta_edges[dominator].insert(delta_stack[meta_edge_id].soft_delete_iterators.second, dominated);
+    reverse_meta_edges[dominated].insert(delta_stack[meta_edge_id].soft_delete_iterators.first, dominator);
+    edge_to_delta_stack_id[make_pair(dominator, dominated)] = meta_edge_id;
+    num_meta_edges+=1;
+}
+
+void CompactPoset::pop_meta_edge(int dominator, int dominated)
+{
+    assert(dominated == meta_edges[dominator].back());
+    assert(reverse_meta_edges[dominated].back() == dominator);
+    meta_edges[dominator].pop_back();
+    reverse_meta_edges[dominated].pop_back();
+    edge_to_delta_stack_id.erase(make_pair(dominator, dominated));
+    num_meta_edges -= 1;
+}
+
+pair<vector<int>::iterator, vector<int>::iterator> CompactPoset::erase_meta_edge(int dominator, int dominated)
+{
+    vector<int>::iterator dominated_it = find(meta_edges[dominator].begin(), meta_edges[dominator].end(), dominated);
+    vector<int>::iterator dominator_it = find(reverse_meta_edges[dominated].begin(), reverse_meta_edges[dominated].end(), dominator);
+
+    meta_edges[dominator].erase(dominated_it);
+    reverse_meta_edges[dominated].erase(dominator_it);
+    edge_to_delta_stack_id.erase(make_pair(dominator, dominated));
+    num_meta_edges-=1;
+
+    return make_pair(dominator_it, dominated_it);
+}
+
+void CompactPoset::create_union_edge(int container, int contained) {
+    is_union_of[container].push_back(contained);
+    is_contained_in[contained].push_back(container);
+    local_delta.new_union_edges.push_back(make_pair(container, contained));
+}
+
+void CompactPoset::make_union_node(int new_union_node) {
+    if(nodes[new_union_node].node_type == base_node)
+    {
+        local_delta.new_union_nodes.push_back(new_union_node);
+        nodes[new_union_node].node_type = union_node;
+    }
+}
+
 
 CompactPosetNode get_intersection(CompactPosetNode* first, CompactPosetNode* second)
 {
@@ -100,7 +181,6 @@ void CompactPoset::print_operation(OperationType operation_type, CompactPosetNod
     cout << "result: " << endl;
     cout << copy_first.get_string_of_union_of_partial_functions(1);
 }
-
 
 int CompactPoset::multi_split_and_union(vector<int> ids__base_node_cover, CompactPosetNode *target_set) {
 
@@ -253,8 +333,9 @@ bool CompactPoset::insert(MetaExample meta_example)
 
     if(uniques.find(to_insert) != uniques.end())
     {
+        delta_stack[uniques[to_insert]].equivalent_meta_edge_ids.push_back(delta_stack.size());
+
         local_delta = DeltaCompactPoset();
-        local_delta.was_popped = true;
         local_delta.not_unique = true;
         local_delta.meta_example = meta_example;
         delta_stack.push_back(local_delta);
@@ -263,15 +344,13 @@ bool CompactPoset::insert(MetaExample meta_example)
     }
     else
     {
-        uniques.insert(to_insert);
+        uniques[to_insert] = (int) delta_stack.size();
     }
-
-
-//    cout << "insert "<< endl;
-//    meta_example.print();
 
     local_delta = DeltaCompactPoset();
     local_delta.meta_example = meta_example;
+    local_delta.equivalent_meta_edge_ids.push_back(delta_stack.size());
+
     CompactPosetNode dominator = CompactPosetNode(meta_example.generalization);
     CompactPosetNode dominated = CompactPosetNode(meta_example.partial_function, difference, &dominator);
 
@@ -287,59 +366,29 @@ bool CompactPoset::insert(MetaExample meta_example)
 
     dominated.my_delete();
 
-    meta_edges[dominator_node].push_back(dominated_node);
-    reverse_meta_edges[dominated_node].push_back(dominator_node);
-    edge_to_meta_example_id[make_pair(dominator_node, dominated_node)] = meta_example.idx;
-    num_meta_edges+=1;
+    push_back_meta_edge(dominator_node, dominated_node, (int) delta_stack.size());
+
     local_delta.new_meta_edge = make_pair(dominator_node, dominated_node);
     delta_stack.push_back(local_delta);
 
     bool is_meta_example_consistent = is_valid_node(dominator_node);
 
-    if(!is_meta_example_consistent)
+    return is_meta_example_consistent;
+}
+
+pair<vector<int>, vector<int>> CompactPoset::get_cycle_of_meta_example_ids_and_meta_edge_ids()
+{
+    int dominator_node = delta_stack.back().new_meta_edge.first;
+    int max_chain = get_loop_from_node(dominator_node);
+    assert(max_chain != -1);
+
+    vector<int> meta_example_ids;
+    for(int i = 0;i<meta_edges_ids_in_cycle.size();i++)
     {
-//        int max_chain = get_loop_from_node(dominator_node);
-//        assert(max_chain != -1);
-//        for(int i = 0;i<meta_example_ids_in_cycle.size();i++)
-//        {
-//            cout << meta_example_ids_in_cycle[i] << " ";
-//        }
-//        print();
-//        assert(false);
-//        cout << "max_chain = " << max_chain << endl;
-//        if(max_chain == 4) {
-//            print();
-//            assert(false);
-//        }
-    }
-    else {
-//        meta_edges[dominator_node].pop_back();
-//        reverse_meta_edges[dominated_node].pop_back();
-//        edge_to_meta_example_id.erase(make_pair(dominator_node, dominated_node));
-//        num_meta_edges-=1;
-//
-//        mark_dominated_init(dominator_node);
-//
-//        meta_edges[dominator_node].push_back(dominated_node);
-//        reverse_meta_edges[dominated_node].push_back(dominator_node);
-//        edge_to_meta_example_id[make_pair(dominator_node, dominated_node)] = meta_example.idx;
-//        num_meta_edges+=1;
-//
-//        if (!there_are_new_dominated__init(dominator_node)) {
-////        cout << "ID DOMINATOR BASE: " << dominator_node << endl;
-////        cout << "ID DOMINATED BASE: " << id__dominated << endl;
-////        print();
-////        assert(false);
-//            pop();
-//            local_delta = DeltaCompactPoset();
-//            local_delta.was_popped = true;
-//            local_delta.meta_example = meta_example;
-//            delta_stack.push_back(local_delta);
-//            uniques.insert(to_insert);
-//        }
+        meta_example_ids.push_back(delta_stack[meta_edges_ids_in_cycle[i]].meta_example.idx);
     }
 
-    return is_meta_example_consistent;
+    return make_pair(meta_example_ids, meta_edges_ids_in_cycle);
 }
 
 void CompactPoset::disjoint_assertion()
@@ -409,7 +458,7 @@ int CompactPoset::get_loop(int at, int count) {
         if (open_visited[next_id] == visited_mark) {
             min_cycles[next_id] = 1;
             cycle_init_id = next_id;
-            meta_example_ids_in_cycle.push_back(edge_to_meta_example_id[make_pair(at, next_id)]);
+            meta_edges_ids_in_cycle.push_back(edge_to_delta_stack_id[make_pair(at, next_id)]);
             return 1;
         } else if (closed_visited[next_id] != visited_mark) {
             int val = get_loop(next_id, count);
@@ -417,7 +466,7 @@ int CompactPoset::get_loop(int at, int count) {
             {
                 if(open_visited[cycle_init_id] == visited_mark)
                 {
-                    meta_example_ids_in_cycle.push_back(edge_to_meta_example_id[make_pair(at, next_id)]);
+                    meta_edges_ids_in_cycle.push_back(edge_to_delta_stack_id[make_pair(at, next_id)]);
                 }
                 val+=1;
                 if(ret != -1)
@@ -468,7 +517,7 @@ int CompactPoset::get_loop(int at, int count) {
             if (open_visited[next_id] == visited_mark) {
                 min_cycles[next_id] = 1;
                 cycle_init_id = next_id;
-                meta_example_ids_in_cycle.push_back(edge_to_meta_example_id[make_pair(at_parent, next_id)]);
+                meta_edges_ids_in_cycle.push_back(edge_to_delta_stack_id[make_pair(at_parent, next_id)]);
                 return 1;
             } else if (closed_visited[next_id] != visited_mark) {
                 int val = get_loop(next_id, count);
@@ -476,7 +525,7 @@ int CompactPoset::get_loop(int at, int count) {
                 {
                     if(open_visited[cycle_init_id] == visited_mark)
                     {
-                        meta_example_ids_in_cycle.push_back(edge_to_meta_example_id[make_pair(at_parent, next_id)]);
+                        meta_edges_ids_in_cycle.push_back(edge_to_delta_stack_id[make_pair(at_parent, next_id)]);
                     }
                     val+=1;
                     if(ret != -1)
@@ -535,7 +584,7 @@ int CompactPoset::get_loop_from_node(int origin) {
     visited_mark += 1;
     min_cycles = vector<int>(nodes.size(), -1);
     cycle_init_id = -1;
-    meta_example_ids_in_cycle.clear();
+    meta_edges_ids_in_cycle.clear();
     return get_loop(origin, 0);
 }
 
@@ -627,19 +676,15 @@ string CompactPoset::meta_examples_to_string()
     {
 
         ret += delta_stack[i].meta_example.linear_string(0);
-        if(delta_stack[i].was_popped)
+        if(delta_stack[i].not_unique)
         {
-            ret += "   was_popped";
-            if(delta_stack[i].not_unique)
-            {
-                ret += " not_unique";
-            }
+            ret += "   not_unique";
         }
         if(delta_stack[i].removed_after_the_fact)
         {
             ret += "   redundant";
         }
-        if(!delta_stack[i].was_popped && !delta_stack[i].removed_after_the_fact)
+        if(delta_stack[i].is_existant())
         {
             ret += "   necessary";
         }
@@ -664,34 +709,54 @@ string CompactPoset::to_string() {
     return ret;
 }
 
-void CompactPoset::pop()
+void CompactPoset::erase_from_uniques(int id)
 {
 
-    DeltaCompactPoset delta = delta_stack.back();
-    delta_stack.pop_back();
-    if(delta.was_popped)
-    {
-        return;
-    }
-    int dominator = delta.new_meta_edge.first;
-    int dominated = delta.new_meta_edge.second;
 
-    MetaExample meta_example = delta.meta_example;
-    pair<int, pair<int, int> > to_insert =
+    MetaExample meta_example = delta_stack[id].meta_example;
+    pair<int, pair<int, int> > to_erase =
             make_pair(
                     meta_example.generalization.total_function,
                     make_pair(meta_example.partial_function.partition, meta_example.generalization.partition));
 
-    uniques.erase(to_insert);
-
-    if(!delta.removed_after_the_fact)
+    if(delta_stack[id].removed_from_uniques)
     {
-        assert(dominated == meta_edges[dominator].back());
-        meta_edges[dominator].pop_back();
-        assert(reverse_meta_edges[dominated].back() == dominator);
-        reverse_meta_edges[dominated].pop_back();
-        edge_to_meta_example_id.erase(make_pair(dominator, dominated));
-        num_meta_edges -= 1;
+        assert(uniques.find(to_erase) == uniques.end());
+        return;
+    }
+    if(uniques.find(to_erase) == uniques.end())
+    {
+        assert(delta_stack[id].not_unique);
+        return ;
+    }
+
+    if(uniques[to_erase] == id)
+    {
+        uniques.erase(to_erase);
+    }
+    else
+    {
+        delta_stack[uniques[to_erase]].equivalent_meta_edge_ids.erase(
+                find(
+                        delta_stack[uniques[to_erase]].equivalent_meta_edge_ids.begin(),
+                        delta_stack[uniques[to_erase]].equivalent_meta_edge_ids.end(),
+                        id));
+    }
+    delta_stack[id].removed_from_uniques = true;
+}
+
+void CompactPoset::hard_pop()
+{
+    int id = delta_stack.size()-1;
+    DeltaCompactPoset delta = delta_stack.back();
+    int dominator = delta.new_meta_edge.first;
+    int dominated = delta.new_meta_edge.second;
+
+    erase_from_uniques(id);
+
+    if(delta.is_existant())
+    {
+        pop_meta_edge(dominator, dominated);
     }
 
     for (int i = 0; i < (int) delta.new_union_nodes.size(); i++) {
@@ -730,74 +795,40 @@ void CompactPoset::pop()
         meta_edges.pop_back();
         reverse_meta_edges.pop_back();
     }
-}
 
-void CompactPoset::create_union_edge(int container, int contained) {
-    is_union_of[container].push_back(contained);
-    is_contained_in[contained].push_back(container);
-    local_delta.new_union_edges.push_back(make_pair(container, contained));
-}
-
-void CompactPoset::print()
-{
-    cout << to_string() <<endl;
-}
-
-int CompactPoset::get_num_nodes() {
-    return (int) nodes.size();
-}
-
-void CompactPoset::make_union_node(int new_union_node) {
-    if(nodes[new_union_node].node_type == base_node)
-    {
-        local_delta.new_union_nodes.push_back(new_union_node);
-        nodes[new_union_node].node_type = union_node;
-    }
-    assert(nodes[new_union_node].node_type == union_node);
-}
-
-void CompactPoset::simple_pop() {
-    DeltaCompactPoset delta = delta_stack.back();
     delta_stack.pop_back();
-    if(delta.was_popped)
+}
+
+
+void CompactPoset::soft_pop() {
+    int id_to_delete = delta_stack.size()-1;
+    while(!delta_stack[id_to_delete].is_existant() && id_to_delete>=0)
     {
-        return;
+        id_to_delete--;
     }
-    int dominator = delta.new_meta_edge.first;
-    int dominated = delta.new_meta_edge.second;
-    assert(dominated == meta_edges[dominator].back());
-    meta_edges[dominator].pop_back();
-    assert(reverse_meta_edges[dominated].back() == dominator);
-    reverse_meta_edges[dominated].pop_back();
-    edge_to_meta_example_id.erase(make_pair(dominator, dominated));
-    num_meta_edges-=1;
+    if(id_to_delete>=0)
+    {
+        soft_delete(id_to_delete);
+    }
 }
 
 
 void CompactPoset::soft_delete(int id) {
-    if(delta_stack[id].was_popped || delta_stack[id].removed_after_the_fact)
+    erase_from_uniques(id);
+    if(!delta_stack[id].is_existant())
     {
         return;
     }
     int dominator = delta_stack[id].new_meta_edge.first;
     int dominated = delta_stack[id].new_meta_edge.second;
-    vector<int>::iterator dominated_it = find(meta_edges[dominator].begin(), meta_edges[dominator].end(), dominated);
-    vector<int>::iterator dominator_it = find(reverse_meta_edges[dominated].begin(), reverse_meta_edges[dominated].end(), dominator);
-    if(dominated_it == meta_edges[dominator].end())
-    {
-        cout << delta_stack[id].meta_example.to_string() << endl;
-    }
-    meta_edges[dominator].erase(dominated_it);
-    reverse_meta_edges[dominated].erase(dominator_it);
-    edge_to_meta_example_id.erase(make_pair(dominator, dominated));
-    num_meta_edges-=1;
-    delta_stack[id].soft_delete_iterators = make_pair(dominator_it, dominated_it);
+    delta_stack[id].soft_delete_iterators = erase_meta_edge(dominator, dominated);
+    delta_stack[id].soft_deleted = true;
 }
 
 int CompactPoset::soft_delete_meta_example_with_idx(int meta_example_idx)
 {
     int delta_stack_id = -1;
-    for(int i = delta_stack.size()-1;i>=0;i--)
+    for(int i = (int) delta_stack.size()-1;i>=0;i--)
     {
         if(delta_stack[i].meta_example.idx == meta_example_idx)
         {
@@ -812,19 +843,40 @@ int CompactPoset::soft_delete_meta_example_with_idx(int meta_example_idx)
 
 
 void CompactPoset::re_insert(int id) {
-    if(delta_stack[id].was_popped || delta_stack[id].removed_after_the_fact)
+    assert(delta_stack[id].soft_deleted);
+
+    MetaExample meta_example = delta_stack[id].meta_example;
+    pair<int, pair<int, int> > to_re_insert =
+            make_pair(
+                    meta_example.generalization.total_function,
+                    make_pair(meta_example.partial_function.partition, meta_example.generalization.partition));
+
+    if(uniques.find(to_re_insert) == uniques.end())
     {
-        return;
+        assert(!delta_stack[id].not_unique);
+        uniques[to_re_insert] = id;
     }
-    int dominator = delta_stack[id].new_meta_edge.first;
-    int dominated = delta_stack[id].new_meta_edge.second;
-    meta_edges[dominator].insert(delta_stack[id].soft_delete_iterators.second, dominated);
-    reverse_meta_edges[dominated].insert(delta_stack[id].soft_delete_iterators.first, dominator);
-    edge_to_meta_example_id[make_pair(dominator, dominated)] = delta_stack[id].meta_example.idx;
-    num_meta_edges+=1;
+    else
+    {
+        assert(delta_stack[id].not_unique);
+        delta_stack[uniques[to_re_insert]].equivalent_meta_edge_ids.push_back(id);
+    }
+
+    delta_stack[id].removed_from_uniques = false;
+
+    re_insert_meta_edge(id);
+
+    delta_stack[id].soft_deleted = false;
 }
 
+void CompactPoset::print()
+{
+    cout << to_string() <<endl;
+}
 
+int CompactPoset::get_num_nodes() {
+    return (int) nodes.size();
+}
 
 void CompactPoset::mark_dominated_init(int origin)
 {
@@ -1018,7 +1070,7 @@ int CompactPoset::get_num_inserts() {
     return (int) delta_stack.size();
 }
 
-bool CompactPoset::there_exist_redundant_meta_edge()
+bool CompactPoset::soft_delete_redundant_edges()
 {
     if(removed_edges.size() >= 1)
     {
@@ -1031,40 +1083,23 @@ bool CompactPoset::there_exist_redundant_meta_edge()
 
     for(int i = delta_stack.size()-1;i>=0;i--)
     {
-        if(!delta_stack[i].was_popped)
+        if(delta_stack[i].is_existant())
         {
             int dominator = delta_stack[i].new_meta_edge.first;
-            int dominated = delta_stack[i].new_meta_edge.second;
 
-            auto it_dominated = find(meta_edges[dominator].begin(), meta_edges[dominator].end(), dominated);
-            auto it_dominator = find(reverse_meta_edges[dominated].begin(), reverse_meta_edges[dominated].end(), dominator);
-
-            meta_edges[dominator].erase(it_dominated);
-            reverse_meta_edges[dominated].erase(it_dominator);
-            edge_to_meta_example_id.erase(make_pair(dominator, dominated));
-            num_meta_edges-=1;
+            soft_delete(i);
 
             mark_dominated_init(dominator);
 
-            meta_edges[dominator].insert(it_dominated, dominated);
-            reverse_meta_edges[dominated].insert(it_dominator, dominator);
-            edge_to_meta_example_id[make_pair(dominator, dominated)] =  delta_stack[i].meta_example.idx;
-            num_meta_edges+=1;
+            re_insert(i);
 
             if (!there_are_new_dominated__init(dominator))
             {
-                removed_meta_edge = true;
-                it_dominated = find(meta_edges[dominator].begin(), meta_edges[dominator].end(), dominated);
-                it_dominator = find(reverse_meta_edges[dominated].begin(), reverse_meta_edges[dominated].end(), dominator);
+                soft_delete(i);
 
                 delta_stack[i].removed_after_the_fact = true;
 
-                meta_edges[dominator].erase(it_dominated);
-                reverse_meta_edges[dominated].erase(it_dominator);
-                edge_to_meta_example_id.erase(make_pair(dominator, dominated));
-                num_meta_edges-=1;
-
-                removed_edges.push_back(make_pair(i, make_pair(it_dominated, it_dominator)));
+                removed_edges.push_back(i);
             }
             else
             {
@@ -1103,6 +1138,45 @@ vector<MetaExample> CompactPoset::get_meta_examples() {
     return ret;
 }
 
+vector<int> CompactPoset::get_existant_meta_example_ids()
+{
+    vector<int> ret;
+    for(int i = 0; i < delta_stack.size();i++)
+    {
+        if(delta_stack[i].is_existant())
+        {
+            ret.push_back(delta_stack[i].meta_example.idx);
+        }
+    }
+    return ret;
+}
+
+pair<vector<MetaExample>, vector<vector<int> > >  CompactPoset::get_existant_meta_examples_and_equivalent_ids()
+{
+    vector<MetaExample> ret_meta_examples;
+    vector<vector<int> > ret_equivalent_ids;
+
+//    cout << "source:" << endl;
+    for(int i = 0; i < delta_stack.size();i++)
+    {
+        if(delta_stack[i].is_existant())
+        {
+            ret_meta_examples.push_back(delta_stack[i].meta_example);
+            ret_equivalent_ids.push_back(vector<int>());
+            for(int j = 0; j<delta_stack[i].equivalent_meta_edge_ids.size();j++)
+            {
+                int meta_edge_id = delta_stack[i].equivalent_meta_edge_ids[j];
+                ret_equivalent_ids[ret_equivalent_ids.size()-1].push_back(delta_stack[meta_edge_id].meta_example.idx);
+//                cout << delta_stack[meta_edge_id].meta_example.idx <<" ";
+            }
+//            cout << endl;
+        }
+    }
+//    cout <<":source" << endl;
+    return make_pair(ret_meta_examples, ret_equivalent_ids);
+}
+
+
 bool CompactPoset::empty()
 {
     return delta_stack.empty();
@@ -1111,15 +1185,7 @@ bool CompactPoset::empty()
 void CompactPoset::add_edges_back() {
     for(int i = (int) removed_edges.size()-1;i>=0;i--)
     {
-        int id = removed_edges[i].first;
-        auto it_dominated = removed_edges[i].second.first;
-        auto it_dominator = removed_edges[i].second.second;
-        int dominator = delta_stack[id].new_meta_edge.first;
-        int dominated = delta_stack[id].new_meta_edge.second;
-        meta_edges[dominator].insert(it_dominated, dominated);
-        reverse_meta_edges[dominated].insert(it_dominator, dominator);
-        edge_to_meta_example_id[make_pair(dominator, dominated)] = delta_stack[id].meta_example.idx;
-        num_meta_edges+=1;
+        re_insert(removed_edges[i]);
     }
     removed_edges.clear();
 }
@@ -1128,113 +1194,10 @@ void CompactPoset::clear()
 {
     while(!empty())
     {
-        pop();
+        hard_pop();
     }
-
     assert(nodes.size() == 1);
-
-//    open_visited.clear();
-//    closed_visited.clear();
-//    visited_mark = 0;
-//    for(int i = 0;i<delta_stack.size();i++)
-//    {
-//        delta_stack[i].new_nodes.clear();
-//        delta_stack[i].new_union_nodes.clear();
-//        delta_stack[i].new_union_edges.clear();
-//    }
-//    delta_stack.clear();
-//    min_cycles.clear();
-//    removed_edges.clear();
-//    for(int i = (int) nodes.size()-1; i>=0; i--)
-//    {
-//        nodes[i].my_delete();
-//        nodes.pop_back();
-//        is_union_of[i].clear();
-//        is_union_of.pop_back();
-//        is_contained_in[i].clear();
-//        is_contained_in.pop_back();
-//        meta_edges[i].clear();
-//        meta_edges.pop_back();
-//        reverse_meta_edges[i].clear();
-//        reverse_meta_edges.pop_back();
-//    }
-//    nodes.clear();
-//    is_union_of.clear();
-//    is_contained_in.clear();
-//    meta_edges.clear();
-//    reverse_meta_edges.clear();
 }
-
-//int CompactPoset::compress() {
-//    int num_deleted_nodes = -1;
-//    int ret = 0;
-//
-//    vector<int> deleted_nodes;
-//    for (int i = 0; i < nodes.size(); i++) {
-//        if (nodes[i].node_type == union_node && meta_edges[i].size() == 0 && reverse_meta_edges[i].size() == 0) {
-//            for (int j = 0; j < is_contained_in[i].size(); j++) {
-//                vector<int>::iterator erase_it = find(
-//                        is_union_of[is_contained_in[i][j]].begin(),
-//                        is_union_of[is_contained_in[i][j]].end(), i);
-//                if(erase_it != is_union_of[is_contained_in[i][j]].end()) {
-//                    is_union_of[is_contained_in[i][j]].erase(erase_it);
-//                }
-//                for (int k = 0; k < is_union_of[i].size(); k++) {
-//                    create_union_edge(is_contained_in[i][j], is_union_of[i][k]);
-//                }
-//            }
-//            for (int j = 0; j < reverse_meta_edges[i].size(); j++) {
-//                vector<int>::iterator erase_it__meta_edge = find(
-//                        meta_edges[reverse_meta_edges[i][j]].begin(),
-//                        meta_edges[reverse_meta_edges[i][j]].end(), i);
-//                if(erase_it__meta_edge != meta_edges[reverse_meta_edges[i][j]].end()) {
-//                    meta_edges[reverse_meta_edges[i][j]].erase(erase_it__meta_edge);
-//                }
-//                for (int k = 0; k < is_union_of[i].size(); k++) {
-//
-//                    meta_edges[reverse_meta_edges[i][j]].push_back(is_union_of[i][k]);
-//                    reverse_meta_edges[is_union_of[i][k]].push_back(reverse_meta_edges[i][j]);
-//                }
-//            }
-//            for(int k = 0; k < is_union_of[i].size(); k++)
-//            {
-//                vector<int>::iterator erase_it__is_contained_in = find(
-//                        is_contained_in[is_union_of[i][k]].begin(), is_contained_in[is_union_of[i][k]].end(), i);
-//                if(erase_it__is_contained_in != is_contained_in[is_union_of[i][k]].end()){
-//                    is_contained_in[is_union_of[i][k]].erase(erase_it__is_contained_in);
-//                }
-//            }
-//            for(int k = 0; k < meta_edges[i].size(); k++)
-//            {
-//                vector<int>::iterator erase_it__reverse_meta_edge = find(
-//                        reverse_meta_edges[meta_edges[i][k]].begin(), reverse_meta_edges[meta_edges[i][k]].end(), i);
-//                if(erase_it__reverse_meta_edge != is_contained_in[is_union_of[i][k]].end()){
-//                    reverse_meta_edges[meta_edges[i][k]].erase(erase_it__reverse_meta_edge);
-//                }
-//            }
-////            cout << "delete " << i << endl;
-//            deleted_nodes.push_back(i);
-//            nodes[i].my_delete();
-//            is_contained_in[i].clear();
-//            is_union_of[i].clear();
-//            reverse_meta_edges[i].clear();
-//        }
-//    }
-//
-//    for(int i = 0;i<nodes.size();i++)
-//    {
-//        if(nodes[i].node_type != inactive_node)
-//        {
-////            cout << "here " << i << endl;
-//            assert(is_union_of[i].size() == 0);
-//        }
-//    }
-//
-//    num_deleted_nodes = (int) deleted_nodes.size();
-//    ret+=num_deleted_nodes;
-//
-//    return ret;
-//}
 
 DecisionTree* CompactPoset::get_downstream_union(int at)
 {
@@ -1414,7 +1377,7 @@ vector<PartialFunction> CompactPoset::query(PartialFunction partial_function)
 //                    assert(false);
 //                }
 //                while(!q.empty()){
-//                    q.pop();
+//                    q.hard_pop();
 //                }
             }
             else if(meta_edges[at].size() >= 1)
@@ -1594,7 +1557,7 @@ vector<PartialFunction> CompactPoset::query(PartialFunction partial_function)
     return ret;
 }
 
-void CompactPoset::classify_nodes()
+void CompactPoset::compare_nodes()
 {
     calc_downstream_unions();
     calc_dominator_unions();
@@ -1646,12 +1609,12 @@ void CompactPoset::classify_nodes()
     }
 }
 
-vector<MetaExample> CompactPoset::get_necessary_meta_examples() {
+vector<MetaExample> CompactPoset::get_existant_meta_examples() {
     vector<MetaExample> ret;
 
     for(int i = 0;i<delta_stack.size();i++)
     {
-        if(!delta_stack[i].was_popped && !delta_stack[i].removed_after_the_fact)
+        if(delta_stack[i].is_existant())
         {
             ret.push_back(delta_stack[i].meta_example);
         }
@@ -1661,12 +1624,14 @@ vector<MetaExample> CompactPoset::get_necessary_meta_examples() {
 
 vector<MetaExample> CompactPoset::get_all_meta_examples_without_duplicates() {
     vector<MetaExample> ret;
-    for(auto element: uniques)
+    for(auto it = uniques.begin(); it!=uniques.end(); it++)
     {
+        pair<int, pair<int, int> > element = (*it).first;
         ret.push_back(
                 MetaExample(num_inputs, element.first, element.second.first, element.second.second)
         );
     }
     return ret;
 }
+
 

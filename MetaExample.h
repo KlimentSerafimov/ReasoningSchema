@@ -53,6 +53,8 @@ public:
     {
         return generalization.total_function < other.generalization.total_function;
     }
+
+    bool is_consistent_with(MetaExample other);
 };
 
 

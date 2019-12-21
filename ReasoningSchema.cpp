@@ -97,7 +97,7 @@ void SubdomainSwitchPosetsFactors::insert(MetaExample meta_example)
                     int generalization_mask_prev = training_mask_prev | factors[j].common_generalization_mask;
 
                     if(generalization_mask_prev != training_mask_prev) {
-                        factors[j].subdomain_posets[factors[j].compusorty_mask_to_id[compulsory_training_mask_prev]].pop();
+                        factors[j].subdomain_posets[factors[j].compusorty_mask_to_id[compulsory_training_mask_prev]].hard_pop();
                     }
                 }
                 inserted = false;
@@ -129,7 +129,7 @@ void SubdomainSwitchPosetsFactors::print()
         for(int j = 0;j<factors[i].subdomain_posets.size();j++)
         {
             cout << factors[i].masks_to_string(j) << " num_meta_edges = " << factors[i].subdomain_posets[j].get_num_meta_edges() <<" ";
-            factors[i].subdomain_posets[j].there_exist_redundant_meta_edge();
+            factors[i].subdomain_posets[j].soft_delete_redundant_edges();
             cout << "necessary_meta_edges = " << factors[i].subdomain_posets[j].get_num_meta_edges() << endl;
         }
         cout << endl;
@@ -245,7 +245,7 @@ ReasoningSchema::ReasoningSchema(int _num_inputs, vector<MetaExample> train_meta
                 bool is_contained = false;
                 if(first_mask != first_local_partition) {
                     if (!subdomain_poset[mask_ids[k]].first.insert(first_partial_meta_example)) {
-                        subdomain_poset[mask_ids[k]].first.pop();
+                        subdomain_poset[mask_ids[k]].first.hard_pop();
                         inconsistent_meta_examples[mask_ids[k]].push_back(train_meta_examples[i]);
                     }
                     else
@@ -253,8 +253,8 @@ ReasoningSchema::ReasoningSchema(int _num_inputs, vector<MetaExample> train_meta
                         if(second_mask!=second_local_partition)
                         {
                             if (!subdomain_poset[mask_ids[k]].second.insert(second_partial_meta_example)) {
-                                subdomain_poset[mask_ids[k]].second.pop();
-                                subdomain_poset[mask_ids[k]].first.pop();
+                                subdomain_poset[mask_ids[k]].second.hard_pop();
+                                subdomain_poset[mask_ids[k]].first.hard_pop();
                                 inconsistent_meta_examples[mask_ids[k]].push_back(train_meta_examples[i]);
                             }
                             else
@@ -275,7 +275,7 @@ ReasoningSchema::ReasoningSchema(int _num_inputs, vector<MetaExample> train_meta
                     if(second_mask!=second_local_partition)
                     {
                         if (!subdomain_poset[mask_ids[k]].second.insert(second_partial_meta_example)) {
-                            subdomain_poset[mask_ids[k]].second.pop();
+                            subdomain_poset[mask_ids[k]].second.hard_pop();
                             inconsistent_meta_examples[mask_ids[k]].push_back(train_meta_examples[i]);
                         }
                         else
@@ -369,11 +369,11 @@ ReasoningSchema::ReasoningSchema(int _num_inputs, vector<MetaExample> train_meta
         cout << endl;
         cout << "consistent factoring (generalization): " << bitvector_to_str(masks[j].first, function_size) << " " << bitvector_to_str(masks[j].second, function_size) << endl;
         cout << "consistent factoring (training      ): " << bitvector_to_str(training_masks[j].first, function_size) << " " << bitvector_to_str(training_masks[j].second, function_size) << endl;
-        subdomain_poset[j].first.there_exist_redundant_meta_edge();
+        subdomain_poset[j].first.soft_delete_redundant_edges();
         cout << "left necessary = " << subdomain_poset[j].first.get_num_meta_edges() << endl;
         cout << "left no duplicates = " << subdomain_poset[j].first.get_all_meta_examples_without_duplicates().size() << endl;
 
-        subdomain_poset[j].second.there_exist_redundant_meta_edge();
+        subdomain_poset[j].second.soft_delete_redundant_edges();
         cout << "right necessary = " <<subdomain_poset[j].second.get_num_meta_edges() << endl;
         cout << "right no duplicates = " << subdomain_poset[j].second.get_all_meta_examples_without_duplicates().size() << endl;
 
@@ -448,7 +448,7 @@ ReasoningSchema::ReasoningSchema(int _num_inputs, vector<MetaExample> train_meta
 //            }
 //        }
 
-        remainders[j].there_exist_redundant_meta_edge();
+        remainders[j].soft_delete_redundant_edges();
         cout << "remainder necessary = " << remainders[j].get_num_meta_edges() << " num_decision_tree_nodes "<<  get__global_num_decision_tree_nodes() << " empty slots "<< get__empty_slots_count()  << " time: " << (double)time(nullptr) - local_time << endl;
 
         int remainder_without_duplicates_count = (int) remainders[j].get_all_meta_examples_without_duplicates().size();
@@ -544,19 +544,20 @@ ReasoningSchema::ReasoningSchema(int _num_inputs, vector<MetaExample> train_meta
 
     int total_domain = (1<<(1<<num_inputs))-1;
 
-    root_schema = new ReasoningSchema(num_inputs, total_domain, total_domain, remainders[best_subdomain].get_necessary_meta_examples());
+    root_schema = new ReasoningSchema(num_inputs, total_domain, total_domain,
+                                      remainders[best_subdomain].get_existant_meta_examples());
 
     factor_schemas = make_pair(
             new ReasoningSchema(
                     num_inputs,
                     masks[best_subdomain].first,
                     training_masks[best_subdomain].first,
-                    subdomain_poset[best_subdomain].first.get_necessary_meta_examples()),
+                    subdomain_poset[best_subdomain].first.get_existant_meta_examples()),
             new ReasoningSchema(
                     num_inputs,
                     masks[best_subdomain].second,
                     training_masks[best_subdomain].second,
-                    subdomain_poset[best_subdomain].second.get_necessary_meta_examples())
+                    subdomain_poset[best_subdomain].second.get_existant_meta_examples())
             );
 
 
