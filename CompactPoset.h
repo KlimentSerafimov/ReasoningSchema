@@ -178,7 +178,8 @@ public:
 
     vector<int> get_existant_meta_example_ids();
 
-    pair<vector<MetaExample>, vector<vector<int> > >  get_existant_meta_examples_and_equivalent_ids();
+    void get_existant_meta_examples_and_equivalent_ids(
+            vector<MetaExample> &ret_meta_examples, vector<vector<int> > &ret_equivalent_ids);
 
     bool empty();
 

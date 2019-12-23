@@ -370,7 +370,7 @@ int main() {
         vector<int> total_without_trivial;
         vector<int> total_num_meta_examples;
         vector<int> schema_based_examples;
-        for(int language_id = 1+0; language_id < 10;language_id++)
+        for(int language_id = 0; language_id < 1+0*10;language_id++)
         {
             int num_inputs = 3;
             int max_partition_size = -1;
@@ -618,7 +618,7 @@ int main() {
 
             vector<CompactPoset> compact_posets;
 
-            MinimalFactoringSchema(num_inputs, meta_examples, nullptr);
+            MinimalFactoringSchema(num_inputs, meta_examples, "language(n="+std::to_string(num_inputs)+",id="+std::to_string(language_id)+")");
 
 
 

@@ -134,7 +134,6 @@ vector<MetaExample> get_meta_examples_after_query(int subdomain_mask, CompactPos
     return meta_examples_with_hints;
 }
 
-
 bool MinimalFactoringSchema::test_compact_poset_for_consistency_with_all_meta_examples(
         int subdomain_mask, CompactPoset *compact_poset) {
 
@@ -206,7 +205,7 @@ int MinimalFactoringSchema::get_meta_edge_id_to_remove(CompactPoset* compact_pos
     return meta_edge_id_to_remove.second;
 }
 
-pair<vector<MetaExample>, vector<vector<int> > >  MinimalFactoringSchema::get_globally_consistent_meta_examples_and_equivalent_ids(
+void MinimalFactoringSchema::prune_globally_inconsistent_meta_examples(
         int subdomain_mask, CompactPoset *compact_poset)
 {
     for (int test_meta_example_id = 0; test_meta_example_id < meta_examples.size(); test_meta_example_id++) {
@@ -235,24 +234,6 @@ pair<vector<MetaExample>, vector<vector<int> > >  MinimalFactoringSchema::get_gl
             compact_poset->hard_pop();
         }
     }
-
-//    cout << "pre-compact_poset->soft_delete_redundant_edges() compact_poset->get_num_meta_edges() = " << compact_poset->get_num_meta_edges() << endl;
-
-    compact_poset->soft_delete_redundant_edges();
-
-    return compact_poset->get_existant_meta_examples_and_equivalent_ids();
-
-//    vector<int> globally_consistent_meta_example_ids =
-//            compact_poset->get_existant_meta_example_ids();
-//
-//    vector<MetaExample> globally_consistent_meta_examples;
-//
-//    for(int i = 0;i<globally_consistent_meta_example_ids.size();i++)
-//    {
-//        globally_consistent_meta_examples.push_back(meta_examples[globally_consistent_meta_example_ids[i]]);
-//    }
-//
-//    return globally_consistent_meta_examples;
 }
 
 int get_num_missing_bits(vector<MetaExample> meta_examples)
@@ -266,40 +247,49 @@ int get_num_missing_bits(vector<MetaExample> meta_examples)
     return ret;
 }
 
-pair<double, pair<int, vector<int> > > MinimalFactoringSchema::calculate_heuristic(int current_number_missing_bits, int mask_size, int mask_id) {
+double MinimalFactoringSchema::calculate_heuristic(Module* module) {
+
     auto count_occurences =
-            vector<vector<pair<int, pair<int, int> > > >(meta_examples.size(), vector<pair<int, pair<int, int> > >());
+            vector<vector<pair<int, pair<int, int> > > >
+                    (meta_examples.size(), vector<pair<int, pair<int, int> > >());
 
-    vector<vector<vector<int> > > covered;
-
-    int at_mask_size = mask_size;
-    int at_mask_id = mask_id;
     MinimalFactoringSchema* at_parent = this;
 
     int very_init_num_missing_bits = -1;
 
+    very_init_num_missing_bits = at_parent->init_num_missing_bits;
+    module->covered.push_back(vector<vector<int> >());
+    for(int i = 0;i<module->equivalent_ids.size(); i++)
+    {
+        module->covered[module->covered.size()-1].push_back(vector<int>());
+        for(int j = 0;j<module->equivalent_ids[i].size(); j++)
+        {
+            count_occurences[module->equivalent_ids[i][j]].push_back(
+                    make_pair(module->covered.size()-1, make_pair(i, j)));
+//                cout << at_parent->equivalent_meta_example_ids[at_mask_size][at_mask_id][i][j] <<" ";
+        }
+//            cout << endl;
+    }
+//        cout << endl;
+    at_parent = at_parent->parent_pointer;
+
     while(at_parent != nullptr)
     {
         very_init_num_missing_bits = at_parent->init_num_missing_bits;
-        covered.push_back(vector<vector<int> >());
-        for(int i = 0;i<at_parent->equivalent_meta_example_ids[at_mask_size][at_mask_id].size(); i++)
+        module->covered.push_back(vector<vector<int> >());
+        for(int i = 0;i<at_parent->best_module.equivalent_ids.size(); i++)
         {
-            covered[covered.size()-1].push_back(vector<int>());
-            for(int j = 0;j<at_parent->equivalent_meta_example_ids[at_mask_size][at_mask_id][i].size(); j++)
+            module->covered[module->covered.size()-1].push_back(vector<int>());
+            for(int j = 0;j<at_parent->best_module.equivalent_ids[i].size(); j++)
             {
-                count_occurences[at_parent->equivalent_meta_example_ids[at_mask_size][at_mask_id][i][j]].push_back(
-                        make_pair(covered.size()-1, make_pair(i, j)));
+                count_occurences[at_parent->best_module.equivalent_ids[i][j]].push_back(
+                        make_pair(module->covered.size()-1, make_pair(i, j)));
 //                cout << at_parent->equivalent_meta_example_ids[at_mask_size][at_mask_id][i][j] <<" ";
             }
 //            cout << endl;
         }
 //        cout << endl;
         at_parent = at_parent->parent_pointer;
-        if(at_parent != nullptr)
-        {
-            at_mask_size = at_parent->best_mask_size;
-            at_mask_id = at_parent->best_mask_id;
-        }
     }
 
     vector<pair<int, int> > meta_examples_id_by_occurences;
@@ -312,10 +302,6 @@ pair<double, pair<int, vector<int> > > MinimalFactoringSchema::calculate_heurist
     sort(meta_examples_id_by_occurences.begin(), meta_examples_id_by_occurences.end());
     reverse(meta_examples_id_by_occurences.begin(), meta_examples_id_by_occurences.end());
 
-
-    int num_necessary_meta_examples = 0;
-    vector<int> necessary_meta_examples;
-
     for(int i = 0;i<meta_examples_id_by_occurences.size();i++)
     {
         int id = meta_examples_id_by_occurences[i].second;
@@ -326,7 +312,7 @@ pair<double, pair<int, vector<int> > > MinimalFactoringSchema::calculate_heurist
             int parent_id = count_occurences[id][j].first;
             int sub_meta_example_id = count_occurences[id][j].second.first;
 //            cout << parent_id <<" "<< sub_meta_example_id << " | ";
-            if(covered[parent_id][sub_meta_example_id].size() == 0)
+            if(module->covered[parent_id][sub_meta_example_id].size() == 0)
             {
                 necessary = true;
                 break;
@@ -336,61 +322,104 @@ pair<double, pair<int, vector<int> > > MinimalFactoringSchema::calculate_heurist
 
         if(necessary)
         {
-            num_necessary_meta_examples++;
-            necessary_meta_examples.push_back(id);
+            module->necessary_meta_example_ids.push_back(id);
 
             for(int j = 0;j<count_occurences[id].size();j++)
             {
                 int parent_id = count_occurences[id][j].first;
                 int sub_meta_example_id = count_occurences[id][j].second.first;
-                covered[parent_id][sub_meta_example_id].push_back(id);
+                module->covered[parent_id][sub_meta_example_id].push_back(id);
             }
         }
     }
 
 
+    int num_necessary_meta_examples = (int) module->necessary_meta_example_ids.size();
 
-    int total_delta_num_bits = very_init_num_missing_bits - current_number_missing_bits;
 
-    int current_delta = init_num_missing_bits - current_number_missing_bits;
+    int total_delta_num_bits = very_init_num_missing_bits - module->num_missing_bits;
+
+//    cout << "HERE: init_num_missing_bits" << init_num_missing_bits <<" module->num_missing_bits = "<< module->num_missing_bits << endl;
+
+    int current_delta = init_num_missing_bits - module->num_missing_bits;
 
     if(num_necessary_meta_examples == 0)
     {
-        return make_pair(-1, make_pair(total_delta_num_bits, necessary_meta_examples));
+        return -1;
     }
 
-    if(current_number_missing_bits == init_num_missing_bits)
+    if(module->num_missing_bits == init_num_missing_bits)
     {
-        return make_pair(-1, make_pair(total_delta_num_bits, necessary_meta_examples));
+        return -1;
     }
 
     int prev_necessary_meta_examples_delta = 0;
     if(parent_pointer != nullptr)
     {
-        prev_necessary_meta_examples_delta = parent_pointer->best_necessary_num_meta_examples;
+        prev_necessary_meta_examples_delta = (int) parent_pointer->best_module.necessary_meta_example_ids.size();
     }
-    int delta_necessary_meta_examples_delta = num_necessary_meta_examples - prev_necessary_meta_examples_delta;
+    int delta_num_necessary_meta_examples = num_necessary_meta_examples - prev_necessary_meta_examples_delta;
 
-    double ret;
-    if(delta_necessary_meta_examples_delta == 0)
+    double delta_ratio;
+
+    cout << "num_necessary_meta_examples = " << num_necessary_meta_examples << " delta_num_necessary_meta_examples = "<< delta_num_necessary_meta_examples << endl;
+
+    if(delta_num_necessary_meta_examples == 0)
     {
-        ret = 1000000 + current_delta;
+        delta_ratio = 1000000 + current_delta;
     }
     else
     {
-        ret = (double) current_delta / (double) delta_necessary_meta_examples_delta;
+        delta_ratio = (double) current_delta / (double) delta_num_necessary_meta_examples;
     }
 
 
 //    double ret = (double) total_delta_num_bits / (double) num_necessary_meta_examples;
 
+//    cout << "C" << endl;
 
-    return make_pair(ret, make_pair(total_delta_num_bits, necessary_meta_examples));
+    return delta_ratio;
+}
+
+
+static int maximal_factoring_schema_depth_counter = 0;
+static int minimal_factoring_schema_depth_counter = 0;
+
+static string best_subdomains[1000] = {};
+
+vector<int> MinimalFactoringSchema::get_masks(int set_init_mask_size)
+{
+    vector<int> masks;
+    vector<vector<int> > masks_by_size = vector<vector<int> >(function_size + 1, vector<int>());
+
+    for (int i = 1; i < (1 << function_size)-1; i++) {
+        if(minimal_factoring_schema_depth_counter < maximal_factoring_schema_depth_counter) {
+            i = string_to_bitvector(best_subdomains[minimal_factoring_schema_depth_counter++]);
+            masks_by_size[__builtin_popcount(i)].push_back(i);
+            break;
+        } else
+        {
+            masks_by_size[__builtin_popcount(i)].push_back(i);
+        }
+    }
+
+    for(int i = 0;i<masks_by_size.size();i++)
+    {
+        vector<int> reduced;
+        if(i >= set_init_mask_size) {
+            for (int j = 0; j < masks_by_size[i].size(); j++) {
+                reduced.push_back(masks_by_size[i][j]);
+                masks.push_back(masks_by_size[i][j]);
+            }
+        }
+        masks_by_size[i] = reduced;
+    }
+    return masks;
 }
 
 static ofstream fout;
 
-void MinimalFactoringSchema::repeat_apply_parents(CompactPoset* compact_poset, int subdomain_mask, vector<MetaExample> &meta_examples_with_hints, bool print) {
+void MinimalFactoringSchema::repeat_apply_parents(Module *module) {
 
     if(parent_pointer == nullptr)
     {
@@ -402,15 +431,15 @@ void MinimalFactoringSchema::repeat_apply_parents(CompactPoset* compact_poset, i
     vector<MetaExample> inactive_meta_examples;
     vector<MetaExample> active_meta_examples;
 
-    for(int i = 0;i<meta_examples_with_hints.size();i++)
+    for(int i = 0;i<module->meta_examples_after_query.size();i++)
     {
-        if(meta_examples_with_hints[i].active)
+        if(module->meta_examples_after_query[i].active)
         {
-            active_meta_examples.push_back(meta_examples_with_hints[i]);
+            active_meta_examples.push_back(module->meta_examples_after_query[i]);
         }
         else
         {
-            inactive_meta_examples.push_back(meta_examples_with_hints[i]);
+            inactive_meta_examples.push_back(module->meta_examples_after_query[i]);
         }
     }
 
@@ -433,13 +462,13 @@ void MinimalFactoringSchema::repeat_apply_parents(CompactPoset* compact_poset, i
         parents.push_back(at_parent);
         if(at_parent == this)
         {
-            compact_posets.push_back(compact_poset);
-            best_subdomain_masks.push_back(subdomain_mask);
+            compact_posets.push_back(module->compact_poset);
+            best_subdomain_masks.push_back(module->subdomain_mask);
 
         } else
         {
-            compact_posets.push_back(at_parent->best_local_compact_poset);
-            best_subdomain_masks.push_back(at_parent->best_subdomain_mask);
+            compact_posets.push_back(at_parent->best_module.compact_poset);
+            best_subdomain_masks.push_back(at_parent->best_module.subdomain_mask);
         }
         at_parent = at_parent->parent_pointer;
     }
@@ -447,9 +476,6 @@ void MinimalFactoringSchema::repeat_apply_parents(CompactPoset* compact_poset, i
     reverse(parents.begin(), parents.end());
     reverse(compact_posets.begin(), compact_posets.end());
     reverse(best_subdomain_masks.begin(), best_subdomain_masks.end());
-
-    vector<pair<int, int> > repeats;
-    vector<int> num_missing_bits_after_repeat;
 
     int local_repeat_count = 0;
 
@@ -470,9 +496,9 @@ void MinimalFactoringSchema::repeat_apply_parents(CompactPoset* compact_poset, i
 
             if(local_num_missing_bits < prev_for_loop_num_missing_bits) {
 //                cout << "to repeat i = " << i << endl;
-                repeats.push_back(make_pair(local_repeat_count, i));
+                module->repeats.push_back(make_pair(i, &parents[i]->best_module));
 //              num_missing_bits_in_inactive = 0;
-                num_missing_bits_after_repeat.push_back(num_missing_bits_in_inactive+local_num_missing_bits);
+                module->num_missing_bits_after_repeat.push_back(num_missing_bits_in_inactive+local_num_missing_bits);
             }
             prev_for_loop_num_missing_bits = local_num_missing_bits;
 
@@ -481,53 +507,22 @@ void MinimalFactoringSchema::repeat_apply_parents(CompactPoset* compact_poset, i
         after_cycle_num_missig_bits = prev_for_loop_num_missing_bits;
     }while(after_cycle_num_missig_bits != cycle_prev_num_missing_bit);
 
-    if(print)
-    {
-        int total_repeat_count = local_repeat_count;
 
-        int dummy_local_repeat_count = 0;
-
-        int at_repeat = 0;
-
-        do{
-            dummy_local_repeat_count += 1;
-            for (int i = 0; i < compact_posets.size(); i++) {
-                if(at_repeat < repeats.size()) {
-                    if (make_pair(dummy_local_repeat_count, i) == repeats[at_repeat]) {
-
-                        int local_num_missing_bits = num_missing_bits_after_repeat[at_repeat];
-                        cout << "after i = " << i << " num_missing_bits = " << local_num_missing_bits << endl;
-                        fout <<
-                             bitvector_to_str(parents[i]->best_subdomain_mask, function_size) <<
-                             " " << best_necessary_num_meta_examples <<
-                             " " << local_num_missing_bits <<
-                             " mask " << i <<
-                             " ( " << bitvector_to_str(best_subdomain_masks[i], function_size) <<
-                             " " << parents[i]->best_necessary_num_meta_examples <<
-                             " " << parents[i]->local_after_num_missig_bits <<
-                             " ) time " << (double) time(nullptr) - (double) init_time <<  endl;
-                        at_repeat++;
-                    }
-                }
-            }
-        }while(dummy_local_repeat_count < total_repeat_count);
-    }
-
-    for(int i = 0, j = 0, k = 0; i<meta_examples_with_hints.size();i++)
+    for(int i = 0, j = 0, k = 0; i<module->meta_examples_after_query.size();i++)
     {
         bool enter = false;
         if(j < active_meta_examples.size()) {
-            if (active_meta_examples[j].idx == meta_examples_with_hints[i].idx) {
+            if (active_meta_examples[j].idx == module->meta_examples_after_query[i].idx) {
                 enter = true;
-                meta_examples_with_hints[i] = active_meta_examples[j];
+                module->meta_examples_after_query[i] = active_meta_examples[j];
                 j++;
             }
         }
         if(k < inactive_meta_examples.size()) {
-            if (inactive_meta_examples[k].idx == meta_examples_with_hints[i].idx) {
+            if (inactive_meta_examples[k].idx == module->meta_examples_after_query[i].idx) {
                 assert(!enter);
                 enter = true;
-                meta_examples_with_hints[i] = inactive_meta_examples[k];
+                module->meta_examples_after_query[i] = inactive_meta_examples[k];
                 k++;
             }
         }
@@ -535,12 +530,6 @@ void MinimalFactoringSchema::repeat_apply_parents(CompactPoset* compact_poset, i
     }
 
 }
-
-
-static int maximal_factoring_schema_depth_counter = 0;
-static int minimal_factoring_schema_depth_counter = 0;
-
-static string best_subdomains[1000] = {};
 
 //static ofstream fout("subdomain_masks_4_5_6_7_div_4_running.out");
 //static ofstream fout("subdomain_masks_num_bits_2_running.out");
@@ -552,193 +541,169 @@ static string best_subdomains[1000] = {};
 
 static int set_init_mask_size = 3;
 //static string fout_name = "fast_subdomain_masks_3_4_5_6_7_with_repeats_traced_corrected_only_active_eval_delta_heuristic.out";
-static string fout_name = "reasoning_schema_using_delta_heuristic__subdomain_size_3_4_5_6_7_for_language_ids_2_plus.out";
+static string fout_name = "after_refactor__reasoning_schema_using_delta_heuristic__subdomain_size_3plus.out";
 
-MinimalFactoringSchema::MinimalFactoringSchema(int _num_inputs, vector<MetaExample> _meta_examples, MinimalFactoringSchema *_parent_pointer) {
-    parent_pointer = _parent_pointer;
+MinimalFactoringSchema::MinimalFactoringSchema(int _num_inputs, vector<MetaExample> _meta_examples, string ordering_name) {
+    parent_pointer = nullptr;
 
-    if(parent_pointer == nullptr)
-    {
-        fout.open(fout_name);
-    }
+    assert(!fout.is_open());
 
-    bool skip = true;
-    if(!skip) {
-        if (parent_pointer == nullptr) {
-            minimal_factoring_schema_depth_counter = 0;
+    fout.open(ordering_name + "__" + fout_name);
 
-            ifstream fin("fast_subdomain_masks_4_5_6_7_with_repeats_traced_corrected_delta_heuristic.out");
+    bool skip = false;
+    if (!skip) {
+        minimal_factoring_schema_depth_counter = 0;
 
-            string line;
-            int line_id = 0;
-            cout << "Already processed: " << endl;
-            while (getline(fin, line)) {
-                stringstream ss;
-                ss << line;
-                string first;
-                if (line_id == 0) {
-                    ss >> first;
-                    cout << first << endl;
-                } else {
-                    string second, third, fourth;
-                    ss >> first >> second >> third >> fourth;
-                    assert(maximal_factoring_schema_depth_counter < 1000);
-                    cout << first << " " << second << " " << third << " "<< fourth << endl;
-                    if(fourth != "mask") {
-                        best_subdomains[maximal_factoring_schema_depth_counter++] = first;
-                    }
+        ifstream fin("fast_subdomain_masks_3_4_5_6_7_with_repeats_traced_corrected_only_active_eval_delta_heuristic.out");
+
+        string line;
+        int line_id = 0;
+        cout << "Already processed: " << endl;
+        while (getline(fin, line)) {
+            stringstream ss;
+            ss << line;
+            string first;
+            if (line_id == 0) {
+                ss >> first;
+                cout << first << endl;
+            } else {
+                string second, third, fourth;
+                ss >> first >> second >> third >> fourth;
+                assert(maximal_factoring_schema_depth_counter < 1000);
+                cout << first << " " << second << " " << third << " " << fourth << endl;
+                if (fourth != "mask") {
+                    best_subdomains[maximal_factoring_schema_depth_counter++] = first;
                 }
-                line_id++;
             }
+            line_id++;
         }
     }
 
-    time_t local_time = (double) time(nullptr);
+    main__minimal_factoring_schema(_num_inputs, _meta_examples);
+
+    fout.close();
+}
+
+MinimalFactoringSchema::MinimalFactoringSchema(int _num_inputs, vector<MetaExample> _meta_examples,
+            MinimalFactoringSchema *_parent_pointer) {
+
+    parent_pointer = _parent_pointer;
+    main__minimal_factoring_schema(_num_inputs, _meta_examples);
+}
+
+void MinimalFactoringSchema::calc_module(int subdomain_mask, Module* module, bool print)
+{
+
+    module->function_size = function_size;
+    module->subdomain_mask = subdomain_mask;
 
     if(parent_pointer == nullptr)
     {
-        init_time = local_time;
+        module->parent_module = nullptr;
     }
     else
     {
-        init_time = parent_pointer->init_time;
+        module->parent_module = &parent_pointer->best_module;
     }
+
+    vector<MetaExample> individually_consistent_meta_examples =
+            get_meta_example_ids_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(
+                    subdomain_mask);
+
+//    cout << "num_individually_consistent_for_rest = " << individually_consistent_meta_examples.size() << endl;
+
+    module->compact_poset =
+            new CompactPoset(num_inputs, subdomain_mask, subdomain_mask, individually_consistent_meta_examples);
+
+//    cout << "num_individually_consistent_together_in_compact_poset = " << individually_consistent_meta_examples.size() << endl;
+
+    prune_globally_inconsistent_meta_examples(subdomain_mask, module->compact_poset);
+
+    module->compact_poset->soft_delete_redundant_edges();
+
+    module->compact_poset->get_existant_meta_examples_and_equivalent_ids(
+            module->module_meta_examples, module->equivalent_ids);
+
+//    cout << "num_individually_consistent_together_in_compact_poset_after_remove_redundant_for_rest = " << module->module_meta_examples.size() << endl;
+
+//    module->compact_poset->clear();
+//
+//    module->compact_poset =
+//            new CompactPoset(
+//                    num_inputs, subdomain_mask, subdomain_mask,
+//                    module->module_meta_examples);
+
+    test_compact_poset_for_consistency_with_all_meta_examples(subdomain_mask, module->compact_poset);
+
+//    cout << "tested mask = " << bitvector_to_str(subdomain_mask, function_size) << " time: " << (double) time(nullptr) - local_time << endl;
+
+    module->meta_examples_after_query =
+            get_meta_examples_after_query(subdomain_mask, module->compact_poset, meta_examples, false, false, false);
+
+    module->intermediate_num_missing_bits = get_num_missing_bits(module->meta_examples_after_query);
+    int intermediate_delta_num_bits = init_num_missing_bits - module->intermediate_num_missing_bits;
+    cout << "intermediate_num_missing_bits = " << module->intermediate_num_missing_bits << " intermediate_delta_num_bits = " << intermediate_delta_num_bits << endl;
+
+    repeat_apply_parents(module);
+
+    module->num_missing_bits = get_num_missing_bits(module->meta_examples_after_query);
+    int delta_num_bits = init_num_missing_bits - module->num_missing_bits;
+    cout << "after_repeat_num_missing_bits = " << module->num_missing_bits << " after_repeat_delta_num_missing_bits = " << delta_num_bits << endl;
+
+
+}
+
+void MinimalFactoringSchema::main__minimal_factoring_schema(int _num_inputs, vector<MetaExample> _meta_examples) {
 
     num_inputs = _num_inputs;
     function_size = (1 << num_inputs);
     meta_examples = _meta_examples;
-    vector<vector<int> > masks_by_size = vector<vector<int> >(function_size + 1, vector<int>());
 
-    vector<int> unit_masks;
-    vector<CompactPoset> compact_posets;
+    local_time = (double) time(nullptr);
 
-    for (int i = 1; i < (1 << function_size)-1; i++) {
-        if(minimal_factoring_schema_depth_counter < maximal_factoring_schema_depth_counter) {
-            i = string_to_bitvector(best_subdomains[minimal_factoring_schema_depth_counter++]);
-            masks_by_size[__builtin_popcount(i)].push_back(i);
-            break;
-        } else
-        {
-            masks_by_size[__builtin_popcount(i)].push_back(i);
-        }
+    if (parent_pointer == nullptr) {
+        init_time = local_time;
+        root_pointer = this;
+    } else {
+        init_time = parent_pointer->init_time;
+        root_pointer = parent_pointer->root_pointer;
     }
 
-    for(int i = 0;i<masks_by_size.size();i++)
-    {
-        vector<int> reduced;
-        for(int j = 0;j<masks_by_size[i].size();j++)
-        {
-            reduced.push_back(masks_by_size[i][j]);
-        }
-        masks_by_size[i] = reduced;
-    }
+    vector<int> masks = get_masks(set_init_mask_size);
 
     init_num_missing_bits = get_num_missing_bits(meta_examples);
 
-    vector<pair<double, pair<int, int> > > mask_size_and_masks_ids_by_heuristic;
-    vector<vector<vector<int> > > necessary_meta_examples_per_mask_size_per_mask_id;
-    vector<vector<int> > total_delta_num_missing_bits;
-
-    globally_consistent_meta_examples =
-            vector<vector<vector<MetaExample> > >(function_size+1, vector<vector<MetaExample> >());
-    equivalent_meta_example_ids =
-            vector<vector<vector<vector<int> > > >(function_size+1, vector<vector<vector<int> > >());
-
-    necessary_meta_examples_per_mask_size_per_mask_id =
-            vector<vector<vector<int> > >(function_size+1, vector<vector<int> >());
-    total_delta_num_missing_bits =
-            vector<vector<int> >(function_size+1, vector<int>());
-
+    vector<pair<double, int> > mask_ids_by_heuristic;
 
     cout << "init get__global_num_decision_tree_nodes() = " << get__global_num_decision_tree_nodes() << " get__empty_slots_count() = "<< get__empty_slots_count() << endl;
 
-    for (int mask_size = set_init_mask_size; mask_size < masks_by_size.size(); mask_size++) {
-        cout << "working on masks_size = " << mask_size << endl;
-        for (int mask_id = 0; mask_id < masks_by_size[mask_size].size(); mask_id++) {
+    for(int mask_id = 0; mask_id < masks.size(); mask_id++)
+    {
+        Module local_module;
 
-            int subdomain_mask = masks_by_size[mask_size][mask_id];
-            cout << "working on mask = " << bitvector_to_str(subdomain_mask, function_size) << " time: " << (double) time(nullptr) - local_time << endl;
+        cout << "working on mask = " << bitvector_to_str(masks[mask_id], function_size) << " time: " << (double) time(nullptr) - local_time << endl;
 
-            vector<MetaExample> individually_consistent_meta_examples =
-                    get_meta_example_ids_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(
-                            subdomain_mask);
+        calc_module(masks[mask_id], &local_module, false);
 
-//            cout << "num_individually_consistent_for_rest = " << individually_consistent_meta_examples.size() << endl;
+        local_module.compact_poset->clear();
 
-            CompactPoset *local_compact_poset =
-                    new CompactPoset(num_inputs, subdomain_mask, subdomain_mask, individually_consistent_meta_examples);
+        double heuristic = calculate_heuristic(&local_module);
 
-//            cout << "num_individually_consistent_together_in_compact_poset = " << individually_consistent_meta_examples.size() << endl;
+        mask_ids_by_heuristic.push_back(make_pair(heuristic, mask_id));
 
-            pair<vector<MetaExample>, vector<vector<int> > > globally_consistent_meta_examples_and_equivalent_ids =
-                    get_globally_consistent_meta_examples_and_equivalent_ids(subdomain_mask, local_compact_poset);
-
-//            cout << "num_individually_consistent_together_in_compact_poset_after_remove_redundant_for_rest = " << globally_consistent_meta_examples_and_equivalent_ids.first.size() << endl;
-
-            local_compact_poset->clear();
-
-            local_compact_poset =
-                    new CompactPoset(
-                            num_inputs, subdomain_mask, subdomain_mask,
-                            globally_consistent_meta_examples_and_equivalent_ids.first);
-
-            test_compact_poset_for_consistency_with_all_meta_examples(subdomain_mask, local_compact_poset);
-
-//            cout << "tested mask = " << bitvector_to_str(subdomain_mask, function_size) << " time: " << (double) time(nullptr) - local_time << endl;
-
-            vector<MetaExample> meta_examples_after_query =
-                    get_meta_examples_after_query(subdomain_mask, local_compact_poset, meta_examples, false, false, false);
-
-            int intermediate_num_missing_bits = get_num_missing_bits(meta_examples_after_query);
-            int intermediate_delta_num_bits = init_num_missing_bits - intermediate_num_missing_bits;
-
-//            cout << "intermediate_num_missing_bits = " << intermediate_num_missing_bits << " intermediate_delta_num_bits = " << intermediate_delta_num_bits << endl;
-
-            repeat_apply_parents(local_compact_poset, subdomain_mask, meta_examples_after_query, false);
-
-            local_compact_poset->clear();
-
-            int num_missing_bits = get_num_missing_bits(meta_examples_after_query);
-            int delta_num_bits = init_num_missing_bits - num_missing_bits;
-
-            globally_consistent_meta_examples[mask_size].push_back(
-                    globally_consistent_meta_examples_and_equivalent_ids.first);
-            equivalent_meta_example_ids[mask_size].push_back(
-                    globally_consistent_meta_examples_and_equivalent_ids.second);
-
-            pair<double, pair<int, vector<int> > > heuristic = calculate_heuristic(num_missing_bits, mask_size, mask_id);
-            necessary_meta_examples_per_mask_size_per_mask_id[mask_size].push_back(heuristic.second.second);
-            total_delta_num_missing_bits[mask_size].push_back(heuristic.second.first);
-
-            mask_size_and_masks_ids_by_heuristic.push_back(
-                    make_pair(heuristic.first, make_pair(mask_size, mask_id)));
-
-            cout << "heuristic = " << fixed << setprecision(4) << heuristic.first << endl;
-//            cout << "delta_num_bits = " << delta_num_bits << endl;
-//            cout << "total_delta_num_bits = " << heuristic.second.first << endl;
-//            cout << "total_num_necessary_meta_examples = " << heuristic.second.second.size() << endl;
-//            cout << "remaining_num_bits = " << num_missing_bits << endl;
-//            cout << "solved mask = " << bitvector_to_str(subdomain_mask, function_size) << " time: " << (double) time(nullptr) - local_time << endl;
-//            cout << endl;
-        }
+        cout << "heuristic = " << fixed << setprecision(4) << heuristic << endl;
     }
 
-    cout << "after get__global_num_decision_tree_nodes() = " << get__global_num_decision_tree_nodes() << " get__empty_slots_count() = "<< get__empty_slots_count() << endl;
+    sort(mask_ids_by_heuristic.begin(), mask_ids_by_heuristic.end());
+    reverse(mask_ids_by_heuristic.begin(), mask_ids_by_heuristic.end());
 
-    sort(mask_size_and_masks_ids_by_heuristic.begin(), mask_size_and_masks_ids_by_heuristic.end());
-    reverse(mask_size_and_masks_ids_by_heuristic.begin(), mask_size_and_masks_ids_by_heuristic.end());
-
-    for (int local_id = 0; local_id < mask_size_and_masks_ids_by_heuristic.size(); local_id++) {
-        int mask_size = mask_size_and_masks_ids_by_heuristic[local_id].second.first;
-        int mask_id = mask_size_and_masks_ids_by_heuristic[local_id].second.second;
-
-        cout << bitvector_to_str(masks_by_size[mask_size][mask_id], function_size) << fixed << setprecision(6)
-             << " heuristic_measure = " << mask_size_and_masks_ids_by_heuristic[local_id].first << " delta_num_missing_bits = "
-             << total_delta_num_missing_bits[mask_size][mask_id] <<" total_num_necessary_meta_examples = "
-             <<  necessary_meta_examples_per_mask_size_per_mask_id[mask_size][mask_id].size() << endl;
+    for (int local_id = 0; local_id < mask_ids_by_heuristic.size(); local_id++) {
+        int mask_id = mask_ids_by_heuristic[local_id].second;
+        cout << bitvector_to_str(masks[mask_id], function_size) << fixed << setprecision(6)
+             << " heuristic_measure = " << mask_ids_by_heuristic[local_id].first << endl;
     }
 
-    double max_num_consistent_meta_examples = mask_size_and_masks_ids_by_heuristic[0].first;
+    double max_num_consistent_meta_examples = mask_ids_by_heuristic[0].first;
 
     if(max_num_consistent_meta_examples >= 0.00001) {
 
@@ -747,45 +712,18 @@ MinimalFactoringSchema::MinimalFactoringSchema(int _num_inputs, vector<MetaExamp
             fout << init_num_missing_bits << endl;
         }
 
-        best_mask_size = mask_size_and_masks_ids_by_heuristic[0].second.first;
-        best_mask_id = mask_size_and_masks_ids_by_heuristic[0].second.second;
-        best_subdomain_mask = masks_by_size[best_mask_size][best_mask_id];
+        int best_mask_id = mask_ids_by_heuristic[0].second;
 
-        fout << bitvector_to_str(best_subdomain_mask, function_size) <<" ";
+        calc_module(masks[best_mask_id], &best_module, true);
 
-        best_local_compact_poset =
-                new CompactPoset(
-                        num_inputs, best_subdomain_mask, best_subdomain_mask,
-                        globally_consistent_meta_examples[best_mask_size][best_mask_id]);
+        calculate_heuristic(&best_module);
 
-        best_necessary_num_meta_examples =
-                necessary_meta_examples_per_mask_size_per_mask_id[best_mask_size][best_mask_id].size();
+        fout << best_module.print_module_sketch(time(nullptr) - init_time);
 
-        fout <<  best_necessary_num_meta_examples << " ";
-
-        best_local_compact_poset->soft_delete_redundant_edges();
-
-        cout << "num_meta_edges: " << best_local_compact_poset->get_num_meta_edges() <<" ";
-        cout << best_local_compact_poset->meta_examples_to_string() << endl;
-
-        vector<MetaExample> meta_examples_with_hints = get_meta_examples_after_query(
-                masks_by_size[best_mask_size][best_mask_id], best_local_compact_poset, meta_examples, true, false,
-                false);
-
-        local_after_num_missig_bits = get_num_missing_bits(meta_examples_with_hints);
-        int after_cycle_num_missig_bits = local_after_num_missig_bits;
-
-        cout << "init num_missing_bits = " << local_after_num_missig_bits << endl;
-
-        fout << local_after_num_missig_bits << " time " << (double) time(nullptr) - (double) init_time << endl;
-
-        repeat_apply_parents(best_local_compact_poset, best_subdomain_mask, meta_examples_with_hints, true);
-
-        MinimalFactoringSchema next = MinimalFactoringSchema(num_inputs, meta_examples_with_hints, this);
+        MinimalFactoringSchema next = MinimalFactoringSchema(num_inputs, best_module.meta_examples_after_query, this);
     }
-
-    if(parent_pointer == nullptr)
+    else 
     {
-        fout.open(fout_name);
+        fout << parent_pointer->best_module.covered_to_string(root_pointer->meta_examples) << endl;
     }
 }

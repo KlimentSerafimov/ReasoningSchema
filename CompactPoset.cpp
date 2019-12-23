@@ -1151,10 +1151,10 @@ vector<int> CompactPoset::get_existant_meta_example_ids()
     return ret;
 }
 
-pair<vector<MetaExample>, vector<vector<int> > >  CompactPoset::get_existant_meta_examples_and_equivalent_ids()
+void CompactPoset::get_existant_meta_examples_and_equivalent_ids(
+        vector<MetaExample> &ret_meta_examples, vector<vector<int> > &ret_equivalent_ids)
 {
-    vector<MetaExample> ret_meta_examples;
-    vector<vector<int> > ret_equivalent_ids;
+    assert(ret_meta_examples.size() == 0 && ret_equivalent_ids.size() == 0);
 
 //    cout << "source:" << endl;
     for(int i = 0; i < delta_stack.size();i++)
@@ -1172,8 +1172,6 @@ pair<vector<MetaExample>, vector<vector<int> > >  CompactPoset::get_existant_met
 //            cout << endl;
         }
     }
-//    cout <<":source" << endl;
-    return make_pair(ret_meta_examples, ret_equivalent_ids);
 }
 
 
