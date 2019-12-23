@@ -83,6 +83,13 @@ MetaExample::MetaExample(int _num_inputs, int _total_function, int _partition, i
     idx = _idx;
 }
 
+MetaExample::MetaExample(int _num_inputs, int _total_function, int _partition, int generalization_partition, int _idx, bool _active) {
+    partial_function = PartialFunction(_num_inputs, _total_function, _partition);
+    generalization = PartialFunction(_num_inputs, _total_function, generalization_partition);
+    idx = _idx;
+    active = _active;
+}
+
 bool MetaExample::is_consistent_with(MetaExample other) {
     assert(generalization.partition == other.generalization.partition);
 

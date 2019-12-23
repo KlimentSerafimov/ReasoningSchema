@@ -268,7 +268,7 @@ void LanguagesOverBooleanFunctions::enumerate() {
     cout << "GENERATED TOTAL ORDER OF " << ordering_over_boolean_functions.size() << " FUNCITONS" << endl;
 
 
-    bool do_print = false;
+    bool do_print = true;
 
     if(do_print) {
 

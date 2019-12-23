@@ -16,12 +16,14 @@ public:
     PartialFunction partial_function;
     PartialFunction generalization;
     int idx;
+    bool active = true;
 
     MetaExample() = default;
 
     MetaExample(int _num_inputs, int _total_function, int _partition);
     MetaExample(int _num_inputs, int _total_function, int _partition, int generalization_partition);
     MetaExample(int _num_inputs, int _total_function, int _partition, int generalization_partition, int _idx);
+    MetaExample(int _num_inputs, int _total_function, int _partition, int generalization_partition, int _idx, bool _active);
     MetaExample(PartialFunction partial_function);
 
     int get_compact_partial_outputs();
@@ -36,7 +38,8 @@ public:
                 generalization.total_function & subdomain_mask,
                 partial_function.partition & subdomain_mask,
                 generalization.partition & subdomain_mask,
-                idx
+                idx,
+                active
                 );
     }
 

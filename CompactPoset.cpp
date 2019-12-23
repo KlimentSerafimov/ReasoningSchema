@@ -1197,6 +1197,7 @@ void CompactPoset::clear()
         hard_pop();
     }
     assert(nodes.size() == 1);
+    nodes[0].my_delete();
 }
 
 DecisionTree* CompactPoset::get_downstream_union(int at)

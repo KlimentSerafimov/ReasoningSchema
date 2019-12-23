@@ -370,7 +370,7 @@ int main() {
         vector<int> total_without_trivial;
         vector<int> total_num_meta_examples;
         vector<int> schema_based_examples;
-        for(int language_id = 0; language_id < 10;language_id++)
+        for(int language_id = 1+0; language_id < 10;language_id++)
         {
             int num_inputs = 3;
             int max_partition_size = -1;
@@ -557,6 +557,7 @@ int main() {
                     masks.push_back(make_pair(masks[j].first, masks[j].second));
                     partition_masks.push_back(make_pair((1 << function_size) - 1 - 1, (1 << (function_size)) - 1));
                     for (int k = j + 1; k < init_masks_size; k++) {
+
                         masks.push_back(make_pair(masks[j].first, masks[j].second));
                         partition_masks.push_back(
                                 make_pair(masks[j].first | masks[k].first, masks[j].second | masks[k].second));
@@ -603,7 +604,6 @@ int main() {
 //                masks.push_back(j);
 //                cout << bitvector_to_str(j, function_size) << endl;
 //            }
-
 
                 ReasoningSchema reasoning_schema = ReasoningSchema(num_inputs, meta_examples, masks, partition_masks);
 

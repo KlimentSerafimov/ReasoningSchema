@@ -13,6 +13,7 @@
 class MinimalFactoringSchema
 {
     MinimalFactoringSchema* parent_pointer;
+    time_t init_time;
     int num_inputs;
     int function_size;
 
@@ -24,12 +25,13 @@ class MinimalFactoringSchema
 
     int best_mask_size;
     int best_mask_id;
+    int best_subdomain_mask;
     int best_necessary_num_meta_examples;
+    int local_after_num_missig_bits;
+    CompactPoset *best_local_compact_poset;
 
     vector<MetaExample> get_meta_example_ids_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(
             int subdomain_mask);
-
-    vector<MetaExample> get_meta_examples_after_query(int subdomain_mask, CompactPoset *compact_poset, bool print);
 
     bool test_compact_poset_for_consistency_with_all_meta_examples(int subdomain_mask, CompactPoset *compact_poset);
 
@@ -40,10 +42,16 @@ class MinimalFactoringSchema
 
     pair<double, pair<int, vector<int> > > calculate_heuristic(int current_number_missing_bits, int mask_size, int mask_id);
 
+    void repeat_apply_parents(CompactPoset* compact_poset, int subdomain_mask, vector<MetaExample> &seed_meta_examples, bool print);
+
 public:
     MinimalFactoringSchema(int _num_inputs, vector<MetaExample> _meta_examples,
                                MinimalFactoringSchema *parent_pointer);
 };
+
+
+vector<MetaExample> get_meta_examples_after_query(int subdomain_mask, CompactPoset *compact_poset, vector<MetaExample> meta_examples,
+                                                  bool print, bool query_only_active, bool carry_over_active);
 
 
 
