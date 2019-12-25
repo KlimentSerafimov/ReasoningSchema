@@ -435,7 +435,7 @@ ReasoningSchema::ReasoningSchema(int _num_inputs, vector<MetaExample> train_meta
 //            PartialFunction intermediate_result = result[0];
 //            for(int l = 1; l < result.size(); l++)
 //            {
-//                intermediate_result.apply_intersection(result[l]);
+//                intermediate_result.apply_common_partition(result[l]);
 //            }
 //            if(contained_meta_examples[j][k].partial_function.partition != intermediate_result.partition)
 //            {
@@ -593,7 +593,7 @@ bool ReasoningSchema::test(vector<MetaExample> test_meta_examples) {
 //        }
         if(result.size() == 1)
         {
-            if(!result[0].is_generalization_of(test_meta_examples[i].generalization))
+            if(!result[0].is_contained_in(test_meta_examples[i].generalization))
             {
                 cout << "WRONG" <<endl;
                 return false;
@@ -639,7 +639,7 @@ vector<PartialFunction> ReasoningSchema::query(PartialFunction partial_function)
             PartialFunction intermediate_result = result[0];
             for(int k = 1; k < result.size(); k++)
             {
-                intermediate_result.apply_intersection(result[k]);
+                intermediate_result.apply_common_partition(result[k]);
             }
 //            cout << "intermediate_result = " << intermediate_result.to_string() << endl;
             vector<PartialFunction> left_result = factor_schemas.first->query(intermediate_result);

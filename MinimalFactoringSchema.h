@@ -9,7 +9,6 @@
 
 class MinimalFactoringSchema
 {
-
     MinimalFactoringSchema* root_pointer;
     MinimalFactoringSchema* parent_pointer;
     int num_inputs;
@@ -21,15 +20,9 @@ class MinimalFactoringSchema
     vector<MetaExample> meta_examples;
     int init_num_missing_bits;
 
-//    int best_mask_id;
-//    int best_subdomain_mask;
-//    int best_necessary_num_meta_examples;
-//    int local_after_num_missig_bits;
-
     Module best_module;
 
-    vector<MetaExample> get_meta_example_ids_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(
-            int subdomain_mask);
+    vector<MetaExample> get_meta_example_ids_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(int subdomain_mask);
 
     bool test_compact_poset_for_consistency_with_all_meta_examples(int subdomain_mask, CompactPoset *compact_poset);
 
@@ -43,15 +36,14 @@ class MinimalFactoringSchema
 
     vector<int> get_masks(int set_init_masks_size);
 
-    void calc_module(int subdomain_mask, Module* module, bool print_repeats);
+    void calc_module(int subdomain_mask, Module *module);
+
+    void main__minimal_factoring_schema(int _num_inputs, vector<MetaExample> _meta_examples);
 
 public:
 
-    MinimalFactoringSchema(int _num_inputs, vector<MetaExample> _meta_examples,
-                           MinimalFactoringSchema *parent_pointer);
-    MinimalFactoringSchema(int _num_inputs, vector<MetaExample> _meta_examples,
-                               string ordering_name);
-    void main__minimal_factoring_schema(int _num_inputs, vector<MetaExample> _meta_examples);
+    MinimalFactoringSchema(int _num_inputs, vector<MetaExample> _meta_examples, MinimalFactoringSchema *parent_pointer);
+    MinimalFactoringSchema(int _num_inputs, vector<MetaExample> _meta_examples, string ordering_name);
 };
 
 

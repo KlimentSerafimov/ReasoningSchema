@@ -9,8 +9,15 @@
 #include <vector>
 #include "Node.h"
 #include <set>
+#include "UnionOfPartialFunctions.h"
 
 using namespace std;
+
+//typedef DecisionTree BooleanFunctionSet;
+
+typedef UnionOfPartialFunctions BooleanFunctionSet;
+
+typedef CompactPosetNode<BooleanFunctionSet> NewCompactPosetNode;
 
 class DeltaCompactPoset
 {
@@ -46,7 +53,7 @@ class CompactPoset {
     int generalization_mask;
     int input_mask;
 
-    vector<CompactPosetNode> nodes;
+    vector<NewCompactPosetNode> nodes;
     vector<vector<int> > is_union_of;
     vector<vector<int> > is_contained_in;
     vector<vector<int> > meta_edges;
@@ -81,15 +88,15 @@ class CompactPoset {
 
     pair<vector<int>::iterator, vector<int>::iterator> erase_meta_edge(int dominator, int dominated);
 
-    int push_back_new_node__and__get_id(CompactPosetNode decision_tree);
+    int push_back_new_node__and__get_id(NewCompactPosetNode decision_tree);
 
-    vector<int> get__set_cover(CompactPosetNode *target_set);
+    vector<int> get__set_cover(NewCompactPosetNode *target_set);
 
-    int multi_split_and_union(vector<int> ids__base_node_cover, CompactPosetNode *target_set);
+    int multi_split_and_union(vector<int> ids__base_node_cover, NewCompactPosetNode *target_set);
 
-    DecisionTree* get_downstream_union(int at);
+    BooleanFunctionSet* get_downstream_union(int at);
 
-    DecisionTree* get_dominator_union(int at);
+    BooleanFunctionSet* get_dominator_union(int at);
 
     bool visit(int at);
 
@@ -109,7 +116,7 @@ class CompactPoset {
 
     void make_union_node(int new_union_node);
 
-    void print_operation(OperationType operation_type, CompactPosetNode* first, CompactPosetNode* second);
+    void print_operation(SetOperationType operation_type, NewCompactPosetNode* first, NewCompactPosetNode* second);
 
     void erase_from_uniques(int id);
 

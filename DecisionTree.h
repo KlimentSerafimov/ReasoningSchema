@@ -10,10 +10,6 @@
 
 using namespace std;
 
-static string operation_name[3] = {"difference", "intersection", "my_union"};
-
-enum OperationType {difference, intersection, my_union};
-
 enum NodeType {leaf_node, internal_node};
 
 static int contains_counter;
@@ -37,7 +33,7 @@ public:
 
     void my_delete();
 
-    void apply_operation(OperationType operation_type, Node *other, PartialFunction idx_to_branch);
+    void apply_operation(SetOperationType operation_type, Node *other, PartialFunction idx_to_branch);
 
     string to_string(int num_tabs, int num_inputs);
 
@@ -55,9 +51,13 @@ public:
 class DecisionTree {
     Node* root = NULL;
 
+    void init(PartialFunction partial_function);
+
 public:
     int num_inputs;
     DecisionTree();
+
+    DecisionTree(int _num_inputs);
 
     DecisionTree(int _num_inputs, Node *_root);
 
@@ -65,28 +65,26 @@ public:
 
     DecisionTree(PartialFunction partial_function);
 
-    DecisionTree(PartialFunction partial_function, OperationType operation_type, DecisionTree *other);
-
-    void init(PartialFunction partial_function);
+    DecisionTree(PartialFunction partial_function, SetOperationType operation_type, DecisionTree *other);
 
     DecisionTree copy();
 
     void my_delete();
 
-    void apply_operation(OperationType operation_type, DecisionTree *other);
+    void apply_operation(SetOperationType operation_type, DecisionTree *other);
 
     Node* get_root();
 
     bool is_empty();
 
-    string to_string(int num_inputs);
+    string to_string();
 
-    string to_string(int num_tabs, int num_inputs);
+    string to_string(int num_tabs);
 
-    vector<PartialFunction> get_union_of_partial_functions(int num_inputs);
+    vector<PartialFunction> get_union_of_partial_functions();
 
     void append_union_of_partial_functions_that_contain_partial_function(
-            int num_inputs, PartialFunction partial_function, vector<PartialFunction>* ret);
+            PartialFunction partial_function, vector<PartialFunction>* ret);
 
     string get_string_of_union_of_partial_functions(int num_tabs);
 

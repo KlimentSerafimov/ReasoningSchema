@@ -88,12 +88,24 @@ void DecisionTree::init(PartialFunction partial_function)
     at->value = true;
 }
 
+DecisionTree::DecisionTree(int _num_inputs) {
+
+    Node* empty_node = get_new_node();
+    empty_node->node_type = leaf_node;
+    empty_node->value = false;
+
+    root = empty_node;
+
+    num_inputs = _num_inputs;
+
+}
+
 DecisionTree::DecisionTree(PartialFunction partial_function)
 {
     init(partial_function);
 }
 
-DecisionTree::DecisionTree(PartialFunction partial_function, OperationType operation_type, DecisionTree *other) {
+DecisionTree::DecisionTree(PartialFunction partial_function, SetOperationType operation_type, DecisionTree *other) {
     init(partial_function);
     apply_operation(operation_type, other);
 }
@@ -101,18 +113,18 @@ DecisionTree::DecisionTree(PartialFunction partial_function, OperationType opera
 DecisionTree::DecisionTree() = default;
 
 
-void DecisionTree::apply_operation(OperationType operation_type, DecisionTree *other) {
+void DecisionTree::apply_operation(SetOperationType operation_type, DecisionTree *other) {
     PartialFunction idx_to_branch = PartialFunction(num_inputs, 0, 0);
     root->apply_operation(operation_type, other->root, idx_to_branch);
     assert(idx_to_branch.empty());
 }
 
-string DecisionTree::to_string(int num_inputs) {
+string DecisionTree::to_string() {
     return root->to_string(0, num_inputs);
 }
 
 
-string DecisionTree::to_string(int num_tabs, int num_inputs) {
+string DecisionTree::to_string(int num_tabs) {
     return root->to_string(num_tabs, num_inputs);
 }
 
@@ -203,7 +215,7 @@ Node* DecisionTree::get_root() {
     return root;
 }
 
-void Node::apply_operation(OperationType operation_type, Node *other, PartialFunction idx_to_branch) {
+void Node::apply_operation(SetOperationType operation_type, Node *other, PartialFunction idx_to_branch) {
     if(node_type == internal_node)
     {
         idx_to_branch.set_bit(idx, 0);
@@ -426,26 +438,26 @@ void Node::get_union_of_partial_functions_that_contain_partial_function(
 }
 
 
-vector<PartialFunction> DecisionTree::get_union_of_partial_functions(int num_inputs)
+vector<PartialFunction> DecisionTree::get_union_of_partial_functions()
 {
     vector<PartialFunction> ret;
 //    map<int, int> idx_to_branch;
 //    root->get_union_of_partial_functions(num_inputs, ret, &idx_to_branch);
 //    return ret;
-    append_union_of_partial_functions_that_contain_partial_function(num_inputs, PartialFunction(num_inputs, 0, 0), &ret);
+    append_union_of_partial_functions_that_contain_partial_function(PartialFunction(num_inputs, 0, 0), &ret);
     return ret;
 }
 
 
 void DecisionTree::append_union_of_partial_functions_that_contain_partial_function(
-        int num_inputs, PartialFunction partial_function, vector<PartialFunction> *ret) {
+        PartialFunction partial_function, vector<PartialFunction> *ret) {
     map<int, int> idx_to_branch;
     root->get_union_of_partial_functions_that_contain_partial_function(num_inputs, partial_function, ret, &idx_to_branch);
 }
 
 string DecisionTree::get_string_of_union_of_partial_functions(int num_tabs) {
     string ret;
-    vector<PartialFunction> union_of_partial_functions = get_union_of_partial_functions(num_inputs);
+    vector<PartialFunction> union_of_partial_functions = get_union_of_partial_functions();
     for(int i = 0; i<union_of_partial_functions.size();i++)
     {
         ret+=tabs(num_tabs)+union_of_partial_functions[i].to_string()+"\n";

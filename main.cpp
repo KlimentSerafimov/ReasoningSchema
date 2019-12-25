@@ -5,7 +5,7 @@
 #include <queue>
 #include "ReasoningSchema.h"
 #include "MinimalFactoringSchema.h"
-
+#include "UnionOfPartialFunctions.h"
 
 
 int min_num_examples;
@@ -358,6 +358,45 @@ void enumerate_sets_of_meta_examples()
 
 int main() {
 
+//    UnionOfPartialFunctions base = UnionOfPartialFunctions(PartialFunction(3, 0, 0));
+//    UnionOfPartialFunctions two = UnionOfPartialFunctions(PartialFunction(3, (1<<4)-1, (1<<4)-1));
+//    cout << base.to_string() << endl;
+//    cout << "Diff" << endl;
+//    cout << two.to_string() << endl;
+//    cout << "==" << endl;
+//    base.apply_operation(difference, &two);
+//    cout << base.to_string() << endl;
+//    cout << "---------------------" << endl;
+//
+//    UnionOfPartialFunctions three = UnionOfPartialFunctions(PartialFunction(3, 0, 0));
+//    UnionOfPartialFunctions four = UnionOfPartialFunctions(PartialFunction(3, 0, (1<<8)-(1<<6)));
+//
+//    cout << three.to_string() << endl;
+//    cout << "Diff" << endl;
+//    cout << four.to_string() << endl;
+//    cout << "==" << endl;
+//    three.apply_operation(difference, &four);
+//    cout << three.to_string() << endl;
+//    cout << "---------------------" << endl;
+//
+//    UnionOfPartialFunctions five = UnionOfPartialFunctions(PartialFunction(3, 0, (1<<6)-(1<<4)));
+//
+//    cout << three.to_string() << endl;
+//    cout << "Diff" << endl;
+//    cout << five.to_string() << endl;
+//    cout << "==" << endl;
+//    three.apply_operation(difference, &five);
+//    cout << three.to_string() << endl;
+//    cout << "---------------------" << endl;
+//
+//    cout << base.to_string() << endl;
+//    cout << "Diff" << endl;
+//    cout << three.to_string() << endl;
+//    cout << "==" << endl;
+//    three.apply_operation(my_union, &base);
+//    cout << three.to_string() << endl;
+//    cout << "---------------------" << endl;
+
     bool do__enumerate_sets_of_meta_examples = false;
     if(do__enumerate_sets_of_meta_examples)
     {
@@ -370,7 +409,7 @@ int main() {
         vector<int> total_without_trivial;
         vector<int> total_num_meta_examples;
         vector<int> schema_based_examples;
-        for(int language_id = 0; language_id < 1+0*10;language_id++)
+        for(int language_id = 0; language_id < 1;language_id++)
         {
             int num_inputs = 3;
             int max_partition_size = -1;
@@ -436,7 +475,8 @@ int main() {
                         {
                             MetaExample smaller_meta_example = meta_examples_per_total_function[local_meta_example.generalization.total_function][i];
 
-                            if(local_meta_example.partial_function.is_generalization_of(smaller_meta_example.partial_function))
+                            if(local_meta_example.partial_function.is_contained_in(
+                                    smaller_meta_example.partial_function))
                             {
                                 add = false;
                                 break;
@@ -467,11 +507,11 @@ int main() {
             total_without_trivial.push_back(local_total_without_trivial);
 
 
-            CompactPoset poset = CompactPoset(num_inputs);
-
             bool insert_in_monolith = false;
 
             if(insert_in_monolith) {
+
+                CompactPoset poset = CompactPoset(num_inputs);
 
                 assert(poset.get_num_nodes() == 1);
                 time_t prev_time = (double) time(nullptr);
@@ -494,17 +534,48 @@ int main() {
 //                poset.compare_nodes();
                 }
 
-//            poset.print();
-
                 int prev_num_meta_edges = poset.get_num_meta_edges();
 
                 poset.soft_delete_redundant_edges();
+
+                poset.print();
 
 //            cout << "classification of meta examples for language_" << language_id << " :: " << endl;
 //            cout << "partial -> total  classification" << endl;
 //            cout << poset.meta_examples_to_string() << endl;
 
                 results.push_back(poset.get_num_meta_edges());
+
+
+//                tests model stored in poset.
+                poset.calc_dominator_unions();
+                poset.calc_downstream_unions();
+
+                contains_counter = 0;
+
+                poset.num_visited_nodes_during_query = 0;
+
+                for(int j = 0;j<meta_examples.size();j++)
+                {
+                    vector<PartialFunction> result = poset.query(meta_examples[j].partial_function);
+                    cout << "meta_example:" << endl;
+                    meta_examples[j].print();
+                    cout << "result:" << endl;
+                    for(int k = 0; k < result.size(); k++)
+                    {
+                        cout << result[k].to_string() << endl;
+                    }
+                    assert(result.size() == 1);
+                    assert(result[0].total_function == meta_examples[j].generalization.total_function);
+                }
+
+                cout << "poset.num_visited_nodes_during_query = " << poset.num_visited_nodes_during_query <<endl;
+
+                cout << "is_generalization_counter = " << language.is_generalization_counter << endl;
+                cout << "contains_counter = " << contains_counter << endl;
+
+
+                poset.clear();
             }
 
 //            poset.print();
@@ -613,52 +684,31 @@ int main() {
 
             }
 
-            vector<int> unit_masks;
+            bool run_minimal_factoring_schema = true;
 
+            if(run_minimal_factoring_schema) {
+                vector<int> unit_masks;
 
-            vector<CompactPoset> compact_posets;
+                string language_name =
+                        "half_language(n=" + std::to_string(num_inputs) + ",id=" + std::to_string(language_id) + ")";
 
-            MinimalFactoringSchema(num_inputs, meta_examples, "language(n="+std::to_string(num_inputs)+",id="+std::to_string(language_id)+")");
+                vector<CompactPoset> compact_posets;
 
+                vector<MetaExample> half_meta_examples;
 
+                for (int i = 0; i < meta_examples.size(); i++) {
+                    half_meta_examples.push_back(meta_examples[i]);
+                }
 
-//            assert(false);
+                MinimalFactoringSchema(num_inputs, half_meta_examples, language_name);
+            }
 
-//            tests model stored in poset.
-//            poset.calc_dominator_unions();
-//            poset.calc_downstream_unions();
-
-//            contains_counter = 0;
-//
-//            poset.num_visited_nodes_during_query = 0;
-//
-//            for(int j = 0;j<meta_examples.size();j++)
-//            {
-//                vector<PartialFunction> result = poset.query(meta_examples[j].partial_function);
-//                cout << "meta_example:" << endl;
-//                meta_examples[j].print();
-//                cout << "result:" << endl;
-//                for(int k = 0; k < result.size(); k++)
-//                {
-//                    cout << result[k].to_string() << endl;
-//                }
-//                assert(result.size() == 1);
-//                assert(result[0].total_function == meta_examples[i].generalization.total_function);
-//            }
-//
-//            cout << "poset.num_visited_nodes_during_query = " << poset.num_visited_nodes_during_query <<endl;
-//
-//            cout << "is_generalization_counter = " << language.is_generalization_counter << endl;
-//            cout << "contains_counter = " << contains_counter << endl;
-
-
-            poset.clear();
         }
 
-        for(int i = 0;i<results.size();i++)
-        {
-            cout << "language_" << i << " "<< total_num_meta_examples[i] << " & "<< total_without_trivial[i] << " & " << results[i] << " & " << schema_based_examples[i] << endl;
-        }
+//        for(int i = 0;i<results.size();i++)
+//        {
+//            cout << "language_" << i << " "<< total_num_meta_examples[i] << " & "<< total_without_trivial[i] << " & " << results[i] << " & " << schema_based_examples[i] << endl;
+//        }
     }
 
 

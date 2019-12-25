@@ -93,7 +93,8 @@ MetaExample::MetaExample(int _num_inputs, int _total_function, int _partition, i
 bool MetaExample::is_consistent_with(MetaExample other) {
     assert(generalization.partition == other.generalization.partition);
 
-    if(other.generalization.is_generalization_of(partial_function) && generalization.is_generalization_of(other.partial_function))
+    if(other.generalization.is_contained_in(partial_function) &&
+            generalization.is_contained_in(other.partial_function))
     {
         bool ret =
             (other.generalization.total_function & other.generalization.partition) ==

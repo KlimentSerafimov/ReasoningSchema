@@ -16,7 +16,7 @@ CompactPoset::CompactPoset(int _num_inputs)
     num_inputs = _num_inputs;
     generalization_mask = (1<<(1<<num_inputs))-1;
     input_mask = (1<<(1<<num_inputs))-1;
-    push_back_new_node__and__get_id(CompactPosetNode(PartialFunction(num_inputs, 0, 0)));
+    push_back_new_node__and__get_id(NewCompactPosetNode(PartialFunction(num_inputs, 0, 0)));
 }
 
 CompactPoset::CompactPoset(int _num_inputs, int _generalization_mask, int _input_mask)
@@ -24,7 +24,7 @@ CompactPoset::CompactPoset(int _num_inputs, int _generalization_mask, int _input
     num_inputs = _num_inputs;
     generalization_mask = _generalization_mask;
     input_mask = _input_mask;
-    push_back_new_node__and__get_id(CompactPosetNode(PartialFunction(num_inputs, 0, 0)));
+    push_back_new_node__and__get_id(NewCompactPosetNode(PartialFunction(num_inputs, 0, 0)));
 }
 
 CompactPoset::CompactPoset(int _num_inputs, int _generalization_mask, int _input_mask, vector<MetaExample> &meta_examples)
@@ -37,7 +37,7 @@ CompactPoset::CompactPoset(int _num_inputs, int _generalization_mask, int _input
 
     int subdomain_mask = input_mask;
 
-    push_back_new_node__and__get_id(CompactPosetNode(PartialFunction(num_inputs, 0, 0)));
+    push_back_new_node__and__get_id(NewCompactPosetNode(PartialFunction(num_inputs, 0, 0)));
 
     vector<MetaExample> ret_meta_examples;
     for (int id = 0; id < meta_examples.size(); id++) {
@@ -60,7 +60,7 @@ CompactPoset::CompactPoset(int _num_inputs, int _generalization_mask, int _input
     meta_examples = ret_meta_examples;
 }
 
-int CompactPoset::push_back_new_node__and__get_id(CompactPosetNode decision_tree) {
+int CompactPoset::push_back_new_node__and__get_id(NewCompactPosetNode decision_tree) {
     int ret = (int) nodes.size();
     local_delta.new_nodes.push_back(ret);
     assert(!decision_tree.is_empty());
@@ -131,62 +131,62 @@ void CompactPoset::make_union_node(int new_union_node) {
 }
 
 
-CompactPosetNode get_intersection(CompactPosetNode* first, CompactPosetNode* second)
+NewCompactPosetNode get_intersection(NewCompactPosetNode* first, NewCompactPosetNode* second)
 {
-    CompactPosetNode copy_first = CompactPosetNode(first->copy());
+    NewCompactPosetNode copy_first = NewCompactPosetNode(first->copy());
     copy_first.apply_operation(intersection, second);
     return copy_first;
 }
 
-bool is_intersection_empty(CompactPosetNode* first, CompactPosetNode* second)
+bool is_intersection_empty(NewCompactPosetNode* first, NewCompactPosetNode* second)
 {
-    CompactPosetNode copy_first = CompactPosetNode(first->copy());
+    NewCompactPosetNode copy_first = NewCompactPosetNode(first->copy());
     copy_first.apply_operation(intersection, second);
     bool ret = copy_first.is_empty();
     copy_first.my_delete();
     return ret;
 }
 
-bool are_function_sets_the_same(DecisionTree* first, DecisionTree* second)
+bool are_function_sets_the_same(BooleanFunctionSet* first, BooleanFunctionSet* second)
 {
-    CompactPosetNode copy_first = CompactPosetNode(first->copy());
-    copy_first.apply_operation(difference, new CompactPosetNode(second));
+    NewCompactPosetNode copy_first = NewCompactPosetNode(first->copy());
+    copy_first.apply_operation(difference, new NewCompactPosetNode(second));
     bool first_without_second_is_empty = copy_first.is_empty();
     copy_first.my_delete();
 
-    CompactPosetNode copy_second = CompactPosetNode(second->copy());
-    copy_second.apply_operation(difference, new CompactPosetNode(first));
+    NewCompactPosetNode copy_second = NewCompactPosetNode(second->copy());
+    copy_second.apply_operation(difference, new NewCompactPosetNode(first));
     bool second_without_first_is_empty = copy_second.is_empty();
     copy_second.my_delete();
 
     return first_without_second_is_empty && second_without_first_is_empty;
 }
 
-CompactPosetNode get_difference(CompactPosetNode* first, CompactPosetNode* second)
+NewCompactPosetNode get_difference(NewCompactPosetNode* first, NewCompactPosetNode* second)
 {
-    CompactPosetNode copy_first = CompactPosetNode(first->copy());
+    NewCompactPosetNode copy_first = NewCompactPosetNode(first->copy());
     copy_first.apply_operation(difference, second);
     return copy_first;
 }
 
-void CompactPoset::print_operation(OperationType operation_type, CompactPosetNode* first, CompactPosetNode* second)
+void CompactPoset::print_operation(SetOperationType operation_type, NewCompactPosetNode* first, NewCompactPosetNode* second)
 {
-    cout << "operation_name = " << operation_name[operation_type] << endl;
+    cout << "set_operation_name = " << set_operation_name[operation_type] << endl;
     cout << "first: " << endl;
     cout << first->get_string_of_union_of_partial_functions(1);
     cout << "second: " << endl;
     cout << second->get_string_of_union_of_partial_functions(1);
-    CompactPosetNode copy_first = CompactPosetNode(first->copy());
+    NewCompactPosetNode copy_first = NewCompactPosetNode(first->copy());
     copy_first.apply_operation(operation_type, second);
     cout << "result: " << endl;
     cout << copy_first.get_string_of_union_of_partial_functions(1);
 }
 
-int CompactPoset::multi_split_and_union(vector<int> ids__base_node_cover, CompactPosetNode *target_set) {
+int CompactPoset::multi_split_and_union(vector<int> ids__base_node_cover, NewCompactPosetNode *target_set) {
 
     int id__ret = -1;
 
-    CompactPosetNode remaining_target;
+    NewCompactPosetNode remaining_target;
     if(ids__base_node_cover.size() >= 2)
     {
         id__ret = push_back_new_node__and__get_id(target_set->copy());
@@ -205,8 +205,8 @@ int CompactPoset::multi_split_and_union(vector<int> ids__base_node_cover, Compac
     {
         assert(!remaining_target.is_empty());
         int id__target_base = ids__base_node_cover[i];
-        CompactPosetNode target_diff_base = get_difference(&remaining_target, &nodes[id__target_base]);
-        CompactPosetNode base_diff_target = get_difference(&nodes[id__target_base], &remaining_target);
+        NewCompactPosetNode target_diff_base = get_difference(&remaining_target, &nodes[id__target_base]);
+        NewCompactPosetNode base_diff_target = get_difference(&nodes[id__target_base], &remaining_target);
 
         bool base_diff_target__is_empty = base_diff_target.is_empty();
         bool target_diff_base__is_empty = target_diff_base.is_empty();
@@ -229,7 +229,7 @@ int CompactPoset::multi_split_and_union(vector<int> ids__base_node_cover, Compac
             target_diff_base.my_delete();
             // base is bigger than target_set
             // create new node of remaining target_set
-            CompactPosetNode base_intersection_target = get_intersection(&nodes[id__target_base], &remaining_target);
+            NewCompactPosetNode base_intersection_target = get_intersection(&nodes[id__target_base], &remaining_target);
             int id__last_target = push_back_new_node__and__get_id(base_intersection_target);
             if(id__ret == -1) {
                 id__ret = id__last_target;
@@ -250,7 +250,7 @@ int CompactPoset::multi_split_and_union(vector<int> ids__base_node_cover, Compac
         {
             target_diff_base.my_delete();
             assert(id__ret != -1);
-            CompactPosetNode base_intersection_target = get_intersection(&nodes[id__target_base], &remaining_target);
+            NewCompactPosetNode base_intersection_target = get_intersection(&nodes[id__target_base], &remaining_target);
 
             //need to create two new nodes for base and union them under original
             int id__base_intersection_target = push_back_new_node__and__get_id(base_intersection_target);
@@ -302,7 +302,7 @@ int CompactPoset::multi_split_and_union(vector<int> ids__base_node_cover, Compac
     return id__ret;
 }
 
-vector<int> CompactPoset::get__set_cover(CompactPosetNode *target_set)
+vector<int> CompactPoset::get__set_cover(NewCompactPosetNode *target_set)
 {
     vector<int> ret;
     for(int i = 0;i<nodes.size();i++)
@@ -351,8 +351,8 @@ bool CompactPoset::insert(MetaExample meta_example)
     local_delta.meta_example = meta_example;
     local_delta.equivalent_meta_edge_ids.push_back(delta_stack.size());
 
-    CompactPosetNode dominator = CompactPosetNode(meta_example.generalization);
-    CompactPosetNode dominated = CompactPosetNode(meta_example.partial_function, difference, &dominator);
+    NewCompactPosetNode dominator = NewCompactPosetNode(meta_example.generalization);
+    NewCompactPosetNode dominated = NewCompactPosetNode(meta_example.partial_function, difference, &dominator);
 
     vector<int> dominator_set_cover = get__set_cover(&dominator);
 
@@ -1116,7 +1116,7 @@ bool CompactPoset::soft_delete_redundant_edges()
 
 CompactPoset::CompactPoset(CompactPoset *poset) {
     num_inputs = poset->num_inputs;
-    push_back_new_node__and__get_id(CompactPosetNode(PartialFunction(num_inputs, 0, 0)));
+    push_back_new_node__and__get_id(NewCompactPosetNode(PartialFunction(num_inputs, 0, 0)));
 
     vector<MetaExample> meta_examples = poset->get_meta_examples();
     for(int i = 0; i < meta_examples.size();i++)
@@ -1198,7 +1198,7 @@ void CompactPoset::clear()
     nodes[0].my_delete();
 }
 
-DecisionTree* CompactPoset::get_downstream_union(int at)
+BooleanFunctionSet* CompactPoset::get_downstream_union(int at)
 {
     assert(open_visited[at] != visited_mark);
     open_visited[at] = visited_mark;
@@ -1223,10 +1223,7 @@ DecisionTree* CompactPoset::get_downstream_union(int at)
         else if (nodes[at].node_type == base_node)
         {
             assert(meta_edges[at].size() == 0);
-            Node* empty_node = get_new_node();
-            empty_node->node_type = leaf_node;
-            empty_node->value = false;
-            nodes[at].downstream_union = DecisionTree(0, empty_node);
+            nodes[at].downstream_union = BooleanFunctionSet(num_inputs);
         }
     }
 
@@ -1256,16 +1253,13 @@ void CompactPoset::calc_downstream_unions()
     }
 }
 
-DecisionTree* CompactPoset::get_dominator_union(int at)
+BooleanFunctionSet* CompactPoset::get_dominator_union(int at)
 {
     assert(open_visited[at] != visited_mark);
     open_visited[at] = visited_mark;
     if(closed_visited[at] != visited_mark) {
 
-        Node* empty_node = get_new_node();
-        empty_node->node_type = leaf_node;
-        empty_node->value = false;
-        nodes[at].dominator_union = DecisionTree(0, empty_node);
+        nodes[at].dominator_union = BooleanFunctionSet(num_inputs);
 
         for(int i = 0; i< reverse_meta_edges[at].size();i++)
         {
@@ -1498,7 +1492,7 @@ vector<PartialFunction> CompactPoset::query(PartialFunction partial_function)
         }
 //        cout << at <<" ";
 
-        nodes[at].append_union_of_partial_functions_that_contain_partial_function(num_inputs, partial_function, &ret);
+        nodes[at].append_union_of_partial_functions_that_contain_partial_function(partial_function, &ret);
     }
 //    cout << endl;
 
@@ -1595,7 +1589,7 @@ void CompactPoset::compare_nodes()
                     cout << nodes[to_unite[j]].downstream_union.get_string_of_union_of_partial_functions(1) << endl;
                 }
 
-//                CompactPosetNode new_base_node;
+//                NewCompactPosetNode new_base_node;
 //                for(int j = 0;j<to_unite.size();j++)
 //                {
 //                    new_base_node.apply_operation(my_union, &nodes[to_unite[j]]);

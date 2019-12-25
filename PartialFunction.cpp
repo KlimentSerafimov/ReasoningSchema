@@ -16,7 +16,7 @@ PartialFunction::PartialFunction(int _num_inputs, int _total_function, int _part
     {
         _partition = (1<<function_size)-1;
     }
-    partition = _partition;
+    partition = (unsigned int) _partition;
 }
 
 string PartialFunction::to_string() {
@@ -35,7 +35,7 @@ string PartialFunction::to_string() {
     return ret;
 }
 
-bool PartialFunction::is_generalization_of(PartialFunction other_partial_function) {
+bool PartialFunction::is_contained_in(PartialFunction other_partial_function) {
     assert(num_inputs == other_partial_function.num_inputs);
     if((partition & other_partial_function.partition) == other_partial_function.partition) {
 //    assert(partition == (1<<(1<<num_inputs))-1);
@@ -70,7 +70,7 @@ int PartialFunction::get_output(int idx) {
     return (total_function & (1<<idx)) != 0;
 }
 
-void PartialFunction::apply_intersection(PartialFunction other) {
+void PartialFunction::apply_common_partition(PartialFunction other) {
 
     partition &= other.partition;
     partition &= (1<<function_size) - 1 - ((total_function & partition) ^ (other.total_function & partition));
@@ -99,4 +99,56 @@ void PartialFunction::clear_bit(int idx) {
 
 bool PartialFunction::empty() {
     return partition == 0;
+}
+
+bool PartialFunction::has_empty_intersection_with(PartialFunction other) {
+    int common_partition = partition & other.partition;
+    int difference_mask = ((total_function & common_partition) ^ (other.total_function & common_partition));
+    return difference_mask != 0;
+}
+
+void PartialFunction::append_difference_with(PartialFunction other, vector<PartialFunction> &to_append_to) {
+
+    if (!has_empty_intersection_with(other)) {
+        int template_for_output__partition = partition;
+        int template_for_output__function = total_function & partition;
+
+        unsigned int other_contains_but_this_doesnt = other.partition - (other.partition & partition);
+
+        while(other_contains_but_this_doesnt != 0)
+        {
+            int idx_of_first_one = num_trailing_zeroes(other_contains_but_this_doesnt);
+
+            template_for_output__partition |= (1<<idx_of_first_one);
+
+            to_append_to.push_back(
+                    PartialFunction(
+                            num_inputs,
+                            template_for_output__function | ((1-get_bit(other.total_function, idx_of_first_one)) << idx_of_first_one),
+                            template_for_output__partition
+                            )
+                    );
+
+            template_for_output__function |= (get_bit(other.total_function, idx_of_first_one) << idx_of_first_one);
+
+            other_contains_but_this_doesnt -= (1<<idx_of_first_one);
+        }
+    }
+    else
+    {
+        to_append_to.push_back(PartialFunction(num_inputs, total_function, partition));
+    }
+}
+
+void PartialFunction::append_intersection_with(PartialFunction other, vector<PartialFunction> &to_append_to) {
+    if(!has_empty_intersection_with(other))
+    {
+        to_append_to.push_back(
+                PartialFunction(
+                        num_inputs,
+                        (total_function & partition) | (other.total_function & other.partition),
+                        partition | other.partition
+                        )
+                );
+    }
 }

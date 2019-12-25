@@ -6,8 +6,15 @@
 #define COMPACTPOSET_PARTIALFUNCTION_H
 
 #include <string>
+#include <vector>
 
 using namespace std;
+
+
+static string set_operation_name[3] = {"difference", "intersection", "my_union"};
+
+enum SetOperationType {difference, intersection, my_union};
+
 
 class PartialFunction
 {
@@ -16,14 +23,20 @@ public:
     int num_inputs;
     int function_size;
     int total_function;
-    int partition;
+    unsigned int partition;
 
     PartialFunction();
     PartialFunction(int _num_inputs, int _total_function, int _partition);
 
     string to_string();
 
-    bool is_generalization_of(PartialFunction other);
+    bool has_empty_intersection_with(PartialFunction other);
+
+    void append_difference_with(PartialFunction other, vector<PartialFunction> &to_append_to);
+
+    void append_intersection_with(PartialFunction other, vector<PartialFunction> &to_append_to);
+
+    bool is_contained_in(PartialFunction other);
 
     PartialFunction get_composition(PartialFunction other);
 
@@ -31,7 +44,7 @@ public:
 
     int get_output(int idx);
 
-    void apply_intersection(PartialFunction apply_intersection);
+    void apply_common_partition(PartialFunction other);
 
     void set_bit(int idx, int value);
 

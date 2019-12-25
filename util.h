@@ -19,4 +19,6 @@ int string_to_bitvector(string str);
 
 string vector_of_vector_of_int_to_string(vector<vector<int> > to_print, string title);
 
+unsigned int num_trailing_zeroes(unsigned int v);
+
 #endif //COMPACTPOSET_UTIL_H

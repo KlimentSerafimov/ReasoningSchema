@@ -9,54 +9,39 @@
 #include <sstream>
 
 vector<MetaExample> MinimalFactoringSchema::
-get_meta_example_ids_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(
-        int subdomain_mask) {
-
+get_meta_example_ids_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(int subdomain_mask)
+{
     vector<MetaExample> consistent_meta_examples;
 
-    for (int insert_meta_example_id = 0; insert_meta_example_id < meta_examples.size(); insert_meta_example_id++) {
-//        assert(local_compact_poset->get_num_meta_edges() == 0);
+    for (int insert_meta_example_id = 0; insert_meta_example_id < meta_examples.size(); insert_meta_example_id++)
+    {
         MetaExample local_insert_meta_example =
                 meta_examples[insert_meta_example_id].get_application_of_subdomain(subdomain_mask);
-        if (!local_insert_meta_example.fully_constrained()) {
-//            local_compact_poset->insert(local_insert_meta_example);
+        if (!local_insert_meta_example.fully_constrained())
+        {
             bool is_consistent = true;
-            for (int test_meta_example_id = 0; test_meta_example_id < meta_examples.size(); test_meta_example_id++) {
+            for (int test_meta_example_id = 0; test_meta_example_id < meta_examples.size(); test_meta_example_id++)
+            {
                 MetaExample local_test_meta_example =
                         meta_examples[test_meta_example_id].get_application_of_subdomain(subdomain_mask);
-                if (!local_test_meta_example.fully_constrained()) {
-
+                if (!local_test_meta_example.fully_constrained())
+                {
                     bool new_implementation_for_consistency =
                             local_insert_meta_example.is_consistent_with(local_test_meta_example);
 
-                    if (!new_implementation_for_consistency) {
+                    if (!new_implementation_for_consistency)
+                    {
                         is_consistent = false;
                         break;
                     }
-
-//                    if (!local_compact_poset->insert(local_test_meta_example)) {
-//                        assert(!new_implementation_for_consistency);
-//                        local_compact_poset->hard_pop();
-//                        is_consistent = false;
-//                        break;
-//                    }
-//                    else
-//                    {
-//                        if(!new_implementation_for_consistency)
-//                        {
-//                            cout << local_insert_meta_example.to_string() << endl << local_test_meta_example.to_string() << endl;
-//                        }
-//                        assert(new_implementation_for_consistency);
-//                    }
-//                    local_compact_poset->hard_pop();
                 }
             }
-            if (is_consistent) {
+            if (is_consistent)
+            {
                 MetaExample local_consistent_meta_example =
                         meta_examples[insert_meta_example_id].get_application_of_subdomain(subdomain_mask);
                 consistent_meta_examples.push_back(local_consistent_meta_example);
             }
-//            local_compact_poset->hard_pop();
         }
     }
     return consistent_meta_examples;
@@ -93,7 +78,7 @@ vector<MetaExample> get_meta_examples_after_query(int subdomain_mask, CompactPos
 
         PartialFunction intermediate_result = result[0];
         for (int k = 1; k < result.size(); k++) {
-            intermediate_result.apply_intersection(result[k]);
+            intermediate_result.apply_common_partition(result[k]);
         }
 
         assert((intermediate_result.partition & local_query_meta_example.generalization.partition) ==
@@ -373,7 +358,6 @@ double MinimalFactoringSchema::calculate_heuristic(Module* module) {
         delta_ratio = (double) current_delta / (double) delta_num_necessary_meta_examples;
     }
 
-
 //    double ret = (double) total_delta_num_bits / (double) num_necessary_meta_examples;
 
 //    cout << "C" << endl;
@@ -531,17 +515,9 @@ void MinimalFactoringSchema::repeat_apply_parents(Module *module) {
 
 }
 
-//static ofstream fout("subdomain_masks_4_5_6_7_div_4_running.out");
-//static ofstream fout("subdomain_masks_num_bits_2_running.out");
-//static ofstream fout("fast_subdomain_masks_5_6_7_running_delta_heuristic.out");
-//static ofstream fout("fast_new_new_new_subdomain_masks_1_2_3_4_5_6_7_running_delta_heuristic.out");
-
-//static ofstream fout("fast_subdomain_masks_num_bits_2_with_repeats_traced_delta_heuristic.out");
-//static ofstream fout("testing.out");
-
-static int set_init_mask_size = 3;
+static int set_init_mask_size = 7;
 //static string fout_name = "fast_subdomain_masks_3_4_5_6_7_with_repeats_traced_corrected_only_active_eval_delta_heuristic.out";
-static string fout_name = "after_refactor__reasoning_schema_using_delta_heuristic__subdomain_size_3plus.out";
+static string fout_name = "after_refactor__reasoning_schema_using_delta_heuristic__subdomain_size_7.out";
 
 MinimalFactoringSchema::MinimalFactoringSchema(int _num_inputs, vector<MetaExample> _meta_examples, string ordering_name) {
     parent_pointer = nullptr;
@@ -550,7 +526,7 @@ MinimalFactoringSchema::MinimalFactoringSchema(int _num_inputs, vector<MetaExamp
 
     fout.open(ordering_name + "__" + fout_name);
 
-    bool skip = false;
+    bool skip = true;
     if (!skip) {
         minimal_factoring_schema_depth_counter = 0;
 
@@ -591,7 +567,7 @@ MinimalFactoringSchema::MinimalFactoringSchema(int _num_inputs, vector<MetaExamp
     main__minimal_factoring_schema(_num_inputs, _meta_examples);
 }
 
-void MinimalFactoringSchema::calc_module(int subdomain_mask, Module* module, bool print)
+void MinimalFactoringSchema::calc_module(int subdomain_mask, Module *module)
 {
 
     module->function_size = function_size;
@@ -633,7 +609,7 @@ void MinimalFactoringSchema::calc_module(int subdomain_mask, Module* module, boo
 //                    num_inputs, subdomain_mask, subdomain_mask,
 //                    module->module_meta_examples);
 
-    test_compact_poset_for_consistency_with_all_meta_examples(subdomain_mask, module->compact_poset);
+//    test_compact_poset_for_consistency_with_all_meta_examples(subdomain_mask, module->compact_poset);
 
 //    cout << "tested mask = " << bitvector_to_str(subdomain_mask, function_size) << " time: " << (double) time(nullptr) - local_time << endl;
 
@@ -650,7 +626,6 @@ void MinimalFactoringSchema::calc_module(int subdomain_mask, Module* module, boo
     int delta_num_bits = init_num_missing_bits - module->num_missing_bits;
     cout << "after_repeat_num_missing_bits = " << module->num_missing_bits << " after_repeat_delta_num_missing_bits = " << delta_num_bits << endl;
 
-
 }
 
 void MinimalFactoringSchema::main__minimal_factoring_schema(int _num_inputs, vector<MetaExample> _meta_examples) {
@@ -659,7 +634,7 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(int _num_inputs, vec
     function_size = (1 << num_inputs);
     meta_examples = _meta_examples;
 
-    local_time = (double) time(nullptr);
+    local_time = time(nullptr);
 
     if (parent_pointer == nullptr) {
         init_time = local_time;
@@ -683,7 +658,7 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(int _num_inputs, vec
 
         cout << "working on mask = " << bitvector_to_str(masks[mask_id], function_size) << " time: " << (double) time(nullptr) - local_time << endl;
 
-        calc_module(masks[mask_id], &local_module, false);
+        calc_module(masks[mask_id], &local_module);
 
         local_module.compact_poset->clear();
 
@@ -709,18 +684,19 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(int _num_inputs, vec
 
         if(parent_pointer == nullptr)
         {
-            fout << init_num_missing_bits << endl;
+            fout << init_num_missing_bits << endl << std::flush;
         }
 
         int best_mask_id = mask_ids_by_heuristic[0].second;
 
-        calc_module(masks[best_mask_id], &best_module, true);
+        calc_module(masks[best_mask_id], &best_module);
 
         calculate_heuristic(&best_module);
 
-        fout << best_module.print_module_sketch(time(nullptr) - init_time);
+        fout << best_module.print_module_sketch(time(nullptr) - init_time) << std::flush;
 
         MinimalFactoringSchema next = MinimalFactoringSchema(num_inputs, best_module.meta_examples_after_query, this);
+
     }
     else 
     {

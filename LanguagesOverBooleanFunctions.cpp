@@ -320,7 +320,7 @@ MetaExample LanguagesOverBooleanFunctions::get_meta_example(PartialFunction part
     {
         PartialFunction boolean_function = ordering_over_boolean_functions[i];
 //        is_generalization_counter += __builtin_popcount(partial_function.partition);
-        if(boolean_function.is_generalization_of(partial_function))
+        if(boolean_function.is_contained_in(partial_function))
         {
             return MetaExample(boolean_function.num_inputs, boolean_function.total_function, partial_function.partition);
         }
