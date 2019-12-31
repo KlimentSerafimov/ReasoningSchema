@@ -53,6 +53,8 @@ public:
     int partition_size();
 
     bool empty();
+
+    bool full();
 };
 
 #endif //COMPACTPOSET_PARTIALFUNCTION_H

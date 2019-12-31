@@ -60,6 +60,22 @@ CompactPoset::CompactPoset(int _num_inputs, int _generalization_mask, int _input
     meta_examples = ret_meta_examples;
 }
 
+
+CompactPoset::CompactPoset(CompactPoset *poset) {
+    num_inputs = poset->num_inputs;
+
+    generalization_mask = (1<<(1<<num_inputs))-1;
+    input_mask = (1<<(1<<num_inputs))-1;
+
+    push_back_new_node__and__get_id(NewCompactPosetNode(PartialFunction(num_inputs, 0, 0)));
+
+    vector<MetaExample> meta_examples = poset->get_meta_examples();
+    for(int i = 0; i < meta_examples.size();i++)
+    {
+        insert(meta_examples[i]);
+    }
+}
+
 int CompactPoset::push_back_new_node__and__get_id(NewCompactPosetNode decision_tree) {
     int ret = (int) nodes.size();
     local_delta.new_nodes.push_back(ret);
@@ -1112,17 +1128,6 @@ bool CompactPoset::soft_delete_redundant_edges()
     assert(count_necessary_meta_edges == num_meta_edges);
 
     return removed_meta_edge;
-}
-
-CompactPoset::CompactPoset(CompactPoset *poset) {
-    num_inputs = poset->num_inputs;
-    push_back_new_node__and__get_id(NewCompactPosetNode(PartialFunction(num_inputs, 0, 0)));
-
-    vector<MetaExample> meta_examples = poset->get_meta_examples();
-    for(int i = 0; i < meta_examples.size();i++)
-    {
-        insert(meta_examples[i]);
-    }
 }
 
 int CompactPoset::get_num_inputs() {

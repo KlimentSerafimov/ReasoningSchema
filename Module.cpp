@@ -3,6 +3,8 @@
 //
 
 #include "Module.h"
+#include "MinimalFactoringSchema.h"
+#include "util.h"
 #include <iostream>
 
 string Module::print_module_sketch(time_t delta_time)
@@ -12,17 +14,20 @@ string Module::print_module_sketch(time_t delta_time)
             std::to_string(necessary_meta_example_ids.size()) + " " +
             std::to_string(intermediate_num_missing_bits) + " time " + std::to_string(delta_time) + "\n";
 
-    for(int i = 0;i<repeats.size();i++)
+    assert(num_missing_bits_per_repeat.size() == repeats_module_ids.size());
+    assert(num_missing_bits_per_repeat.size() == repeats_module_pointers.size());
+
+    for(int i = 0;i<repeats_module_ids.size();i++)
     {
         ret +=
-                bitvector_to_str(repeats[i].second->subdomain_mask, repeats[i].second->function_size) + " " +
+                bitvector_to_str(repeats_module_pointers[i]->subdomain_mask, repeats_module_pointers[i]->function_size) + " " +
                 std::to_string(necessary_meta_example_ids.size()) + " " +
-                std::to_string(num_missing_bits) + " " +
-                "mask " + std::to_string(repeats[i].first) + " " +
+                std::to_string(num_missing_bits_per_repeat[i]) + " " +
+                "mask " + std::to_string(repeats_module_ids[i]) + " " +
                 "( " +
-                bitvector_to_str(repeats[i].second->subdomain_mask, repeats[i].second->function_size) + " " +
-                std::to_string(repeats[i].second->necessary_meta_example_ids.size()) + " " +
-                std::to_string(repeats[i].second->num_missing_bits) + " " +
+                bitvector_to_str(repeats_module_pointers[i]->subdomain_mask, repeats_module_pointers[i]->function_size) + " " +
+                std::to_string(repeats_module_pointers[i]->necessary_meta_example_ids.size()) + " " +
+                std::to_string(repeats_module_pointers[i]->num_missing_bits) + " " +
                 ") time " + std::to_string(delta_time) + "\n";
     }
     return ret;
@@ -40,19 +45,41 @@ string Module::covered_to_string(vector<MetaExample> init_meta_examples)
         at_module = at_module->parent_module;
     }
 
-    assert(covered.size() == parent_modules.size());
+    reverse(parent_modules.begin(), parent_modules.end());
 
-    for(int i = (int) covered.size()-1;i>=0;i--)
+    assert(covering.size() == parent_modules.size());
+
+    for(int i = (int) 0;i<covering.size();i++)
     {
-        ret += bitvector_to_str(parent_modules[i]->subdomain_mask, parent_modules[i]->function_size) + " " + "\n";
-        for(int j = 0;j<covered[i].size(); j++)
+        ret += "subdomain_mask " + bitvector_to_str(parent_modules[i]->subdomain_mask, parent_modules[i]->function_size) + " id " + std::to_string(i) + "\n";
+        for(int j = 0;j<covering[i].size(); j++)
         {
-            assert(covered[i][j].size() >= 1);
-            for(int k = 0; k < covered[i][j].size(); k++) {
-                ret += "\t" + init_meta_examples[covered[i][j][k]].to_string() + " ";
-                if (k == 0 && covered[i][j].size() >= 2) {
-                    ret += "alternatives ";
+            assert(covering[i][j].size() >= 1);
+            for(int k = 0; k < covering[i][j].size(); k++) {
+                PartialFunction partial_function =
+                    init_meta_examples[covering[i][j][k]].partial_function;
+                PartialFunction intermediate_partial_function =
+                    parent_minimal_factoring_schema->root_pointer->query(partial_function, parent_modules[i]);
+
+//                ret += "pre_query " + partial_function.to_string()+"\t";
+//                ret += "after_query " + intermediate_partial_function.to_string()+"\t";
+                MetaExample intermediate_meta_example = MetaExample(
+                        intermediate_partial_function.num_inputs,
+                        init_meta_examples[covering[i][j][k]].generalization.total_function,
+                        intermediate_partial_function.partition);
+                if (k >= 1) {
+                    ret += "\t\tequiv ";
                 }
+                else
+                {
+                    ret += "\t";
+                }
+                ret +=
+//                        "subdomain_mask " + bitvector_to_str(parent_modules[i]->subdomain_mask, function_size) + "\t" +
+                        "masked " + intermediate_meta_example.get_application_of_subdomain(parent_modules[i]->subdomain_mask).to_string() + "\t" +
+                        "intermediate " + intermediate_meta_example.to_string() + "\t" +
+                        "original " + init_meta_examples[covering[i][j][k]].to_string() + "\t";
+
             }
             ret+="\n";
         }

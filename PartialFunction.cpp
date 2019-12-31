@@ -152,3 +152,8 @@ void PartialFunction::append_intersection_with(PartialFunction other, vector<Par
                 );
     }
 }
+
+bool PartialFunction::full()
+{
+    return partition == (1<<function_size)-1;
+}

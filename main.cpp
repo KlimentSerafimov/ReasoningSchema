@@ -356,156 +356,159 @@ void enumerate_sets_of_meta_examples()
     current_file.close();
 }
 
-int main() {
+vector<MetaExample> get_meta_examples(int language_id, int num_inputs, int min_partition_size, int max_partition_size, int macro_partition)
+{
+    vector<MetaExample> meta_examples;
 
-//    UnionOfPartialFunctions base = UnionOfPartialFunctions(PartialFunction(3, 0, 0));
-//    UnionOfPartialFunctions two = UnionOfPartialFunctions(PartialFunction(3, (1<<4)-1, (1<<4)-1));
-//    cout << base.to_string() << endl;
-//    cout << "Diff" << endl;
-//    cout << two.to_string() << endl;
-//    cout << "==" << endl;
-//    base.apply_operation(difference, &two);
-//    cout << base.to_string() << endl;
-//    cout << "---------------------" << endl;
-//
-//    UnionOfPartialFunctions three = UnionOfPartialFunctions(PartialFunction(3, 0, 0));
-//    UnionOfPartialFunctions four = UnionOfPartialFunctions(PartialFunction(3, 0, (1<<8)-(1<<6)));
-//
-//    cout << three.to_string() << endl;
-//    cout << "Diff" << endl;
-//    cout << four.to_string() << endl;
-//    cout << "==" << endl;
-//    three.apply_operation(difference, &four);
-//    cout << three.to_string() << endl;
-//    cout << "---------------------" << endl;
-//
-//    UnionOfPartialFunctions five = UnionOfPartialFunctions(PartialFunction(3, 0, (1<<6)-(1<<4)));
-//
-//    cout << three.to_string() << endl;
-//    cout << "Diff" << endl;
-//    cout << five.to_string() << endl;
-//    cout << "==" << endl;
-//    three.apply_operation(difference, &five);
-//    cout << three.to_string() << endl;
-//    cout << "---------------------" << endl;
-//
-//    cout << base.to_string() << endl;
-//    cout << "Diff" << endl;
-//    cout << three.to_string() << endl;
-//    cout << "==" << endl;
-//    three.apply_operation(my_union, &base);
-//    cout << three.to_string() << endl;
-//    cout << "---------------------" << endl;
+    LanguagesOverBooleanFunctions language = LanguagesOverBooleanFunctions(num_inputs, language_id);
+    language.enumerate();
+
+    int function_size = (1 << num_inputs);
+    int num_functions = (1 << function_size);
+    int num_partitions = num_functions-1;
+
+    if(macro_partition != -1)
+    {
+        num_partitions = (1<<macro_partition);
+    }
+
+    auto partitions_by_size = vector<vector<int> >(function_size, vector<int>());
+    auto meta_examples_per_total_function = vector<vector<MetaExample> >(num_functions, vector<MetaExample>());
+
+//            auto meta_examples_per_total_function = vector<DecisionTree>(num_functions, PartialFunction(num_inputs, 0, 0));
+
+
+    for (int partition = 0; partition < num_partitions; partition++) {
+        partitions_by_size[__builtin_popcount(partition)].push_back(partition);
+    }
+    if(max_partition_size == -1)
+    {
+        max_partition_size = (int) partitions_by_size.size()-1;
+    }
+    if(min_partition_size == -1)
+    {
+        min_partition_size = 0;
+    }
+
+    cout << "enumerate meta examples for language_" << language_id << endl;
+//            cout << "partial -> total" << endl;
+
+    int local_total_num_meta_examples = 0;
+    int local_total_without_trivial = 0;
+
+    for(int partition_size = min_partition_size;partition_size<=max_partition_size;partition_size++) {
+//                cout << "partition_size = " << partition_size << " time: " << (double)time(nullptr) - local_time << endl;
+        for (int partition_idx = 0; partition_idx < partitions_by_size[partition_size].size(); partition_idx++) {
+            int partition = partitions_by_size[partition_size][partition_idx];
+            int num_partition_assignments = (1 << partition_size);
+            for (int partial_assignment = 0;
+                 partial_assignment < num_partition_assignments; partial_assignment++) {
+                int total_function = 0;
+                int j = 0;
+                for (int i = 0; i < function_size; i++) {
+                    if (get_bit(partition, i)) {
+                        total_function += (get_bit(partial_assignment, j) << i);
+                        j++;
+                    }
+                }
+                MetaExample local_meta_example =
+                        language.get_meta_example(PartialFunction(num_inputs, total_function, partition));
+
+                bool add = !local_meta_example.fully_constrained();
+                for(int i = 0; i<meta_examples_per_total_function[local_meta_example.generalization.total_function].size(); i++)
+                {
+                    MetaExample smaller_meta_example = meta_examples_per_total_function[local_meta_example.generalization.total_function][i];
+
+                    if(local_meta_example.partial_function.is_contained_in(
+                            smaller_meta_example.partial_function))
+                    {
+                        add = false;
+                        break;
+                    }
+                }
+
+//                    cout << "is_generalization_of_counter " << language.is_generalization_counter <<endl;
+//                local_meta_example.print();
+                local_total_num_meta_examples++;
+                if(add) {
+                    assert(local_meta_example.generalization.partition != local_meta_example.partial_function.partition);
+                    local_total_without_trivial++;
+//                            local_meta_example.print();
+                    local_meta_example.idx = (int) meta_examples.size();
+                    meta_examples.push_back(local_meta_example);
+                    meta_examples_per_total_function[local_meta_example.generalization.total_function].push_back(local_meta_example);
+//                            meta_examples_per_total_function[local_meta_example.generalization.generalization].apply_operation(
+//                                    my_union, new DecisionTree(local_meta_example.partial_function));
+                }
+            }
+        }
+//                cout << "partition_size = " << partition_size << " num_of_meta_examples = " << meta_examples.size() << " time: " << (double)time(nullptr) - local_time << endl;
+    }
+
+    return meta_examples;
+}
+
+int main() {
 
     bool do__enumerate_sets_of_meta_examples = false;
     if(do__enumerate_sets_of_meta_examples)
     {
         enumerate_sets_of_meta_examples();
     }
-    else
+
+    bool do__multi_language_modeling = false;
+    if(do__multi_language_modeling)
     {
-        int id = 0;
-        vector<int> results;
-        vector<int> total_without_trivial;
-        vector<int> total_num_meta_examples;
-        vector<int> schema_based_examples;
-        for(int language_id = 0; language_id < 1;language_id++)
+        vector<int> language_ids;
+
+        language_ids.push_back(0);
+        language_ids.push_back(1);
+
+        int num_inputs = 3;
+        int min_partition_size = -1;
+        int max_partition_size = -1;
+        int macro_partition = -1;
+
+        vector<vector<MetaExample> > meta_examples_per_languages;
+
+        string multi_language_name = "langauges(ids={";
+
+        for(int i = 0;i<language_ids.size();i++)
         {
-            int num_inputs = 3;
-            int max_partition_size = -1;
-            int macro_partition = -1;
-            LanguagesOverBooleanFunctions language = LanguagesOverBooleanFunctions(num_inputs, language_id);
-            language.enumerate();
+            meta_examples_per_languages.push_back(
+                    get_meta_examples(language_ids[i], num_inputs, min_partition_size, max_partition_size, macro_partition));
+            if(i!=0)
+            {
+                multi_language_name+=",";
+            }
+            multi_language_name += std::to_string(language_ids[i]);
+        }
+        multi_language_name+="}";
+
+        MinimalFactoringSchema my_schema = MinimalFactoringSchema(num_inputs, meta_examples_per_languages, multi_language_name);
+    }
+
+    bool do__unit_language_modeling = true;
+    if(do__unit_language_modeling)
+    {
+        for(int language_id = 10; language_id < 11;language_id++)
+        {
+
+            int num_inputs = 4;
+//            int min_partition_size = -1;
+//            int max_partition_size = -1;
+//            int macro_partition = -1;
+
+            int min_partition_size = 10;
+            int max_partition_size = 10;
+            int macro_partition = 10;
 
             int function_size = (1 << num_inputs);
-            int num_functions = (1 << function_size);
-            int num_partitions = num_functions-1;
 
-            if(macro_partition != -1)
-            {
-                num_partitions = (1<<macro_partition);
-            }
-
-            vector<MetaExample> meta_examples;
-
-            auto partitions_by_size = vector<vector<int> >(function_size, vector<int>());
-            auto meta_examples_per_total_function = vector<vector<MetaExample> >(num_functions, vector<MetaExample>());
-
-//            auto meta_examples_per_total_function = vector<DecisionTree>(num_functions, PartialFunction(num_inputs, 0, 0));
-
-
-            for (int partition = 0; partition < num_partitions; partition++) {
-                partitions_by_size[__builtin_popcount(partition)].push_back(partition);
-            }
-            if(max_partition_size == -1)
-            {
-                max_partition_size = partitions_by_size.size()-1;
-            }
-
-
-            cout << "enumerate meta examples for language_" << language_id << endl;
-//            cout << "partial -> total" << endl;
-
-            int local_total_num_meta_examples = 0;
-            int local_total_without_trivial = 0;
-
-            for(int partition_size = 0;partition_size<=max_partition_size;partition_size++) {
-//                cout << "partition_size = " << partition_size << " time: " << (double)time(nullptr) - local_time << endl;
-                for (int partition_idx = 0; partition_idx < partitions_by_size[partition_size].size(); partition_idx++) {
-                    int partition = partitions_by_size[partition_size][partition_idx];
-                    int num_partition_assignments = (1 << partition_size);
-                    for (int partial_assignment = 0;
-                         partial_assignment < num_partition_assignments; partial_assignment++) {
-                        int total_function = 0;
-                        int j = 0;
-                        for (int i = 0; i < function_size; i++) {
-                            if (get_bit(partition, i)) {
-                                total_function += (get_bit(partial_assignment, j) << i);
-                                j++;
-                            }
-                        }
-                        MetaExample local_meta_example =
-                                language.get_meta_example(PartialFunction(num_inputs, total_function, partition));
-
-                        bool add =
-                                    true;
-//                                !meta_examples_per_total_function[local_meta_example.generalization.generalization].contains(
-//                                local_meta_example.partial_function);
-                        for(int i = 0; i<meta_examples_per_total_function[local_meta_example.generalization.total_function].size(); i++)
-                        {
-                            MetaExample smaller_meta_example = meta_examples_per_total_function[local_meta_example.generalization.total_function][i];
-
-                            if(local_meta_example.partial_function.is_contained_in(
-                                    smaller_meta_example.partial_function))
-                            {
-                                add = false;
-                                break;
-                            }
-                        }
-
-//                    cout << "is_generalization_of_counter " << language.is_generalization_counter <<endl;
-//                local_meta_example.print();
-                        local_total_num_meta_examples++;
-                        if(add) {
-                            assert(local_meta_example.generalization.partition != local_meta_example.partial_function.partition);
-                            local_total_without_trivial++;
-//                            local_meta_example.print();
-                            local_meta_example.idx = meta_examples.size();
-                            meta_examples.push_back(local_meta_example);
-                            meta_examples_per_total_function[local_meta_example.generalization.total_function].push_back(local_meta_example);
-//                            meta_examples_per_total_function[local_meta_example.generalization.generalization].apply_operation(
-//                                    my_union, new DecisionTree(local_meta_example.partial_function));
-                        }
-                    }
-                }
-//                cout << "partition_size = " << partition_size << " num_of_meta_examples = " << meta_examples.size() << " time: " << (double)time(nullptr) - local_time << endl;
-            }
+            vector<MetaExample> meta_examples = get_meta_examples(
+                    language_id, num_inputs, min_partition_size, max_partition_size, macro_partition);
 
             cout << "enumerated " << meta_examples.size() <<" meta examples for language_" << language_id << endl;
-
-            total_num_meta_examples.push_back(local_total_num_meta_examples);
-            total_without_trivial.push_back(local_total_without_trivial);
-
 
             bool insert_in_monolith = false;
 
@@ -544,9 +547,6 @@ int main() {
 //            cout << "partial -> total  classification" << endl;
 //            cout << poset.meta_examples_to_string() << endl;
 
-                results.push_back(poset.get_num_meta_edges());
-
-
 //                tests model stored in poset.
                 poset.calc_dominator_unions();
                 poset.calc_downstream_unions();
@@ -571,7 +571,6 @@ int main() {
 
                 cout << "poset.num_visited_nodes_during_query = " << poset.num_visited_nodes_during_query <<endl;
 
-                cout << "is_generalization_counter = " << language.is_generalization_counter << endl;
                 cout << "contains_counter = " << contains_counter << endl;
 
 
@@ -593,7 +592,6 @@ int main() {
 //
 ////                    assert(false);
 ////            cout << "poset.compress() = " << poset.compress() <<endl;
-
 
 //            for(int j = (int) meta_examples.size()-1; j >= 0; j--)
 //            {
@@ -678,8 +676,6 @@ int main() {
 
                 ReasoningSchema reasoning_schema = ReasoningSchema(num_inputs, meta_examples, masks, partition_masks);
 
-                schema_based_examples.push_back(reasoning_schema.get_num_necessary_meta_examples());
-
                 reasoning_schema.test(meta_examples);
 
             }
@@ -687,24 +683,37 @@ int main() {
             bool run_minimal_factoring_schema = true;
 
             if(run_minimal_factoring_schema) {
-                vector<int> unit_masks;
+                vector<MetaExample> local_meta_examples = meta_examples;
+                int prev_meta_examples_size = -1;
+                int now_meta_examples_size = (int) local_meta_examples.size();
+                int rec_id = 0;
+                do{
+                    prev_meta_examples_size = now_meta_examples_size;
 
-                string language_name =
-                        "half_language(n=" + std::to_string(num_inputs) + ",id=" + std::to_string(language_id) + ")";
+                    string language_name =
+                            "language(n=" + std::to_string(num_inputs) + ",id=" + std::to_string(language_id) + ")[rec="+std::to_string(rec_id)+"]";
 
-                vector<CompactPoset> compact_posets;
+                    MinimalFactoringSchema my_schema = MinimalFactoringSchema(num_inputs, local_meta_examples,
+                                                                              language_name, true||(rec_id!=0));
 
-                vector<MetaExample> half_meta_examples;
+                    for(int i = 0;i<local_meta_examples.size();i++)
+                    {
+                        PartialFunction generalization = my_schema.query(local_meta_examples[i].partial_function);
+                        cout << "query  " << local_meta_examples[i].to_string() << endl;
+                        cout << "result " << generalization.to_string() << endl;
+                        cout << endl;
+                        assert(generalization.is_contained_in(local_meta_examples[i].generalization));
+                    }
+                    cout << "TESTING DONE. ALL CORRECT" << endl;
 
-                for (int i = 0; i < meta_examples.size(); i++) {
-                    half_meta_examples.push_back(meta_examples[i]);
-                }
+                    local_meta_examples = my_schema.get_necessary_meta_examples();
 
-                MinimalFactoringSchema(num_inputs, half_meta_examples, language_name);
+                    now_meta_examples_size = (int) local_meta_examples.size();
+                    rec_id++;
+
+                }while(now_meta_examples_size != prev_meta_examples_size);
             }
-
         }
-
 //        for(int i = 0;i<results.size();i++)
 //        {
 //            cout << "language_" << i << " "<< total_num_meta_examples[i] << " & "<< total_without_trivial[i] << " & " << results[i] << " & " << schema_based_examples[i] << endl;
@@ -713,77 +722,6 @@ int main() {
 
 
     cout << "TIME: " << (double) time(nullptr) - local_time << endl;
-
-//
-//    CompactPoset compact_poset = CompactPoset(2);
-//    cout << "is_valid_node: " << compact_poset.insert(MetaExample(PartialFunction(2, 0, 0))) <<endl;
-//    cout << "is_valid: " << compact_poset.is_valid() <<endl;
-//
-//    cout << "compact_poset:: " <<endl;
-//    cout << compact_poset.to_string() << endl;
-//
-//    cout << "is_valid_node: " << compact_poset.insert(MetaExample(PartialFunction(2, 5, 1))) << endl;
-//    cout << "is_valid: " << compact_poset.is_valid() <<endl;
-//
-//    cout << "compact_poset:: " <<endl;
-//    cout << compact_poset.to_string() << endl;
-//
-//    cout << "is_valid_node: " << compact_poset.insert(MetaExample(PartialFunction(2, 7, 1))) << endl;
-//    cout << "is_valid: " << compact_poset.is_valid() <<endl;
-//
-//    cout << "compact_poset:: " <<endl;
-//    cout << compact_poset.to_string() << endl;
-//
-//    compact_poset.hard_pop();
-//    cout << "is_valid_node: " << compact_poset.is_valid() << endl;
-//    cout << "compact_poset:: " <<endl;
-//    cout << compact_poset.to_string() << endl;
-//
-//    compact_poset.hard_pop();
-//    cout << "is_valid_node: " << compact_poset.is_valid() << endl;
-//    cout << "compact_poset:: " <<endl;
-//    cout << compact_poset.to_string() << endl;
-//
-//    compact_poset.hard_pop();
-//    cout << "is_valid_node: " << compact_poset.is_valid() << endl;
-//    cout << "compact_poset:: " <<endl;
-//    cout << compact_poset.to_string() << endl;
-
-
-//    PartialFunction all = PartialFunction(2, 0, 0);
-//    DecisionTree dt_all = DecisionTree(all);
-//    cout << "dt_all::" <<endl;
-//    cout << dt_all.to_string(2) << endl << endl;
-//
-//    PartialFunction only_0 = PartialFunction(2, 0, (1<<(1<<2))-1);
-//    DecisionTree dt_only_0 = DecisionTree(only_0);
-//    cout << "only_0::" <<endl;
-//    cout << dt_only_0.to_string(2) << endl << endl;
-//
-//    cout << "dt_all difference only_0" <<endl;
-//    dt_all.apply_operation(difference, &dt_only_0);
-//    cout << dt_all.to_string(2) << endl << endl;
-//
-//
-//    PartialFunction all_init_1 = PartialFunction(2, 5, 1);
-//    DecisionTree dt_all_init_1 = DecisionTree(all_init_1);
-//    cout << "dt_all_init_1::" <<endl;
-//    cout << dt_all_init_1.to_string(2) << endl << endl;
-//
-//    PartialFunction only_5 = PartialFunction(2, 5, (1<<(1<<2))-1);
-//    DecisionTree dt_only_5 = DecisionTree(only_5);
-//    cout << "dt_only_5::" <<endl;
-//    cout << dt_only_5.to_string(2) << endl << endl;
-//
-//    cout << "dt_all_init_1 difference dt_only_5" <<endl;
-//    dt_all_init_1.apply_operation(difference, &dt_only_5);
-//    cout << dt_all_init_1.to_string(2) << endl << endl;
-//
-//
-//    cout << "(dt_all difference only_0) difference (dt_all_init_1 difference dt_only_5)" <<endl;
-//    dt_all.apply_operation(difference, &dt_all_init_1);
-//    cout << dt_all.to_string(2) << endl << endl;
-
 
     return 0;
 }
