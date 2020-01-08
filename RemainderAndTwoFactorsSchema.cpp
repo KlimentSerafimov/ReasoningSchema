@@ -2,21 +2,20 @@
 // Created by Kliment Serafimov on 2019-12-10.
 //
 
-#include "ReasoningSchema.h"
+#include "RemainderAndTwoFactorsSchema.h"
 #include <iostream>
 
 using namespace std;
 
 
 SubdomainSwitchPosets::SubdomainSwitchPosets(
-        int _num_inputs, int _common_generalization_mask, int _common_optional_mask, int _all_subsets_compulsory_mask)
+        int _function_size, int _common_generalization_mask, int _common_optional_mask, int _all_subsets_compulsory_mask)
 {
     common_generalization_mask = _common_generalization_mask;
     common_optional_mask = _common_optional_mask;
     all_subsets_compulsory_mask = _all_subsets_compulsory_mask;
 
-    num_inputs = _num_inputs;
-    function_size = (1 << num_inputs);
+    function_size = _function_size;
 
     int num_bits_in_compulsory = __builtin_popcount(all_subsets_compulsory_mask);
 
@@ -39,7 +38,7 @@ SubdomainSwitchPosets::SubdomainSwitchPosets(
                 SwitchMasks(common_generalization_mask, common_optional_mask, compulsory_mask));
 
         subdomain_posets.push_back(
-                CompactPoset(num_inputs, common_generalization_mask, common_optional_mask | compulsory_mask));
+                CompactPoset(function_size, common_generalization_mask, common_optional_mask | compulsory_mask));
     }
 
 }
@@ -52,18 +51,18 @@ string SubdomainSwitchPosets::masks_to_string(int id)
 }
 
 SubdomainSwitchPosetsFactors::SubdomainSwitchPosetsFactors(
-        int _num_inputs, pair<int, int> generalization_mask, pair<int, int> training_mask)
+        int _function_size, pair<int, int> generalization_mask, pair<int, int> training_mask)
 {
-    num_inputs = _num_inputs;
+    function_size = _function_size;
     factors.push_back(
             SubdomainSwitchPosets(
-                    num_inputs,
+                    function_size,
                     generalization_mask.first,
                     generalization_mask.first & training_mask.first,
                     training_mask.first - (generalization_mask.first & training_mask.first)));
     factors.push_back(
             SubdomainSwitchPosets(
-                    num_inputs,
+                    function_size,
                     generalization_mask.second,
                     generalization_mask.second & training_mask.second,
                     training_mask.second - (generalization_mask.second & training_mask.second)));
@@ -85,7 +84,7 @@ void SubdomainSwitchPosetsFactors::insert(MetaExample meta_example)
         int generalization_mask = training_mask | factors[i].common_generalization_mask;
 
         MetaExample subdomain_meta_example = MetaExample(
-                num_inputs,
+                function_size,
                 generalization.total_function,
                 training_mask, generalization_mask, meta_example.idx);
 
@@ -140,26 +139,25 @@ void SubdomainSwitchPosetsFactors::print()
     cout << "inconsistent_meta_examples.size() " << inconsistent_meta_examples.size() << endl;
 }
 
-ReasoningSchema::ReasoningSchema(int num_inputs, int generalization_mask, int training_mask, vector<MetaExample> meta_examples) {
+RemainderAndTwoFactorsSchema::RemainderAndTwoFactorsSchema(int function_size, int generalization_mask, int training_mask, vector<MetaExample> meta_examples) {
     schema_type = leaf_schema;
-    compact_poset = CompactPoset(num_inputs, generalization_mask, training_mask);
+    compact_poset = CompactPoset(function_size, generalization_mask, training_mask);
     for(int i = 0;i<meta_examples.size();i++)
     {
         assert(compact_poset.insert(meta_examples[i]));
     }
 }
 
-ReasoningSchema::ReasoningSchema(int _num_inputs, vector<MetaExample> train_meta_examples, vector<pair<int, int> > masks, vector<pair<int, int> > training_masks)
+RemainderAndTwoFactorsSchema::RemainderAndTwoFactorsSchema(int _function_size, vector<MetaExample> train_meta_examples, vector<pair<int, int> > masks, vector<pair<int, int> > training_masks)
 {
     time_t local_time = time(nullptr);
-    num_inputs = _num_inputs;
-    function_size = (1<<num_inputs);
+    function_size = _function_size;
 
     assert(masks.size()==training_masks.size());
     if(train_meta_examples.size() == 0)
     {
         schema_type = leaf_schema;
-        compact_poset = CompactPoset(num_inputs);
+        compact_poset = CompactPoset(function_size);
 
         cout << "UNIT LEAF SCHEMA" << endl;
 
@@ -167,14 +165,14 @@ ReasoningSchema::ReasoningSchema(int _num_inputs, vector<MetaExample> train_meta
     }
 
 
-    vector<pair<CompactPoset, CompactPoset> > subdomain_poset;// = vector<pair<CompactPoset, CompactPoset>>(masks.size(), make_pair(CompactPoset(num_inputs), CompactPoset(num_inputs)));
+    vector<pair<CompactPoset, CompactPoset> > subdomain_poset;// = vector<pair<CompactPoset, CompactPoset>>(masks.size(), make_pair(CompactPoset(function_size), CompactPoset(function_size)));
 
     for(int i = 0;i<masks.size();i++)
     {
         subdomain_poset.push_back(
                 make_pair(
-                        CompactPoset(num_inputs, masks[i].first, training_masks[i].first),
-                        CompactPoset(num_inputs, masks[i].second, training_masks[i].second))
+                        CompactPoset(function_size, masks[i].first, training_masks[i].first),
+                        CompactPoset(function_size, masks[i].second, training_masks[i].second))
                 );
     }
 
@@ -184,11 +182,12 @@ ReasoningSchema::ReasoningSchema(int _num_inputs, vector<MetaExample> train_meta
     vector<SubdomainSwitchPosetsFactors> subdomain_switch_posets_factors;
     for(int i = 0;i<masks.size();i++)
     {
-        subdomain_switch_posets_factors.push_back(SubdomainSwitchPosetsFactors(num_inputs, masks[i], training_masks[i]));
+        subdomain_switch_posets_factors.push_back(
+                SubdomainSwitchPosetsFactors(function_size, masks[i], training_masks[i]));
     }
 
     cout << endl;
-    cout << "INSERT " << train_meta_examples.size() << " meta examples in ReasoningSchema" <<endl;
+    cout << "INSERT " << train_meta_examples.size() << " meta examples in RemainderAndTwoFactorsSchema" <<endl;
 
     time_t prev_time = time(nullptr);
 
@@ -231,11 +230,11 @@ ReasoningSchema::ReasoningSchema(int _num_inputs, vector<MetaExample> train_meta
                 assert(((masks[mask_ids[k]].second | training_masks[mask_ids[k]].second) & second_mask) == second_mask);
 
                 MetaExample first_partial_meta_example = MetaExample(
-                        num_inputs,
+                        function_size,
                         train_meta_examples[i].generalization.total_function,
                         first_local_partition, first_mask, i);
                 MetaExample second_partial_meta_example = MetaExample(
-                        num_inputs,
+                        function_size,
                         train_meta_examples[i].generalization.total_function,
                         second_local_partition, second_mask, i);
 
@@ -343,10 +342,7 @@ ReasoningSchema::ReasoningSchema(int _num_inputs, vector<MetaExample> train_meta
         }
         if(time(nullptr) - prev_time >= 3) {
             cout
-                << "i = " << i
-                << " num_decision_tree_nodes = " << get__global_num_decision_tree_nodes()
-                << " num_empty_slots = " << get__empty_slots_count()
-                << " time: " << (double)time(nullptr) - local_time << endl;
+                << "i = " << i << " time: " << (double)time(nullptr) - local_time << endl;
             prev_time = time(nullptr);
         }
     }
@@ -362,7 +358,7 @@ ReasoningSchema::ReasoningSchema(int _num_inputs, vector<MetaExample> train_meta
     cout << endl;
     cout << "ANALYZE FACTORING" <<endl;
 
-    vector<CompactPoset> remainders = vector<CompactPoset>(subdomain_poset.size(), CompactPoset(num_inputs));
+    vector<CompactPoset> remainders = vector<CompactPoset>(subdomain_poset.size(), CompactPoset(function_size));
 
     for(int j = 0; j<subdomain_poset.size();j++)
     {
@@ -440,7 +436,7 @@ ReasoningSchema::ReasoningSchema(int _num_inputs, vector<MetaExample> train_meta
 //            if(contained_meta_examples[j][k].partial_function.partition != intermediate_result.partition)
 //            {
 //                MetaExample local_meta_example = MetaExample(
-//                        num_inputs,
+//                        function_size,
 //                        intermediate_result.total_function,
 //                        contained_meta_examples[j][k].partial_function.partition,
 //                        intermediate_result.partition);
@@ -542,19 +538,19 @@ ReasoningSchema::ReasoningSchema(int _num_inputs, vector<MetaExample> train_meta
 
     schema_type = factorization_schema;
 
-    int total_domain = (1<<(1<<num_inputs))-1;
+    int total_domain = (1<<function_size)-1;
 
-    root_schema = new ReasoningSchema(num_inputs, total_domain, total_domain,
-                                      remainders[best_subdomain].get_existant_meta_examples());
+    root_schema = new RemainderAndTwoFactorsSchema(function_size, total_domain, total_domain,
+                                                   remainders[best_subdomain].get_existant_meta_examples());
 
     factor_schemas = make_pair(
-            new ReasoningSchema(
-                    num_inputs,
+            new RemainderAndTwoFactorsSchema(
+                    function_size,
                     masks[best_subdomain].first,
                     training_masks[best_subdomain].first,
                     subdomain_poset[best_subdomain].first.get_existant_meta_examples()),
-            new ReasoningSchema(
-                    num_inputs,
+            new RemainderAndTwoFactorsSchema(
+                    function_size,
                     masks[best_subdomain].second,
                     training_masks[best_subdomain].second,
                     subdomain_poset[best_subdomain].second.get_existant_meta_examples())
@@ -579,7 +575,7 @@ ReasoningSchema::ReasoningSchema(int _num_inputs, vector<MetaExample> train_meta
 
 }
 
-bool ReasoningSchema::test(vector<MetaExample> test_meta_examples) {
+bool RemainderAndTwoFactorsSchema::test(vector<MetaExample> test_meta_examples) {
 
     for(int i = 0;i<test_meta_examples.size();i++)
     {
@@ -617,7 +613,7 @@ bool ReasoningSchema::test(vector<MetaExample> test_meta_examples) {
     return true;
 }
 
-vector<PartialFunction> ReasoningSchema::query(PartialFunction partial_function)
+vector<PartialFunction> RemainderAndTwoFactorsSchema::query(PartialFunction partial_function)
 {
     if(schema_type == leaf_schema)
     {
@@ -670,7 +666,7 @@ vector<PartialFunction> ReasoningSchema::query(PartialFunction partial_function)
     }
 }
 
-int ReasoningSchema::get_num_necessary_meta_examples() {
+int RemainderAndTwoFactorsSchema::get_num_necessary_meta_examples() {
     return min_num_necessary_meta_examples;
 }
 

@@ -9,8 +9,7 @@
 PartialFunction::PartialFunction() = default;
 
 PartialFunction::PartialFunction(int _num_inputs, int _total_function, int _partition) {
-    num_inputs = _num_inputs;
-    function_size = (1<<num_inputs);
+    function_size = _num_inputs;
     total_function = _total_function;
     if(_partition == -1)
     {
@@ -36,9 +35,9 @@ string PartialFunction::to_string() {
 }
 
 bool PartialFunction::is_contained_in(PartialFunction other_partial_function) {
-    assert(num_inputs == other_partial_function.num_inputs);
+    assert(function_size == other_partial_function.function_size);
     if((partition & other_partial_function.partition) == other_partial_function.partition) {
-//    assert(partition == (1<<(1<<num_inputs))-1);
+//    assert(partition == (1<<(1<<function_size))-1);
         bool ret = ((total_function & other_partial_function.partition) -
                     (other_partial_function.total_function & other_partial_function.partition) == 0);
         return ret;
@@ -49,7 +48,7 @@ bool PartialFunction::is_contained_in(PartialFunction other_partial_function) {
 }
 
 PartialFunction PartialFunction::get_composition(PartialFunction other) {
-    assert(num_inputs == other.num_inputs);
+    assert(function_size == other.function_size);
 
     int common_partition = partition & other.partition;
 
@@ -59,7 +58,7 @@ PartialFunction PartialFunction::get_composition(PartialFunction other) {
     int other_part = other.total_function & ((1<<function_size) - 1 - partition);
     int common_part = total_function & common_partition;
 
-    return PartialFunction(num_inputs, this_part|common_part|other_part, partition|other.partition);
+    return PartialFunction(function_size, this_part | common_part | other_part, partition | other.partition);
 }
 
 int PartialFunction::has_output(int idx) {
@@ -123,7 +122,7 @@ void PartialFunction::append_difference_with(PartialFunction other, vector<Parti
 
             to_append_to.push_back(
                     PartialFunction(
-                            num_inputs,
+                            function_size,
                             template_for_output__function | ((1-get_bit(other.total_function, idx_of_first_one)) << idx_of_first_one),
                             template_for_output__partition
                             )
@@ -136,7 +135,7 @@ void PartialFunction::append_difference_with(PartialFunction other, vector<Parti
     }
     else
     {
-        to_append_to.push_back(PartialFunction(num_inputs, total_function, partition));
+        to_append_to.push_back(PartialFunction(function_size, total_function, partition));
     }
 }
 
@@ -145,7 +144,7 @@ void PartialFunction::append_intersection_with(PartialFunction other, vector<Par
     {
         to_append_to.push_back(
                 PartialFunction(
-                        num_inputs,
+                        function_size,
                         (total_function & partition) | (other.total_function & other.partition),
                         partition | other.partition
                         )

@@ -20,10 +20,10 @@ public:
 
     MetaExample() = default;
 
-    MetaExample(int _num_inputs, int _total_function, int _partition);
-    MetaExample(int _num_inputs, int _total_function, int _partition, int generalization_partition);
-    MetaExample(int _num_inputs, int _total_function, int _partition, int generalization_partition, int _idx);
-    MetaExample(int _num_inputs, int _total_function, int _partition, int generalization_partition, int _idx, bool _active);
+    MetaExample(int _function_size, int _total_function, int _partition);
+    MetaExample(int _function_size, int _total_function, int _partition, int generalization_partition);
+    MetaExample(int _function_size, int _total_function, int _partition, int generalization_partition, int _idx);
+    MetaExample(int _function_size, int _total_function, int _partition, int generalization_partition, int _idx, bool _active);
     MetaExample(PartialFunction partial_function);
 
     int get_compact_partial_outputs();
@@ -34,7 +34,7 @@ public:
     MetaExample get_application_of_subdomain(int subdomain_mask)
     {
         return MetaExample(
-                partial_function.num_inputs,
+                partial_function.function_size,
                 generalization.total_function & subdomain_mask,
                 partial_function.partition & subdomain_mask,
                 generalization.partition & subdomain_mask,

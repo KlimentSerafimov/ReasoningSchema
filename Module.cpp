@@ -64,7 +64,7 @@ string Module::covered_to_string(vector<MetaExample> init_meta_examples)
 //                ret += "pre_query " + partial_function.to_string()+"\t";
 //                ret += "after_query " + intermediate_partial_function.to_string()+"\t";
                 MetaExample intermediate_meta_example = MetaExample(
-                        intermediate_partial_function.num_inputs,
+                        intermediate_partial_function.function_size,
                         init_meta_examples[covering[i][j][k]].generalization.total_function,
                         intermediate_partial_function.partition);
                 if (k >= 1) {

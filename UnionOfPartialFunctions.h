@@ -15,13 +15,13 @@ class UnionOfPartialFunctions {
     void init(PartialFunction partial_function);
 
 public:
-    int num_inputs;
+    int function_size;
 
     vector<PartialFunction> partial_functions;
 
     UnionOfPartialFunctions() = default;
 
-    UnionOfPartialFunctions(int _num_inputs);
+    UnionOfPartialFunctions(int _function_size);
 
     UnionOfPartialFunctions(UnionOfPartialFunctions *to_point_to);
 

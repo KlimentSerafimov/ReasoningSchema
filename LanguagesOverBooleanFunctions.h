@@ -70,10 +70,6 @@ class LanguagesOverBooleanFunctions {
 
     void append_inputs(int order);
 
-    void populate_ordering_over_boolean_functions_with_small_sum();
-
-    void populate_ordering_over_boolean_functions_with_bitwise_and();
-
 public:
 
     int is_generalization_counter = 0;

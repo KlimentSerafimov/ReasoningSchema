@@ -11,33 +11,63 @@
 
 using namespace std;
 
-CompactPoset::CompactPoset(int _num_inputs)
+CompactPoset::CompactPoset(int _function_size)
 {
-    num_inputs = _num_inputs;
-    generalization_mask = (1<<(1<<num_inputs))-1;
-    input_mask = (1<<(1<<num_inputs))-1;
-    push_back_new_node__and__get_id(NewCompactPosetNode(PartialFunction(num_inputs, 0, 0)));
+    function_size = _function_size;
+    generalization_mask = (1<<function_size)-1;
+    input_mask = (1<<function_size)-1;
+    push_back_new_node__and__get_id(
+            NewCompactPosetNode(PartialFunction(function_size, 0, 0)));
 }
 
-CompactPoset::CompactPoset(int _num_inputs, int _generalization_mask, int _input_mask)
+CompactPoset::CompactPoset(int _function_size, vector<MetaExample> &meta_examples)
 {
-    num_inputs = _num_inputs;
-    generalization_mask = _generalization_mask;
-    input_mask = _input_mask;
-    push_back_new_node__and__get_id(NewCompactPosetNode(PartialFunction(num_inputs, 0, 0)));
+    function_size = _function_size;
+    generalization_mask = (1<<function_size)-1;
+    input_mask = (1<<function_size)-1;
+    push_back_new_node__and__get_id(NewCompactPosetNode(PartialFunction(function_size, 0, 0)));
+
+    meta_examples = insert_meta_examples_and_get_inserted(meta_examples);
 }
 
-CompactPoset::CompactPoset(int _num_inputs, int _generalization_mask, int _input_mask, vector<MetaExample> &meta_examples)
+CompactPoset::CompactPoset(int _function_size, int _generalization_mask, int _input_mask)
 {
-    num_inputs = _num_inputs;
+    function_size = _function_size;
+    generalization_mask = _generalization_mask;
+    input_mask = _input_mask;
+    push_back_new_node__and__get_id(NewCompactPosetNode(PartialFunction(function_size, 0, 0)));
+}
+
+CompactPoset::CompactPoset(int _function_size, int _generalization_mask, int _input_mask, vector<MetaExample> &meta_examples)
+{
+    function_size = _function_size;
     generalization_mask = _generalization_mask;
     input_mask = _input_mask;
 
+    push_back_new_node__and__get_id(NewCompactPosetNode(PartialFunction(function_size, 0, 0)));
+
+    meta_examples = insert_meta_examples_and_get_inserted(meta_examples);
+}
+
+CompactPoset::CompactPoset(CompactPoset *poset) {
+    function_size = poset->function_size;
+
+    generalization_mask = (1<<function_size)-1;
+    input_mask = (1<<function_size)-1;
+
+    push_back_new_node__and__get_id(NewCompactPosetNode(PartialFunction(function_size, 0, 0)));
+
+    vector<MetaExample> meta_examples = poset->get_meta_examples();
+    for(int i = 0; i < meta_examples.size();i++)
+    {
+        insert(meta_examples[i]);
+    }
+}
+
+vector<MetaExample> CompactPoset::insert_meta_examples_and_get_inserted(vector<MetaExample> &meta_examples)
+{
     assert(generalization_mask == input_mask);
-
     int subdomain_mask = input_mask;
-
-    push_back_new_node__and__get_id(NewCompactPosetNode(PartialFunction(num_inputs, 0, 0)));
 
     vector<MetaExample> ret_meta_examples;
     for (int id = 0; id < meta_examples.size(); id++) {
@@ -57,30 +87,14 @@ CompactPoset::CompactPoset(int _num_inputs, int _generalization_mask, int _input
             ret_meta_examples.push_back(meta_examples[id]);
         }
     }
-    meta_examples = ret_meta_examples;
+    return ret_meta_examples;
 }
 
-
-CompactPoset::CompactPoset(CompactPoset *poset) {
-    num_inputs = poset->num_inputs;
-
-    generalization_mask = (1<<(1<<num_inputs))-1;
-    input_mask = (1<<(1<<num_inputs))-1;
-
-    push_back_new_node__and__get_id(NewCompactPosetNode(PartialFunction(num_inputs, 0, 0)));
-
-    vector<MetaExample> meta_examples = poset->get_meta_examples();
-    for(int i = 0; i < meta_examples.size();i++)
-    {
-        insert(meta_examples[i]);
-    }
-}
-
-int CompactPoset::push_back_new_node__and__get_id(NewCompactPosetNode decision_tree) {
+int CompactPoset::push_back_new_node__and__get_id(NewCompactPosetNode new_compact_poset_node) {
     int ret = (int) nodes.size();
     local_delta.new_nodes.push_back(ret);
-    assert(!decision_tree.is_empty());
-    nodes.push_back(decision_tree);
+    assert(!new_compact_poset_node.is_empty());
+    nodes.push_back(new_compact_poset_node);
     nodes[ret].id_in_compact_poset = ret;
     is_union_of.push_back(vector<int>());
     is_contained_in.push_back(vector<int>());
@@ -372,11 +386,15 @@ bool CompactPoset::insert(MetaExample meta_example)
 
     vector<int> dominator_set_cover = get__set_cover(&dominator);
 
+    assert(dominator_set_cover.size() >= 1);
+
     int dominator_node = multi_split_and_union(dominator_set_cover, &dominator);
 
     dominator.my_delete();
 
     vector<int> dominated_set_cover = get__set_cover(&dominated);
+
+    assert(dominated_set_cover.size() >= 1);
 
     int dominated_node = multi_split_and_union(dominated_set_cover, &dominated);
 
@@ -714,7 +732,7 @@ string CompactPoset::to_string() {
     ret += "nodes:\n";
     for(int i = 0;i<nodes.size();i++)
     {
-        ret += nodes[i].to_string(i, num_inputs);
+        ret += nodes[i].to_string(i);
     }
 
     ret += vector_of_vector_of_int_to_string(meta_edges, "meta_edges");
@@ -1130,8 +1148,8 @@ bool CompactPoset::soft_delete_redundant_edges()
     return removed_meta_edge;
 }
 
-int CompactPoset::get_num_inputs() {
-    return num_inputs;
+int CompactPoset::get_function_size() {
+    return function_size;
 }
 
 vector<MetaExample> CompactPoset::get_meta_examples() {
@@ -1228,7 +1246,7 @@ BooleanFunctionSet* CompactPoset::get_downstream_union(int at)
         else if (nodes[at].node_type == base_node)
         {
             assert(meta_edges[at].size() == 0);
-            nodes[at].downstream_union = BooleanFunctionSet(num_inputs);
+            nodes[at].downstream_union = BooleanFunctionSet(function_size);
         }
     }
 
@@ -1236,9 +1254,9 @@ BooleanFunctionSet* CompactPoset::get_downstream_union(int at)
     open_visited[at] = -1;
 //    cout << "--" << endl;
 //    cout << "node:" << endl;
-//    cout << nodes[at].to_string(at, num_inputs) <<endl;
+//    cout << nodes[at].to_string(at, function_size) <<endl;
 //    cout << "downstream_union:" <<endl;
-//    cout << nodes[at].downstream_union.get_string_of_union_of_partial_functions(1, num_inputs) << endl;
+//    cout << nodes[at].downstream_union.get_string_of_union_of_partial_functions(1, function_size) << endl;
 //    cout << "--" << endl;
     return &nodes[at].downstream_union;
 }
@@ -1264,7 +1282,7 @@ BooleanFunctionSet* CompactPoset::get_dominator_union(int at)
     open_visited[at] = visited_mark;
     if(closed_visited[at] != visited_mark) {
 
-        nodes[at].dominator_union = BooleanFunctionSet(num_inputs);
+        nodes[at].dominator_union = BooleanFunctionSet(function_size);
 
         for(int i = 0; i< reverse_meta_edges[at].size();i++)
         {
@@ -1279,9 +1297,9 @@ BooleanFunctionSet* CompactPoset::get_dominator_union(int at)
 
 //        cout << "--" << endl;
 //        cout << "node:" << endl;
-//        cout << nodes[at].to_string(at, num_inputs) <<endl;
+//        cout << nodes[at].to_string(at, function_size) <<endl;
 //        cout << "dominator_union:" <<endl;
-//        cout << nodes[at].dominator_union.get_string_of_union_of_partial_functions(1, num_inputs) << endl;
+//        cout << nodes[at].dominator_union.get_string_of_union_of_partial_functions(1, function_size) << endl;
 //        cout << "--" << endl;
 
     }
@@ -1371,7 +1389,7 @@ vector<PartialFunction> CompactPoset::query(PartialFunction partial_function)
 //                    for(int i = 0;i<ret.size();i++) {
 //                        cout << ret[i].to_string() << endl;
 //                    }
-//                    cout << nodes[at].get_string_of_union_of_partial_functions(0, num_inputs) << endl;
+//                    cout << nodes[at].get_string_of_union_of_partial_functions(0, function_size) << endl;
 //                    assert(false);
 //                }
 //                while(!q.empty()){
@@ -1526,7 +1544,7 @@ vector<PartialFunction> CompactPoset::query(PartialFunction partial_function)
 //            for(int j = 0;j<nodes.size();j++)
 //            {
 //                cout << "j = " << j << " dominator_union " << endl;
-//                cout<<nodes[j].dominator_union.get_string_of_union_of_partial_functions(0, num_inputs) << endl;
+//                cout<<nodes[j].dominator_union.get_string_of_union_of_partial_functions(0, function_size) << endl;
 //            }
 //
 //            print();
@@ -1548,7 +1566,7 @@ vector<PartialFunction> CompactPoset::query(PartialFunction partial_function)
 
     for(auto element : unique_ret)
     {
-        ret.push_back(PartialFunction(num_inputs, element.first, element.second));
+        ret.push_back(PartialFunction(function_size, element.first, element.second));
     }
 
     assert(ret.size()>=1);
@@ -1626,7 +1644,7 @@ vector<MetaExample> CompactPoset::get_all_meta_examples_without_duplicates() {
     {
         pair<int, pair<int, int> > element = (*it).first;
         ret.push_back(
-                MetaExample(num_inputs, element.first, element.second.first, element.second.second)
+                MetaExample(function_size, element.first, element.second.first, element.second.second)
         );
     }
     return ret;

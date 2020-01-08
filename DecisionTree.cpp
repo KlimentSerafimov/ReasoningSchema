@@ -64,7 +64,7 @@ int get__empty_slots_count() {
 
 void DecisionTree::init(PartialFunction partial_function)
 {
-    num_inputs = partial_function.num_inputs;
+    num_inputs = partial_function.function_size;
     vector<pair<int, int> > idxs_and_branches = get__idxs_and_branches(partial_function);
 
     root = get_new_node();
@@ -442,7 +442,7 @@ vector<PartialFunction> DecisionTree::get_union_of_partial_functions()
 {
     vector<PartialFunction> ret;
 //    map<int, int> idx_to_branch;
-//    root->get_union_of_partial_functions(num_inputs, ret, &idx_to_branch);
+//    root->get_union_of_partial_functions(function_size, ret, &idx_to_branch);
 //    return ret;
     append_union_of_partial_functions_that_contain_partial_function(PartialFunction(num_inputs, 0, 0), &ret);
     return ret;

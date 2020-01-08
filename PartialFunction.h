@@ -20,13 +20,12 @@ class PartialFunction
 {
 
 public:
-    int num_inputs;
     int function_size;
     int total_function;
     unsigned int partition;
 
     PartialFunction();
-    PartialFunction(int _num_inputs, int _total_function, int _partition);
+    PartialFunction(int _function_size, int _total_function, int _partition);
 
     string to_string();
 

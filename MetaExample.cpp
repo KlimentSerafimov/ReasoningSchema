@@ -7,22 +7,22 @@
 #include <iostream>
 
 MetaExample::MetaExample(
-        int _num_inputs, int _total_function, int _partition) {
-    partial_function = PartialFunction(_num_inputs, _total_function, _partition);
-    generalization = PartialFunction(_num_inputs, _total_function, -1);
+        int _function_size, int _total_function, int _partition) {
+    partial_function = PartialFunction(_function_size, _total_function, _partition);
+    generalization = PartialFunction(_function_size, _total_function, -1);
 }
 
-MetaExample::MetaExample(int _num_inputs, int _total_function, int _partition, int generalization_partition) {
+MetaExample::MetaExample(int _function_size, int _total_function, int _partition, int generalization_partition) {
 
-    partial_function = PartialFunction(_num_inputs, _total_function, _partition);
-    generalization = PartialFunction(_num_inputs, _total_function, generalization_partition);
+    partial_function = PartialFunction(_function_size, _total_function, _partition);
+    generalization = PartialFunction(_function_size, _total_function, generalization_partition);
 }
 
 
 MetaExample::MetaExample(PartialFunction _partial_function){
     partial_function = _partial_function;
     generalization = PartialFunction(
-            partial_function.num_inputs, partial_function.total_function, -1);
+            partial_function.function_size, partial_function.total_function, -1);
 }
 
 
@@ -77,15 +77,15 @@ void MetaExample::print()
     cout << to_string() << endl;
 }
 
-MetaExample::MetaExample(int _num_inputs, int _total_function, int _partition, int generalization_partition, int _idx) {
-    partial_function = PartialFunction(_num_inputs, _total_function, _partition);
-    generalization = PartialFunction(_num_inputs, _total_function, generalization_partition);
+MetaExample::MetaExample(int _function_size, int _total_function, int _partition, int generalization_partition, int _idx) {
+    partial_function = PartialFunction(_function_size, _total_function, _partition);
+    generalization = PartialFunction(_function_size, _total_function, generalization_partition);
     idx = _idx;
 }
 
-MetaExample::MetaExample(int _num_inputs, int _total_function, int _partition, int generalization_partition, int _idx, bool _active) {
-    partial_function = PartialFunction(_num_inputs, _total_function, _partition);
-    generalization = PartialFunction(_num_inputs, _total_function, generalization_partition);
+MetaExample::MetaExample(int _function_size, int _total_function, int _partition, int generalization_partition, int _idx, bool _active) {
+    partial_function = PartialFunction(_function_size, _total_function, _partition);
+    generalization = PartialFunction(_function_size, _total_function, generalization_partition);
     idx = _idx;
     active = _active;
 }

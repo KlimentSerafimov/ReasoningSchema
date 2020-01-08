@@ -2,8 +2,8 @@
 // Created by Kliment Serafimov on 2019-12-10.
 //
 
-#ifndef COMPACTPOSET_REASONINGSCHEMA_H
-#define COMPACTPOSET_REASONINGSCHEMA_H
+#ifndef COMPACTPOSET_REMAINDERANDTWOFACTORSSCHEMA_H
+#define COMPACTPOSET_REMAINDERANDTWOFACTORSSCHEMA_H
 
 
 #include "CompactPoset.h"
@@ -29,7 +29,6 @@ public:
 
 class SubdomainSwitchPosets
 {
-    int num_inputs;
     int function_size;
 
 public:
@@ -42,7 +41,7 @@ public:
     vector<SwitchMasks> switch_masks;
     vector<CompactPoset> subdomain_posets;
 
-    SubdomainSwitchPosets(int _num_inputs, int common_generalization_mask, int common_optional_mask, int all_subsets_compulsory_mask);
+    SubdomainSwitchPosets(int _function_size, int common_generalization_mask, int common_optional_mask, int all_subsets_compulsory_mask);
 
     string masks_to_string(int id);
 };
@@ -50,12 +49,12 @@ public:
 class SubdomainSwitchPosetsFactors
 {
 public:
-    int num_inputs;
+    int function_size;
     vector<SubdomainSwitchPosets> factors;
     vector<MetaExample> contained_meta_examples;
     vector<MetaExample> inconsistent_meta_examples;
 
-    SubdomainSwitchPosetsFactors(int _num_inputs, pair<int, int> generalization_mask, pair<int, int> training_mask);
+    SubdomainSwitchPosetsFactors(int _function_size, pair<int, int> generalization_mask, pair<int, int> training_mask);
 
     void insert(MetaExample meta_example);
 
@@ -65,7 +64,7 @@ public:
 
 enum ReasoningSchemaType {leaf_schema, factorization_schema, continuation_schema};
 
-class ReasoningSchema
+class RemainderAndTwoFactorsSchema
 {
     ReasoningSchemaType schema_type;
 
@@ -73,24 +72,23 @@ class ReasoningSchema
     CompactPoset compact_poset;
 
     // if schema_type == factorization_schema || schema_type == continuation_schema
-    ReasoningSchema* root_schema;
+    RemainderAndTwoFactorsSchema* root_schema;
 
     // if schema_type == factorization_schema
-    pair<ReasoningSchema*, ReasoningSchema*> factor_schemas;
+    pair<RemainderAndTwoFactorsSchema*, RemainderAndTwoFactorsSchema*> factor_schemas;
 
     // if schema_type == continuation_schema
-    ReasoningSchema* continuation_schema;
+    RemainderAndTwoFactorsSchema* continuation_schema;
 
-    int num_inputs;
     int function_size;
 
     int min_num_necessary_meta_examples;
 
 
 public:
-    ReasoningSchema(int num_inputs, int generalization_mask, int training_mask, vector<MetaExample> meta_examples);
+    RemainderAndTwoFactorsSchema(int function_size, int generalization_mask, int training_mask, vector<MetaExample> meta_examples);
 
-    ReasoningSchema(int num_inputs, vector<MetaExample> train_meta_examples, vector<pair<int, int> > masks, vector<pair<int, int> > training_masks);
+    RemainderAndTwoFactorsSchema(int function_size, vector<MetaExample> train_meta_examples, vector<pair<int, int> > masks, vector<pair<int, int> > training_masks);
 
     bool test(vector<MetaExample> test_meta_examples);
 
@@ -101,4 +99,4 @@ public:
 };
 
 
-#endif //COMPACTPOSET_REASONINGSCHEMA_H
+#endif //COMPACTPOSET_REMAINDERANDTWOFACTORSSCHEMA_H

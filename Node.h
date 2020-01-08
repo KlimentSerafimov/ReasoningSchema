@@ -97,7 +97,7 @@ public:
         dominator_union.my_delete();
     }
 
-    string to_string(int i, int num_inputs)
+    string to_string(int i)
     {
         string ret;
         ret += tabs(1) + "id = " + std::to_string(i) + "\n";
@@ -111,7 +111,7 @@ public:
         }
         ret += "\n";
 //        ret += tabs(1) + "decision_tree: \n";
-//        ret += nodes[i].to_string(2, num_inputs) + "\n";
+//        ret += nodes[i].to_string(2, function_size) + "\n";
 
         return ret;
     }

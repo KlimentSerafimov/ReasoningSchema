@@ -6,12 +6,12 @@
 #include <iostream>
 
 
-UnionOfPartialFunctions::UnionOfPartialFunctions(int _num_inputs) {
-    num_inputs = _num_inputs;
+UnionOfPartialFunctions::UnionOfPartialFunctions(int _function_size) {
+    function_size = _function_size;
 }
 
 UnionOfPartialFunctions::UnionOfPartialFunctions(UnionOfPartialFunctions *to_point_to) {
-    num_inputs = to_point_to->num_inputs;
+    function_size = to_point_to->function_size;
     partial_functions = to_point_to->partial_functions;
 }
 
@@ -35,7 +35,7 @@ void UnionOfPartialFunctions::my_delete() {
 }
 
 void UnionOfPartialFunctions::init(PartialFunction partial_function) {
-    num_inputs = partial_function.num_inputs;
+    function_size = partial_function.function_size;
     partial_functions.push_back(partial_function);
 }
 

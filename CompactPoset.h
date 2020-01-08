@@ -49,7 +49,7 @@ public:
 
 class CompactPoset {
 
-    int num_inputs;
+    int function_size;
     int generalization_mask;
     int input_mask;
 
@@ -88,7 +88,7 @@ class CompactPoset {
 
     pair<vector<int>::iterator, vector<int>::iterator> erase_meta_edge(int dominator, int dominated);
 
-    int push_back_new_node__and__get_id(NewCompactPosetNode decision_tree);
+    int push_back_new_node__and__get_id(NewCompactPosetNode new_compact_poset_node);
 
     vector<int> get__set_cover(NewCompactPosetNode *target_set);
 
@@ -127,13 +127,17 @@ public:
 
     CompactPoset() = default;
 
-    CompactPoset(int num_inputs);
+    CompactPoset(int _function_size);
 
-    CompactPoset(int num_inputs, int generalization_mask, int input_mask);
+    CompactPoset(int _function_size, vector<MetaExample> &meta_examples);
 
-    CompactPoset(int num_inputs, int generalization_mask, int input_mask, vector<MetaExample> &meta_examples);
+    CompactPoset(int _function_size, int generalization_mask, int input_mask);
+
+    CompactPoset(int _function_size, int generalization_mask, int input_mask, vector<MetaExample> &meta_examples);
 
     CompactPoset(CompactPoset *poset);
+
+    vector<MetaExample> insert_meta_examples_and_get_inserted(vector<MetaExample> &meta_examples);
 
     bool insert(MetaExample meta_example);
 
@@ -179,7 +183,7 @@ public:
 
     void disjoint_assertion();
 
-    int get_num_inputs();
+    int get_function_size();
 
     vector<MetaExample> get_meta_examples();
 
