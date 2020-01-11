@@ -6,6 +6,7 @@
 #include "MinimalFactoringSchema.h"
 #include "UnionOfPartialFunctions.h"
 #include "enumerate_meta_training_sets.h"
+#include "BitvectorTasks.h"
 
 vector<MetaExample> get_meta_examples_of_language_over_boolean_functions(int language_id, int num_inputs, int min_partition_size, int max_partition_size, int macro_partition)
 {
@@ -306,6 +307,11 @@ void modeling_of_language_over_boolean_functions()
     }
 }
 
+void modeling_of_bitvector_functions()
+{
+    BitvectorTasks bitvector_tasks = BitvectorTasks();
+}
+
 int main() {
 
     bool do__enumerate_sets_of_meta_examples = false;
@@ -314,10 +320,16 @@ int main() {
         enumerate_meta_training_sets();
     }
 
-    bool do__modeling_of_language_over_boolean_functions = true;
+    bool do__modeling_of_language_over_boolean_functions = false;
     if(do__modeling_of_language_over_boolean_functions)
     {
         modeling_of_language_over_boolean_functions();
+    }
+
+    bool do__modeling_of_bitvector_functions = true;
+    if(do__modeling_of_bitvector_functions)
+    {
+        modeling_of_bitvector_functions();
     }
 
     cout << "TIME: " << (double) time(nullptr) - local_time << endl;

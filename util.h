@@ -21,4 +21,6 @@ string vector_of_vector_of_int_to_string(vector<vector<int> > to_print, string t
 
 unsigned int num_trailing_zeroes(unsigned int v);
 
+enum NodeType {leaf_node, internal_node};
+
 #endif //COMPACTPOSET_UTIL_H

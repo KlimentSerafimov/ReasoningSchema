@@ -10,8 +10,6 @@
 
 using namespace std;
 
-enum NodeType {leaf_node, internal_node};
-
 static int contains_counter;
 
 class Node
