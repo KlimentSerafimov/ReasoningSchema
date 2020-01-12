@@ -5,6 +5,7 @@
 #include "PartialFunction.h"
 #include <iostream>
 #include "util.h"
+#include <set>
 
 PartialFunction::PartialFunction() = default;
 
@@ -155,4 +156,29 @@ void PartialFunction::append_intersection_with(PartialFunction other, vector<Par
 bool PartialFunction::full()
 {
     return partition == (1<<function_size)-1;
+}
+
+PartialFunction::PartialFunction(vector<BitInBittree*> bits)
+{
+    init_via_bits(bits);
+}
+
+void PartialFunction::init_via_bits(vector<BitInBittree*> bits)
+{
+    function_size = 0;
+    total_function = 0;
+    partition = 0;
+    set<int> bit_ids;
+    for(int i = 0;i<bits.size();i++)
+    {
+        if(bit_ids.find(bits[i]->bit_id) == bit_ids.end())
+        {
+            bit_ids.insert(bits[i]->bit_id);
+            if (bits[i]->is_bit_set) {
+                partition += (1 << function_size);
+                total_function += (bits[i]->bit_val << function_size);
+            }
+            function_size++;
+        }
+    }
 }

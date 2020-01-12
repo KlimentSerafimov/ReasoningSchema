@@ -91,8 +91,4 @@ BitvectorTasks::BitvectorTasks(int _function_size, int task_id) {
     }
 }
 
-DeltaBittreeType::DeltaBittreeType(NodeType delta_node_type)
-{
-    node_type = leaf_node;
-    delta = new BittreeTypeNode(delta_node_type);
-}
+

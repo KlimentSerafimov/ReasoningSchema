@@ -250,7 +250,7 @@ void recursive_minimal_factoring_schema(int num_inputs, int language_id, vector<
                 "language(n=" + std::to_string(num_inputs) + ",id=" + std::to_string(language_id) + ")[rec="+std::to_string(rec_id)+"]";
 
         MinimalFactoringSchema my_schema =
-                MinimalFactoringSchema((1<<num_inputs), local_meta_examples, language_name, true||(rec_id!=0));
+                MinimalFactoringSchema(local_meta_examples, language_name, true || (rec_id != 0));
 
         for(int i = 0;i<local_meta_examples.size();i++)
         {
@@ -262,7 +262,7 @@ void recursive_minimal_factoring_schema(int num_inputs, int language_id, vector<
         }
         cout << "TESTING DONE. ALL CORRECT" << endl;
 
-        local_meta_examples = my_schema.get_necessary_meta_examples();
+        local_meta_examples = my_schema.get_necessary_meta_examples(false);
 
         now_meta_examples_size = (int) local_meta_examples.size();
         rec_id++;

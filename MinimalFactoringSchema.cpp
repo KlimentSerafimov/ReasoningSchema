@@ -345,7 +345,7 @@ void MinimalFactoringSchema::repeat_apply_parents(Module *module) {
 
 }
 
-double MinimalFactoringSchema::calculate_heuristic(Module* module) {
+HeuristicScore MinimalFactoringSchema::calculate_heuristic(Module* module) {
 
     if(parent_pointer == nullptr)
     {
@@ -430,12 +430,12 @@ double MinimalFactoringSchema::calculate_heuristic(Module* module) {
 
     if(num_necessary_meta_examples == 0)
     {
-        return -1;
+        return HeuristicScore();
     }
 
     if(module->num_missing_bits == init_num_missing_bits)
     {
-        return -1;
+        return HeuristicScore();
     }
 
     int prev_necessary_meta_examples_delta = 0;
@@ -464,7 +464,8 @@ double MinimalFactoringSchema::calculate_heuristic(Module* module) {
 //    use this if want to maximize num solved bits.
 //    return current_delta;
 
-    return delta_ratio;
+
+    return HeuristicScore(__builtin_popcount(module->subdomain_mask), delta_ratio);
 }
 
 static int maximal_factoring_schema_depth_counter = 0;
@@ -472,13 +473,22 @@ static int minimal_factoring_schema_depth_counter = 0;
 
 static string best_subdomains[1000] = {};
 
-vector<int> MinimalFactoringSchema::get_masks(int set_init_mask_size)
+void MinimalFactoringSchema::calc_masks(int set_init_mask_size)
 {
-    vector<int> masks;
+    if(masks.size() >= 1)
+    {
+        return;
+    }
     if(true) {
         vector<vector<int> > masks_by_size = vector<vector<int> >(function_size + 1, vector<int>());
 
-        for (int i = 1; i < (1 << function_size) - 1; i++) {
+        assert(function_size <= 23);
+
+        int num_masks = (1 << function_size);
+
+        assert(num_masks >= 0);
+
+        for (int i = 1; i <num_masks; i++) {
             if (minimal_factoring_schema_depth_counter < maximal_factoring_schema_depth_counter) {
                 i = string_to_bitvector(best_subdomains[minimal_factoring_schema_depth_counter++]);
                 masks_by_size[__builtin_popcount(i)].push_back(i);
@@ -539,20 +549,17 @@ vector<int> MinimalFactoringSchema::get_masks(int set_init_mask_size)
         }
     }
 
-
-    return masks;
 }
 
 static ofstream fout;
 
-static int set_init_mask_size = 3;
-static int skip_after_mask_size_if_not_necessary = 4;
+static int set_init_mask_size = 1;
+static int skip_after_mask_size_if_not_necessary = 1;
 //static string fout_name = "fast_subdomain_masks_3_4_5_6_7_with_repeats_traced_corrected_only_active_eval_delta_heuristic.out";
 //static string fout_name = "using_UnionOfPartialFunctions__using_delta_heuristic__subdomain_size_3_4_if_necessary_5_6_7.out";
 static string fout_name = "seventh__restricted_partition_size_10__using_UnionOfPartialFunctions__using_delta_heuristic__subdomain_size_1_2_3_if_necessary_4plus.out";
 
-MinimalFactoringSchema::MinimalFactoringSchema(
-        int _function_size, vector<MetaExample> _meta_examples, string ordering_name, bool skip) {
+MinimalFactoringSchema::MinimalFactoringSchema(vector<MetaExample> _meta_examples, string ordering_name, bool skip) {
     parent_pointer = nullptr;
 
     assert(!fout.is_open());
@@ -608,16 +615,29 @@ MinimalFactoringSchema::MinimalFactoringSchema(
         fout << "\t"+_meta_examples[i].to_string() << endl << std::flush;
     }
 
-    main__minimal_factoring_schema(_function_size, _meta_examples);
+    main__minimal_factoring_schema(_meta_examples);
 
     fout.close();
 }
 
-MinimalFactoringSchema::MinimalFactoringSchema(int _function_size, vector<MetaExample> _meta_examples,
-            MinimalFactoringSchema *_parent_pointer) {
-
+MinimalFactoringSchema::MinimalFactoringSchema(
+        vector<MetaExample> _meta_examples, MinimalFactoringSchema *_parent_pointer)
+{
     parent_pointer = _parent_pointer;
-    main__minimal_factoring_schema(_function_size, _meta_examples);
+    main__minimal_factoring_schema(_meta_examples);
+}
+
+
+MinimalFactoringSchema::MinimalFactoringSchema(vector<MetaExample> _meta_examples, string ordering_name, vector<int> _masks)
+{
+    masks = _masks;
+    fout.open(ordering_name + "__" + fout_name);
+    fout << "meta_examples " << _meta_examples.size() << endl;
+    for(int i = 0;i<_meta_examples.size();i++)
+    {
+        fout << "\t"+_meta_examples[i].to_string() << endl << std::flush;
+    }
+    main__minimal_factoring_schema(_meta_examples);
 }
 
 void MinimalFactoringSchema::calc_module(int subdomain_mask, Module *module)
@@ -681,10 +701,10 @@ void MinimalFactoringSchema::calc_module(int subdomain_mask, Module *module)
 
 }
 
-void MinimalFactoringSchema::main__minimal_factoring_schema(int _function_size, vector<MetaExample> _meta_examples) {
+void MinimalFactoringSchema::main__minimal_factoring_schema(vector<MetaExample> _meta_examples) {
 
-    function_size = _function_size;
     meta_examples = _meta_examples;
+    calc_function_size();
 
     local_time = time(nullptr);
 
@@ -698,13 +718,13 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(int _function_size, 
         moule_id = parent_pointer->moule_id+1;
     }
 
-    vector<int> masks = get_masks(set_init_mask_size);
+    calc_masks(set_init_mask_size);
 
     init_num_missing_bits = get_num_missing_bits(meta_examples);
 
     if(init_num_missing_bits >= 1) {
 
-        vector<pair<double, int> > mask_ids_by_heuristic;
+        vector<pair<HeuristicScore, int> > mask_ids_by_heuristic;
 
         bool possible_candidate_found = false;
         bool try_all = false;
@@ -732,32 +752,31 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(int _function_size, 
 
             local_module.compact_poset->clear();
 
-            double heuristic = calculate_heuristic(&local_module);
+            HeuristicScore heuristic = calculate_heuristic(&local_module);
 
-            if (heuristic >= 0.00001) {
+            if (heuristic.defined) {
                 possible_candidate_found = true;
             }
 
             mask_ids_by_heuristic.push_back(make_pair(heuristic, mask_id));
 
-            cout << "heuristic = " << fixed << setprecision(4) << heuristic << endl;
+            cout << "heuristic = " << fixed << setprecision(4) << heuristic.to_string() << endl;
         }
 
         sort(mask_ids_by_heuristic.begin(), mask_ids_by_heuristic.end());
-        reverse(mask_ids_by_heuristic.begin(), mask_ids_by_heuristic.end());
 
         cout << "PRINT mask_ids_by_heuristic" << endl;
         for (int local_id = 0; local_id < mask_ids_by_heuristic.size(); local_id++) {
             int mask_id = mask_ids_by_heuristic[local_id].second;
             cout << bitvector_to_str(masks[mask_id], function_size) << fixed << setprecision(6)
-                 << " heuristic_measure = " << mask_ids_by_heuristic[local_id].first << endl;
+                 << " heuristic_measure = " << mask_ids_by_heuristic[local_id].first.to_string() << endl;
         }
 
         assert(mask_ids_by_heuristic.size() >= 1);
 
-        double max_num_consistent_meta_examples = mask_ids_by_heuristic[0].first;
+        HeuristicScore max_num_consistent_meta_examples = mask_ids_by_heuristic[0].first;
 
-        if (max_num_consistent_meta_examples >= 0.00001) {
+        if (max_num_consistent_meta_examples.defined) {
 
             if (parent_pointer == nullptr) {
                 fout << "missing_bits " << init_num_missing_bits << endl << std::flush;
@@ -773,7 +792,7 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(int _function_size, 
 
             fout << best_module.print_module_sketch(time(nullptr) - init_time) << std::flush;
 
-            next = new MinimalFactoringSchema(function_size, best_module.meta_examples_after_query, this);
+            next = new MinimalFactoringSchema(best_module.meta_examples_after_query, this);
 
             if(parent_pointer == nullptr)
             {
@@ -845,8 +864,9 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(int _function_size, 
                     }
                     fout << endl;
                 }
+                fout << endl;
+                get_necessary_meta_examples(true);
             }
-
         } else
         {
             assert(false);
@@ -858,14 +878,16 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(int _function_size, 
     }
 }
 
-vector<MetaExample> MinimalFactoringSchema::get_necessary_meta_examples() {
+vector<MetaExample> MinimalFactoringSchema::get_necessary_meta_examples(bool print) {
     if(next != nullptr)
     {
-        return next->get_necessary_meta_examples();
+        return next->get_necessary_meta_examples(print);
     }
     else
     {
         vector<MetaExample> ret_meta_example;
+        if(print)
+            fout << "necessary_meta_examples " << ret_meta_example.size() << endl;
         for(int i = 0;i<parent_pointer->best_module.necessary_meta_example_ids.size();i++)
         {
             int id = parent_pointer->best_module.necessary_meta_example_ids[i];
@@ -873,9 +895,10 @@ vector<MetaExample> MinimalFactoringSchema::get_necessary_meta_examples() {
             root_pointer->meta_examples[id]
             );
             ret_meta_example[ret_meta_example.size()-1].idx = i;
-            cout << "ret necessary_meta_example = " << root_pointer->meta_examples[id].to_string() << endl;
+            if(print)
+                fout << "\t" << root_pointer->meta_examples[id].to_string() << endl;
         }
-        cout << "ret.size() = " << ret_meta_example.size() << endl;
+//        cout << "ret.size() = " << ret_meta_example.size() << endl;
         return ret_meta_example;
     }
 }
@@ -954,3 +977,16 @@ void MinimalFactoringSchema::record_trace_of_query(
         assert(init_num_missing_bits == 0 || &best_module == pointer_to_stop);
     }
 }
+
+void MinimalFactoringSchema::calc_function_size() {
+    function_size = 0;
+    if(meta_examples.size() >= 1)
+    {
+        function_size = meta_examples[0].get_function_size();
+        for(int i = 1;i<meta_examples.size();i++)
+        {
+            assert(meta_examples[i].get_function_size() == function_size);
+        }
+    }
+}
+

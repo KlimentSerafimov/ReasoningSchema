@@ -7,6 +7,8 @@
 
 #include <string>
 #include <vector>
+#include "BitInBittree.h"
+#include "BittreeTaskType.h"
 
 using namespace std;
 
@@ -25,7 +27,10 @@ public:
     unsigned int partition;
 
     PartialFunction();
+    PartialFunction(vector<BitInBittree*> bits);
     PartialFunction(int _function_size, int _total_function, int _partition);
+
+    void init_via_bits(vector<BitInBittree*> bits);
 
     string to_string();
 
@@ -54,6 +59,25 @@ public:
     bool empty();
 
     bool full();
+};
+
+class BittreeTaskTypeAsPartialFunction : public PartialFunction
+{
+public:
+    BittreeTaskType* bittree_taks_type;
+    BittreeTaskTypeAsPartialFunction(BittreeTaskType* _bittree_taks_type)
+    {
+        bittree_taks_type = _bittree_taks_type;
+
+        vector<BitInBittree*> partial_bits;
+        BittreeTaskType* local_subtask = bittree_taks_type;
+        while(local_subtask != NULL)
+        {
+            local_subtask->append_bits(partial_bits);
+            local_subtask = local_subtask->subtask;
+        }
+        init_via_bits(partial_bits);
+    }
 };
 
 #endif //COMPACTPOSET_PARTIALFUNCTION_H

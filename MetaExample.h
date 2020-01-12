@@ -20,6 +20,7 @@ public:
 
     MetaExample() = default;
 
+    MetaExample(PartialFunction partial_function, PartialFunction total_function, int idx);
     MetaExample(int _function_size, int _total_function, int _partition);
     MetaExample(int _function_size, int _total_function, int _partition, int generalization_partition);
     MetaExample(int _function_size, int _total_function, int _partition, int generalization_partition, int _idx);
@@ -58,6 +59,12 @@ public:
     }
 
     bool is_consistent_with(MetaExample other);
+
+    int get_function_size()
+    {
+        assert(partial_function.function_size == generalization.function_size);
+        return partial_function.function_size;
+    }
 };
 
 

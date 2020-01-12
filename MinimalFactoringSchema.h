@@ -7,11 +7,62 @@
 
 #include "Module.h"
 
+class HeuristicScore
+{
+public:
+    bool defined = false;
+    int num_input_bits;
+    double ratio_delta_meta_examples_per_new_bit;
+
+    bool operator < (const HeuristicScore& other) const
+    {
+        if(defined && other.defined) {
+            if (num_input_bits == other.num_input_bits) {
+                return ratio_delta_meta_examples_per_new_bit < other.ratio_delta_meta_examples_per_new_bit;
+            } else {
+                return num_input_bits < other.num_input_bits;
+            }
+        }
+        else
+        {
+            if(defined)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+
+public:
+    HeuristicScore(int _num_input_bits, double _ratio_delta_meta_examples_per_new_bit) {
+        num_input_bits = _num_input_bits;
+        ratio_delta_meta_examples_per_new_bit = _ratio_delta_meta_examples_per_new_bit;
+        defined = true;
+    }
+
+    HeuristicScore() {}
+
+    string to_string()
+    {
+        if(defined) {
+            return std::to_string(num_input_bits) + " " + std::to_string(ratio_delta_meta_examples_per_new_bit);
+        }
+        else
+        {
+            return "inf";
+        }
+    }
+};
+
 class MinimalFactoringSchema
 {
-    MinimalFactoringSchema* parent_pointer;
+    MinimalFactoringSchema* parent_pointer = NULL;
     int function_size;
 
+    vector<int> masks;
     int moule_id;
 
     time_t init_time;
@@ -23,32 +74,35 @@ class MinimalFactoringSchema
     Module best_module;
     MinimalFactoringSchema* next = nullptr;
 
+    void calc_function_size();
+
     bool test_compact_poset_for_consistency_with_all_meta_examples(int subdomain_mask, CompactPoset *compact_poset);
 
     void prune_globally_inconsistent_meta_examples(int subdomain_mask, CompactPoset *compact_poset);
 
     int get_meta_edge_id_to_remove(CompactPoset* compact_poset, int subdomain_mask, int special_meta_example_id);
 
-    double calculate_heuristic(Module* module);
+    HeuristicScore calculate_heuristic(Module* module);
 
     void repeat_apply_parents(Module *module);
 
-    vector<int> get_masks(int set_init_masks_size);
+    void calc_masks(int set_init_masks_size);
 
     void calc_module(int subdomain_mask, Module *module);
 
-    void main__minimal_factoring_schema(int _function_size, vector<MetaExample> _meta_examples);
+    void main__minimal_factoring_schema(vector<MetaExample> _meta_examples);
 
 public:
 
     MinimalFactoringSchema* root_pointer;
 
-    MinimalFactoringSchema(int _function_size, vector<MetaExample> _meta_examples, MinimalFactoringSchema *parent_pointer);
+    MinimalFactoringSchema(vector<MetaExample> _meta_examples, MinimalFactoringSchema *_parent_pointer);
 
-    MinimalFactoringSchema(int _function_size, vector<MetaExample> _meta_examples,
-                               string ordering_name, bool skip);
+    MinimalFactoringSchema(vector<MetaExample> _meta_examples, string ordering_name, bool skip);
 
-    vector<MetaExample> get_necessary_meta_examples();
+    MinimalFactoringSchema(vector<MetaExample> _meta_examples, string ordering_name, vector<int> mask);
+
+    vector<MetaExample> get_necessary_meta_examples(bool print);
 
     PartialFunction query(PartialFunction partial_function);
 
