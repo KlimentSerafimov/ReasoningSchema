@@ -243,7 +243,154 @@ BittreeTaskType BittreeTaskType::get_supertask_type(DeltaBittreeTaskType type)
     return ret;
 }
 
-void BittreeTaskType::solve_sum() {
+void BittreeTaskType::solve(TaskName task_name) {
+
+    if(task_name.do_sum_task_type){
+        solve_sum();
+    }
+
+    if(task_name.do_greater_task_type)
+    {
+        solve_greater();
+    }
+
+    if(task_name.do_cummulative_binary_operator)
+    {
+        solve_cumulative_binary_operator();
+    }
+
+    if(task_name.do_bitwise_binary_operator)
+    {
+        bitwise_binary_operator();
+    }
+
+    if(task_name.do_multiplication_by)
+    {
+        do_multiplication_by(task_name.multiply_by);
+    }
+
+}
+
+void BittreeTaskType::do_multiplication_by(int multiply_by)
+{
+    solution = new BittreeTaskType(this, true);
+    if(subtask != NULL)
+    {
+        solution->subtask = subtask->solution;
+    }
+
+    const int num_operands = 1;
+    assert(solution->input->children->size() == num_operands);
+    int operands[num_operands] = {0};
+    for(int i = 0;i<num_operands;i++)
+    {
+        int pow = 1;
+        for(int j = 0;j<solution->input->children->at(i)->children->size();j++)
+        {
+            assert(solution->input->children->at(i)->children->at(j)->bit->is_bit_set == true);
+            operands[i]+=pow*solution->input->children->at(i)->children->at(j)->bit->bit_val;
+            pow*=2;
+        }
+    }
+    int sum = operands[0] * multiply_by;
+    for(int i = 0;i<solution->output->children->size();i++)
+    {
+        assert(solution->output->children->at(i)->bit->is_bit_set == false);
+        solution->output->children->at(i)->bit->is_bit_set = true;
+        solution->output->children->at(i)->bit->bit_val = get_bit(sum, i);
+    }
+}
+
+void BittreeTaskType::bitwise_binary_operator()
+{
+    solution = new BittreeTaskType(this, true);
+    if(subtask != NULL)
+    {
+        solution->subtask = subtask->solution;
+    }
+
+    const int num_operands = 2;
+    assert(solution->input->children->size() == num_operands);
+    int operands[num_operands] = {0, 0};
+    for(int i = 0;i<num_operands;i++)
+    {
+        int pow = 1;
+        for(int j = 0;j<solution->input->children->at(i)->children->size();j++)
+        {
+            assert(solution->input->children->at(i)->children->at(j)->bit->is_bit_set == true);
+            operands[i]+=pow*solution->input->children->at(i)->children->at(j)->bit->bit_val;
+            pow*=2;
+        }
+    }
+    int sum = operands[0] ^ operands[1];
+    for(int i = 0;i<solution->output->children->size();i++)
+    {
+        assert(solution->output->children->at(i)->bit->is_bit_set == false);
+        solution->output->children->at(i)->bit->is_bit_set = true;
+        solution->output->children->at(i)->bit->bit_val = get_bit(sum, i);
+    }
+}
+
+void BittreeTaskType::solve_cumulative_binary_operator()
+{
+   solution = new BittreeTaskType(this, true);
+   if(subtask != NULL)
+   {
+       solution->subtask = subtask->solution;
+   }
+   const int num_operands = 1;
+   assert(solution->input->children->size() == num_operands);
+   int operands[num_operands] = {1};
+   for(int i = 0;i<num_operands;i++)
+   {
+       int pow = 1;
+       for(int j = 0;j<solution->input->children->at(i)->children->size();j++)
+       {
+           assert(solution->input->children->at(i)->children->at(j)->bit->is_bit_set == true);
+           operands[i]&=solution->input->children->at(i)->children->at(j)->bit->bit_val;
+       }
+   }
+   int culumative_binary_operator = operands[0];
+   for(int i = 0;i<solution->output->children->size();i++)
+   {
+       assert(solution->output->children->at(i)->bit->is_bit_set == false);
+       solution->output->children->at(i)->bit->is_bit_set = true;
+       solution->output->children->at(i)->bit->bit_val = get_bit(culumative_binary_operator, i);
+   }
+}
+
+
+void BittreeTaskType::solve_greater()
+{
+    solution = new BittreeTaskType(this, true);
+    if(subtask != NULL)
+    {
+        solution->subtask = subtask->solution;
+    }
+    const int num_operands = 2;
+    assert(solution->input->children->size() == num_operands);
+    int operands[num_operands] = {0, 0};
+    for(int i = 0;i<num_operands;i++)
+    {
+        int pow = 1;
+        for(int j = 0;j<solution->input->children->at(i)->children->size();j++)
+        {
+            assert(solution->input->children->at(i)->children->at(j)->bit->is_bit_set == true);
+            operands[i]+=pow*solution->input->children->at(i)->children->at(j)->bit->bit_val;
+            pow*=2;
+        }
+    }
+    int is_0th_greater_than_1st = operands[0] > operands[1];
+    for(int i = 0;i<solution->output->children->size();i++)
+    {
+        assert(solution->output->children->at(i)->bit->is_bit_set == false);
+        solution->output->children->at(i)->bit->is_bit_set = true;
+        solution->output->children->at(i)->bit->bit_val = get_bit(is_0th_greater_than_1st, i);
+    }
+}
+
+void BittreeTaskType::solve_sum()
+{
     solution = new BittreeTaskType(this, true);
     if(subtask != NULL)
     {

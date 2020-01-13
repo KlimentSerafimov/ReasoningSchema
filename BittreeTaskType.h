@@ -8,6 +8,8 @@
 #include "util.h"
 #include "BitInBittree.h"
 #include "DeltaBittreeType.h"
+//#include "BitvectorTasks.h"
+#include "TaskName.h"
 
 class MetaExample;
 
@@ -85,11 +87,22 @@ public:
 
     BittreeTaskType get_supertask_type(DeltaBittreeTaskType type);
 
+    void solve(TaskName task_name);
+
     void solve_sum();
+
+    void solve_greater();
+
+    void solve_cumulative_binary_operator();
+
+    void bitwise_binary_operator();
+
+    void do_multiplication_by(int multiply_by);
 
     MetaExample to_meta_example(int id);
 
     MetaExample to_meta_example_of_subtask_decomposition(int id);
+
 };
 
 
