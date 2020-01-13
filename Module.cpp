@@ -76,7 +76,8 @@ string Module::covered_to_string(vector<MetaExample> init_meta_examples)
                 }
                 ret +=
 //                        "subdomain_mask " + bitvector_to_str(parent_modules[i]->subdomain_mask, function_size) + "\t" +
-                        "masked " + intermediate_meta_example.get_application_of_subdomain(parent_modules[i]->subdomain_mask).to_string() + "\t" +
+                        "masked " + intermediate_meta_example.get_application_of_subdomain(
+                                parent_modules[i]->subdomain_mask).to_string() + "\t" +
                         "intermediate " + intermediate_meta_example.to_string() + "\t" +
                         "original " + init_meta_examples[covering[i][j][k]].to_string() + "\t";
 

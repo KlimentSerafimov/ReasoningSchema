@@ -17,11 +17,11 @@ public:
     bool operator < (const HeuristicScore& other) const
     {
         if(defined && other.defined) {
-            if (num_input_bits == other.num_input_bits) {
-                return ratio_delta_meta_examples_per_new_bit < other.ratio_delta_meta_examples_per_new_bit;
-            } else {
-                return num_input_bits < other.num_input_bits;
-            }
+//            if (num_input_bits == other.num_input_bits) {
+                return ratio_delta_meta_examples_per_new_bit > other.ratio_delta_meta_examples_per_new_bit;
+//            } else {
+//                return num_input_bits < other.num_input_bits;
+//            }
         }
         else
         {
@@ -71,7 +71,6 @@ class MinimalFactoringSchema
     vector<MetaExample> meta_examples;
     int init_num_missing_bits;
 
-    Module best_module;
     MinimalFactoringSchema* next = nullptr;
 
     void calc_function_size();
@@ -93,6 +92,8 @@ class MinimalFactoringSchema
     void main__minimal_factoring_schema(vector<MetaExample> _meta_examples);
 
 public:
+
+    Module best_module;
 
     MinimalFactoringSchema* root_pointer;
 

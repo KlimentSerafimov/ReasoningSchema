@@ -117,7 +117,8 @@ public:
         {
             for(int i = 0;i<num_superinstances;i++)
             {
-                ret[at_depth].push_back(superinstances[i].to_meta_example_of_subtask_decomposition(ret[at_depth].size()));
+                ret[at_depth].push_back(
+                        superinstances[i].to_meta_example_of_subtask_decomposition(ret[at_depth].size()));
             }
         }
         if(deepened)
@@ -192,23 +193,28 @@ public:
         BittreeTaskType sum_task_type(internal_node, internal_node);
 
         sum_task_type.input->node_type = internal_node;
-        sum_task_type.input->children->push_back(new BittreeTypeNode(internal_node));
-        sum_task_type.input->children->push_back(new BittreeTypeNode(internal_node));
+        sum_task_type.input->children->push_back(new BittreeTypeNode(sum_task_type.input, internal_node));
+        sum_task_type.input->children->push_back(new BittreeTypeNode(sum_task_type.input, internal_node));
 
         sum_task_type.output->node_type = internal_node;
-        sum_task_type.output->children->push_back(new BittreeTypeNode(leaf_node, new_machine_bit));
+        sum_task_type.output->children->push_back(new BittreeTypeNode(sum_task_type.output, leaf_node, new_machine_bit));
 
         DeltaBittreeTaskType delta_bittree_task_type(internal_node, internal_node);
 
         delta_bittree_task_type.delta_input->node_type = internal_node;
         delta_bittree_task_type.delta_input->children->push_back(new DeltaBittreeType(internal_node));
         delta_bittree_task_type.delta_input->children->push_back(new DeltaBittreeType(internal_node));
-        delta_bittree_task_type.delta_input->children->at(0)->delta = new BittreeTypeNode(internal_node);
-        delta_bittree_task_type.delta_input->children->at(0)->delta->children->push_back(new BittreeTypeNode(leaf_node, shared_blanko_bit));
-        delta_bittree_task_type.delta_input->children->at(1)->delta = new BittreeTypeNode(internal_node);
-        delta_bittree_task_type.delta_input->children->at(1)->delta->children->push_back(new BittreeTypeNode(leaf_node, shared_blanko_bit));
+        delta_bittree_task_type.delta_input->children->at(0)->delta =
+                new BittreeTypeNode(NULL, internal_node);
+        delta_bittree_task_type.delta_input->children->at(0)->delta->children->push_back(
+                new BittreeTypeNode(NULL, leaf_node, shared_blanko_bit));
+        delta_bittree_task_type.delta_input->children->at(1)->delta =
+                new BittreeTypeNode(NULL, internal_node);
+        delta_bittree_task_type.delta_input->children->at(1)->delta->children->push_back(
+                new BittreeTypeNode(NULL, leaf_node, shared_blanko_bit));
 
-        delta_bittree_task_type.delta_output->delta->children->push_back(new BittreeTypeNode(leaf_node, new_blanko_bit));
+        delta_bittree_task_type.delta_output->delta->children->push_back(
+                new BittreeTypeNode(NULL, leaf_node, new_blanko_bit));
 
         cout << sum_task_type.to_string() << endl;
 
@@ -229,8 +235,8 @@ public:
             cout << sum_task_type.to_string() << endl;
             InstanceTree instances = InstanceTree(&sum_task_type, &delta_bittree_task_type);
             instances.prepare_for_deepening();
-            int num_iter = 3;
-            for(int i = 0;i<num_iter;i++)
+            int num_iter = 4;
+            for(int iter = 0;iter<num_iter;iter++)
             {
                 vector<vector<MetaExample> > meta_examples;
                 instances.populate_meta_examples(meta_examples, 0);
@@ -244,7 +250,7 @@ public:
                 }
                 cout << "----------------------------------------" << endl;
 
-                if(i < num_iter)
+                if(iter < num_iter)
                 {
                     instances.deepen();
                 }
@@ -255,7 +261,7 @@ public:
 
             for(int i = meta_examples.size()-1;i<meta_examples.size();i++) {
                 string language_name =
-                        "sum[size="+std::to_string(i+1)+"]";
+                        "sum[size="+std::to_string(i+1)+", num_prev_subtasks=1]";
 
                 vector<int> masks;
 

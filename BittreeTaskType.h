@@ -11,7 +11,13 @@
 
 class MetaExample;
 
-class BittreeTypeNode
+class TreeNode
+{
+public:
+    TreeNode* parent;
+};
+
+class BittreeTypeNode: public TreeNode
 {
 public:
     NodeType node_type;
@@ -23,13 +29,13 @@ public:
     //if bit_node;
     //no additional information needed;
 
-    BittreeTypeNode(NodeType _node_type);
+    BittreeTypeNode(TreeNode* parent, NodeType _node_type);
 
-    BittreeTypeNode(NodeType _node_type, BitInBittreeType bit_type);
+    BittreeTypeNode(TreeNode* parent, NodeType _node_type, BitInBittreeType bit_type);
 
-    BittreeTypeNode(BittreeTypeNode* to_copy, bool all_new_bits);
+    BittreeTypeNode(TreeNode* parent, BittreeTypeNode* to_copy, bool all_new_bits);
 
-    void init();
+    void init(TreeNode *_parent);
 
     string to_string();
 
@@ -53,7 +59,7 @@ public:
     DeltaBittreeTaskType(NodeType delta_input_type, NodeType delta_output_typee);
 };
 
-class BittreeTaskType
+class BittreeTaskType: public TreeNode
 {
 public:
     BittreeTypeNode* input = NULL;

@@ -10,5 +10,5 @@ DeltaBittreeType::DeltaBittreeType(NodeType delta_node_type)
 {
     node_type = leaf_node;
     children = new vector<DeltaBittreeType*>();
-    delta = new BittreeTypeNode(delta_node_type);
+    delta = new BittreeTypeNode(NULL, delta_node_type);
 }

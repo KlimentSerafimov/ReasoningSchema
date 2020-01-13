@@ -5,32 +5,33 @@
 #include "BittreeTaskType.h"
 #include "MetaExample.h"
 
-void BittreeTypeNode::init()
+void BittreeTypeNode::init(TreeNode *_parent)
 {
+    parent = _parent;
     children = new vector<BittreeTypeNode*>();
 }
 
-BittreeTypeNode::BittreeTypeNode(NodeType _node_type)
+BittreeTypeNode::BittreeTypeNode(TreeNode* _parent, NodeType _node_type)
 {
     assert(_node_type == internal_node);
-    init();
+    init(_parent);
     node_type = _node_type;
 };
 
-BittreeTypeNode::BittreeTypeNode(NodeType _node_type, BitInBittreeType bit_type)
+BittreeTypeNode::BittreeTypeNode(TreeNode* _parent, NodeType _node_type, BitInBittreeType bit_type)
 {
     assert(_node_type == leaf_node);
-    init();
+    init(_parent);
     node_type = _node_type;
     if(node_type == leaf_node)
     {
-        bit = new BitInBittree(bit_type);
+        bit = new BitInBittree(this, bit_type);
     }
 };
 
-BittreeTypeNode::BittreeTypeNode(BittreeTypeNode* to_copy, bool all_new_bits)
+BittreeTypeNode::BittreeTypeNode(TreeNode* _parent, BittreeTypeNode* to_copy, bool all_new_bits)
 {
-    init();
+    init(_parent);
     node_type = to_copy->node_type;
     if(node_type == leaf_node)
     {
@@ -42,7 +43,7 @@ BittreeTypeNode::BittreeTypeNode(BittreeTypeNode* to_copy, bool all_new_bits)
         {
             if (to_copy->bit->bit_type == new_blanko_bit || to_copy->bit->bit_type == new_machine_bit)
             {
-                bit = new BitInBittree(new_machine_bit);
+                bit = new BitInBittree(this, new_machine_bit);
             }
             else if (to_copy->bit->bit_type == shared_machine_bit)
             {
@@ -52,20 +53,20 @@ BittreeTypeNode::BittreeTypeNode(BittreeTypeNode* to_copy, bool all_new_bits)
                 }
                 else
                 {
-                    bit = new BitInBittree(shared_machine_bit);
+                    bit = new BitInBittree(this, shared_machine_bit);
                 }
             }
             else
             {
                 assert(to_copy->bit->bit_type == shared_blanko_bit);
-                bit = new BitInBittree(shared_machine_bit);
+                bit = new BitInBittree(this, shared_machine_bit);
             }
         }
         assert(to_copy->children->size() == 0);
     }
     for(int i = 0;i<to_copy->children->size();i++)
     {
-        children->push_back(new BittreeTypeNode(to_copy->children->at(i), all_new_bits));
+        children->push_back(new BittreeTypeNode(this, to_copy->children->at(i), all_new_bits));
     }
 };
 
@@ -159,7 +160,7 @@ void BittreeTypeNode::append_children_from(BittreeTypeNode* new_value)
     }
     for(int i = 0;i<new_value->children->size();i++)
     {
-        children->push_back(new BittreeTypeNode(new_value->children->at(i), false));
+        children->push_back(new BittreeTypeNode(this, new_value->children->at(i), false));
     }
 }
 
@@ -185,14 +186,14 @@ DeltaBittreeTaskType::DeltaBittreeTaskType(NodeType delta_input_type, NodeType d
 
 BittreeTaskType::BittreeTaskType(NodeType input_node_type, NodeType output_node_type)
 {
-    input = new BittreeTypeNode(input_node_type);
-    output = new BittreeTypeNode(output_node_type);
+    input = new BittreeTypeNode(this, input_node_type);
+    output = new BittreeTypeNode(this, output_node_type);
 }
 
 BittreeTaskType::BittreeTaskType(BittreeTaskType* to_copy, bool all_new_bits)
 {
-    input = new BittreeTypeNode(to_copy->input, all_new_bits);
-    output = new BittreeTypeNode(to_copy->output, all_new_bits);
+    input = new BittreeTypeNode(this, to_copy->input, all_new_bits);
+    output = new BittreeTypeNode(this, to_copy->output, all_new_bits);
 }
 
 void BittreeTaskType::append_bits(vector<BitInBittree*>& bits)

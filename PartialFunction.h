@@ -71,10 +71,23 @@ public:
 
         vector<BitInBittree*> partial_bits;
         BittreeTaskType* local_subtask = bittree_taks_type;
+        int num_prev_subtasks = 0;
         while(local_subtask != NULL)
         {
-            local_subtask->append_bits(partial_bits);
-            local_subtask = local_subtask->subtask;
+            if(num_prev_subtasks < 1 || local_subtask->solution == NULL)
+            {
+                local_subtask->append_bits(partial_bits);
+                local_subtask = local_subtask->subtask;
+            } else
+            {
+                local_subtask->solution->append_bits(partial_bits);
+                local_subtask = local_subtask->subtask;
+            }
+            if(num_prev_subtasks == 1)
+            {
+                break;
+            }
+            num_prev_subtasks+=1;
         }
         init_via_bits(partial_bits);
     }
