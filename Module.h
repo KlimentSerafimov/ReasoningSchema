@@ -15,7 +15,7 @@ class Module
 {
 public:
     int function_size;
-    int subdomain_mask;
+    Bitvector subdomain_mask;
 
     Module* parent_module;
 

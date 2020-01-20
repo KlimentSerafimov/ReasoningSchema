@@ -9,7 +9,7 @@
 #include <sstream>
 
 vector<MetaExample> get_meta_examples_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(
-        int subdomain_mask, vector<MetaExample> meta_examples)
+        Bitvector subdomain_mask, vector<MetaExample> meta_examples)
 {
     vector<MetaExample> consistent_meta_examples;
 
@@ -47,7 +47,7 @@ vector<MetaExample> get_meta_examples_that_are_individually_consistent_with_all_
     return consistent_meta_examples;
 }
 
-vector<MetaExample> get_meta_examples_after_query(int subdomain_mask, CompactPoset *compact_poset, vector<MetaExample> meta_examples,
+vector<MetaExample> get_meta_examples_after_query(Bitvector subdomain_mask, CompactPoset *compact_poset, vector<MetaExample> meta_examples,
                                                   bool print, bool query_only_active, bool carry_over_active)
 {
     vector<MetaExample> meta_examples_with_hints;
@@ -87,8 +87,8 @@ vector<MetaExample> get_meta_examples_after_query(int subdomain_mask, CompactPos
         assert((intermediate_result.partition & local_query_meta_example.partial_function.partition) ==
                local_query_meta_example.partial_function.partition);
 
-        int local_new_bits = __builtin_popcount(
-                intermediate_result.partition - local_query_meta_example.partial_function.partition);
+        int local_new_bits = (
+                intermediate_result.partition ^ local_query_meta_example.partial_function.partition).count();
         expanded_meta_example += (local_new_bits >= 1);
         new_bits += local_new_bits;
 
@@ -120,7 +120,7 @@ vector<MetaExample> get_meta_examples_after_query(int subdomain_mask, CompactPos
 }
 
 bool MinimalFactoringSchema::test_compact_poset_for_consistency_with_all_meta_examples(
-        int subdomain_mask, CompactPoset *compact_poset) {
+        Bitvector subdomain_mask, CompactPoset *compact_poset) {
 
     bool is_consistent = true;
     for (int test_meta_example_id = 0; test_meta_example_id < meta_examples.size(); test_meta_example_id++) {
@@ -162,7 +162,7 @@ bool MinimalFactoringSchema::test_compact_poset_for_consistency_with_all_meta_ex
     return is_consistent;
 }
 
-int MinimalFactoringSchema::get_meta_edge_id_to_remove(CompactPoset* compact_poset, int subdomain_mask, int special_meta_example_id)
+int MinimalFactoringSchema::get_meta_edge_id_to_remove(CompactPoset* compact_poset, Bitvector subdomain_mask, int special_meta_example_id)
 {
     pair<vector<int>, vector<int> > meta_example_ids_in_cycle =
             compact_poset->get_cycle_of_meta_example_ids_and_meta_edge_ids();
@@ -183,7 +183,7 @@ int MinimalFactoringSchema::get_meta_edge_id_to_remove(CompactPoset* compact_pos
                     meta_examples[local_meta_example_id].get_application_of_subdomain(subdomain_mask);
             meta_edge_id_to_remove = max(
                     meta_edge_id_to_remove,
-                    make_pair(__builtin_popcount(local_test_meta_example.partial_function.partition), meta_edges_ids[i]));
+                    make_pair((int) local_test_meta_example.partial_function.partition.count(), meta_edges_ids[i]));
         }
     }
     assert(meta_edge_id_to_remove.first != -1);
@@ -191,7 +191,7 @@ int MinimalFactoringSchema::get_meta_edge_id_to_remove(CompactPoset* compact_pos
 }
 
 void MinimalFactoringSchema::prune_globally_inconsistent_meta_examples(
-        int subdomain_mask, CompactPoset *compact_poset)
+        Bitvector subdomain_mask, CompactPoset *compact_poset)
 {
     for (int test_meta_example_id = 0; test_meta_example_id < meta_examples.size(); test_meta_example_id++) {
         MetaExample local_test_meta_example =
@@ -226,8 +226,8 @@ int get_num_missing_bits(vector<MetaExample> meta_examples)
     int ret = 0;
     for(int i = 0; i<meta_examples.size();i++)
     {
-        ret += __builtin_popcount(meta_examples[i].generalization.partition) -
-                __builtin_popcount(meta_examples[i].partial_function.partition);
+        ret += meta_examples[i].generalization.partition.count() -
+                meta_examples[i].partial_function.partition.count();
     }
     return ret;
 }
@@ -266,7 +266,7 @@ void MinimalFactoringSchema::repeat_apply_parents(Module *module) {
 
     vector<MinimalFactoringSchema*> parents;
     vector<CompactPoset*> compact_posets;
-    vector<int> best_subdomain_masks;
+    vector<Bitvector> best_subdomain_masks;
 
     MinimalFactoringSchema* at_parent = this;
 
@@ -467,7 +467,7 @@ HeuristicScore MinimalFactoringSchema::calculate_heuristic(Module* module) {
     delta_ratio = current_delta;
 
     return HeuristicScore(
-            __builtin_popcount(module->subdomain_mask),
+            module->subdomain_mask.count(),
             delta_ratio);
 }
 
@@ -480,9 +480,14 @@ void MinimalFactoringSchema::calc_masks(int set_init_mask_size)
 {
     if(masks.size() >= 1)
     {
-        return;
+
     }
-    if(true) {
+    else if(parent_pointer != nullptr)
+    {
+        assert(parent_pointer->masks.size() >= 1);
+        masks = parent_pointer->masks;
+    }
+    else if(true) {
         vector<vector<int> > masks_by_size = vector<vector<int> >(function_size + 1, vector<int>());
 
         assert(function_size <= 23);
@@ -551,7 +556,6 @@ void MinimalFactoringSchema::calc_masks(int set_init_mask_size)
             i++;
         }
     }
-
 }
 
 static ofstream fout;
@@ -631,10 +635,10 @@ MinimalFactoringSchema::MinimalFactoringSchema(
 }
 
 
-MinimalFactoringSchema::MinimalFactoringSchema(vector<MetaExample> _meta_examples, string ordering_name, vector<int> _masks)
+MinimalFactoringSchema::MinimalFactoringSchema(vector<MetaExample> _meta_examples, string ordering_name, vector<Bitvector> mask)
 {
     parent_pointer = nullptr;
-    masks = _masks;
+    masks = mask;
     fout.open(ordering_name + "__" + fout_name);
     fout << "meta_examples " << _meta_examples.size() << endl;
     for(int i = 0;i<_meta_examples.size();i++)
@@ -645,7 +649,7 @@ MinimalFactoringSchema::MinimalFactoringSchema(vector<MetaExample> _meta_example
     fout.close();
 }
 
-void MinimalFactoringSchema::calc_module(int subdomain_mask, Module *module)
+void MinimalFactoringSchema::calc_module(Bitvector subdomain_mask, Module *module)
 {
 
     module->function_size = function_size;
@@ -738,7 +742,7 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(vector<MetaExample> 
         for (int mask_id = 0; mask_id < masks.size(); mask_id++) {
 
             if(possible_candidate_found){
-                if (__builtin_popcount(masks[mask_id]) > possible_candindate_num_input_bits+1 || possible_candindate_num_input_bits==4)
+                if (masks[mask_id].count() > possible_candindate_num_input_bits+1 || possible_candindate_num_input_bits==4)
                 {
                     continue;
                 }
@@ -757,8 +761,8 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(vector<MetaExample> 
 
             Module local_module = Module(this);
 
-//            cout << "working on mask = " << bitvector_to_str(masks[mask_id], function_size) << " time: "
-//                 << (double) time(nullptr) - local_time << endl;
+            cout << "working on mask = " << bitvector_to_str(masks[mask_id], function_size) << " time: "
+                 << (double) time(nullptr) - local_time << endl;
 
             calc_module(masks[mask_id], &local_module);
 

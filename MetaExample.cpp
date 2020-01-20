@@ -7,12 +7,12 @@
 #include <iostream>
 
 MetaExample::MetaExample(
-        int _function_size, int _total_function, int _partition) {
+        int _function_size, Bitvector _total_function, Bitvector _partition) {
     partial_function = PartialFunction(_function_size, _total_function, _partition);
     generalization = PartialFunction(_function_size, _total_function, -1);
 }
 
-MetaExample::MetaExample(int _function_size, int _total_function, int _partition, int generalization_partition) {
+MetaExample::MetaExample(int _function_size, Bitvector _total_function, Bitvector _partition, Bitvector generalization_partition) {
 
     partial_function = PartialFunction(_function_size, _total_function, _partition);
     generalization = PartialFunction(_function_size, _total_function, generalization_partition);
@@ -77,13 +77,13 @@ void MetaExample::print()
     cout << to_string() << endl;
 }
 
-MetaExample::MetaExample(int _function_size, int _total_function, int _partition, int generalization_partition, int _idx) {
+MetaExample::MetaExample(int _function_size, Bitvector _total_function, Bitvector _partition, Bitvector generalization_partition, int _idx) {
     partial_function = PartialFunction(_function_size, _total_function, _partition);
     generalization = PartialFunction(_function_size, _total_function, generalization_partition);
     idx = _idx;
 }
 
-MetaExample::MetaExample(int _function_size, int _total_function, int _partition, int generalization_partition, int _idx, bool _active) {
+MetaExample::MetaExample(int _function_size, Bitvector _total_function, Bitvector _partition, Bitvector generalization_partition, int _idx, bool _active) {
     partial_function = PartialFunction(_function_size, _total_function, _partition);
     generalization = PartialFunction(_function_size, _total_function, generalization_partition);
     idx = _idx;
@@ -111,4 +111,24 @@ MetaExample::MetaExample(PartialFunction _partial_function, PartialFunction _gen
     generalization = _generalization;
     idx = _idx;
 }
+
+vector<Bitvector> MetaExample::get_masks(int max_mask_size)
+{
+    vector<Bitvector> ret;
+    cout << "MASKS: " << endl;
+    for(int i = 1;i<=max_mask_size;i++)
+    {
+        Bitvector local_mask;
+        for(int j = 0;j<i;j++)
+        {
+            local_mask.set(j);
+        }
+        do{
+            ret.push_back(local_mask);
+            cout << bitvector_to_str(local_mask, get_function_size()) << endl;
+        }while(next_mask(local_mask, i));
+    }
+    return ret;
+}
+
 

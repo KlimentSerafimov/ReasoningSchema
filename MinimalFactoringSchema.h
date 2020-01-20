@@ -62,7 +62,7 @@ class MinimalFactoringSchema
     MinimalFactoringSchema* parent_pointer = NULL;
     int function_size;
 
-    vector<int> masks;
+    vector<Bitvector> masks;
     int moule_id;
 
     time_t init_time;
@@ -75,11 +75,11 @@ class MinimalFactoringSchema
 
     void calc_function_size();
 
-    bool test_compact_poset_for_consistency_with_all_meta_examples(int subdomain_mask, CompactPoset *compact_poset);
+    bool test_compact_poset_for_consistency_with_all_meta_examples(Bitvector subdomain_mask, CompactPoset *compact_poset);
 
-    void prune_globally_inconsistent_meta_examples(int subdomain_mask, CompactPoset *compact_poset);
+    void prune_globally_inconsistent_meta_examples(Bitvector subdomain_mask, CompactPoset *compact_poset);
 
-    int get_meta_edge_id_to_remove(CompactPoset* compact_poset, int subdomain_mask, int special_meta_example_id);
+    int get_meta_edge_id_to_remove(CompactPoset* compact_poset, Bitvector subdomain_mask, int special_meta_example_id);
 
     HeuristicScore calculate_heuristic(Module* module);
 
@@ -87,7 +87,7 @@ class MinimalFactoringSchema
 
     void calc_masks(int set_init_masks_size);
 
-    void calc_module(int subdomain_mask, Module *module);
+    void calc_module(Bitvector subdomain_mask, Module *module);
 
     void main__minimal_factoring_schema(vector<MetaExample> _meta_examples);
 
@@ -101,7 +101,7 @@ public:
 
     MinimalFactoringSchema(vector<MetaExample> _meta_examples, string ordering_name, bool skip);
 
-    MinimalFactoringSchema(vector<MetaExample> _meta_examples, string ordering_name, vector<int> mask);
+    MinimalFactoringSchema(vector<MetaExample> _meta_examples, string ordering_name, vector<Bitvector> mask);
 
     vector<MetaExample> get_necessary_meta_examples(bool print);
 
@@ -120,7 +120,7 @@ public:
 vector<MetaExample> get_meta_examples_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(
         int subdomain_mask, vector<MetaExample> meta_examples);
 
-vector<MetaExample> get_meta_examples_after_query(int subdomain_mask, CompactPoset *compact_poset, vector<MetaExample> meta_examples,
+vector<MetaExample> get_meta_examples_after_query(Bitvector subdomain_mask, CompactPoset *compact_poset, vector<MetaExample> meta_examples,
                                                   bool print, bool query_only_active, bool carry_over_active);
 
 

@@ -164,7 +164,8 @@ void InstanceTree::deepen()
         }
         assert(superinstance_trees.size() == 0);
         for (int i = 0; i < num_superinstances; i++) {
-            superinstance_trees.push_back(new InstanceTree(&superinstances[i], delta, task_name));
+            superinstance_trees.push_back(
+                    new InstanceTree(&superinstances[i], delta, task_name));
             superinstance_trees[i]->prepare_for_deepening();
         }
         deepened = true;
@@ -232,12 +233,13 @@ BitvectorTasks::BitvectorTasks()
 //    str_task_name = "greater";
 //    str_task_name = "cumulative_binary_operator";
 //    str_task_name = "bitwise_binary_operator";
+    str_task_name = "one_shift_idx";
 
-//    TaskName task_name = TaskName(str_task_name);
+    TaskName task_name = TaskName(str_task_name);
 
-    str_task_name = "multiply_by";
-    int multiply_by = 9;
-    TaskName task_name = TaskName(str_task_name, multiply_by);
+//    str_task_name = "multiply_by";
+//    int multiply_by = 9;
+//    TaskName task_name = TaskName(str_task_name, multiply_by);
 
     BittreeTaskType input_task_type(internal_node, internal_node);
     DeltaBittreeTaskType delta_bittree_task_type(internal_node, internal_node);
@@ -271,10 +273,7 @@ BitvectorTasks::BitvectorTasks()
         cout << input_task_type.to_string() << endl;
     }
 
-    if
-            (
-            task_name.do_greater_task_type
-            )
+    if(task_name.do_greater_task_type)
     {
 
         input_task_type.input->node_type = internal_node;
@@ -391,6 +390,31 @@ BitvectorTasks::BitvectorTasks()
         cout << "HERE" << input_task_type.to_string() << endl;
     }
 
+    if(task_name.do_one_shift_idx)
+    {
+        input_task_type.input->node_type = internal_node;
+        input_task_type.input->children->push_back(new BittreeTypeNode(input_task_type.input, internal_node));
+
+        input_task_type.output->node_type = internal_node;
+        input_task_type.output->children->push_back(
+                new BittreeTypeNode(input_task_type.output, leaf_node, new_machine_bit));
+
+
+        delta_bittree_task_type.delta_input->node_type = internal_node;
+        delta_bittree_task_type.delta_input->children->push_back(new DeltaBittreeType(internal_node));
+        delta_bittree_task_type.delta_input->children->at(0)->delta =
+                new BittreeTypeNode(NULL, internal_node);
+        delta_bittree_task_type.delta_input->children->at(0)->delta->children->push_back(
+                new BittreeTypeNode(NULL, leaf_node, shared_blanko_bit));
+
+        delta_bittree_task_type.delta_output->delta =
+                new BittreeTypeNode(NULL, leaf_node, double_node);
+
+        cout << "HERE" << input_task_type.to_string() << endl;
+    }
+
+
+
     if(false)
     {
         BittreeTaskType curriculum[5];
@@ -408,7 +432,7 @@ BitvectorTasks::BitvectorTasks()
         cout << input_task_type.to_string() << endl;
         InstanceTree instances = InstanceTree(&input_task_type, &delta_bittree_task_type, task_name);
         instances.prepare_for_deepening();
-        int num_iter = 6;
+        int num_iter = 4;
         for(int iter = 0;iter<num_iter;iter++)
         {
             vector<vector<MetaExample> > meta_examples;
@@ -432,16 +456,31 @@ BitvectorTasks::BitvectorTasks()
         vector<vector<MetaExample> > meta_examples;
         instances.populate_meta_examples(meta_examples, 0);
 
-        for(int i = 0;i<meta_examples.size();i++) {
+        for(int i = meta_examples.size()-1;i<meta_examples.size();i++) {
             string language_name =
                     task_name.get_task_name()+"[size="+std::to_string(i+1)+", num_prev_subtasks=1]";
 
-            vector<int> masks;
+            assert(meta_examples[i].size() >= 0);
+
+            vector<Bitvector> masks = meta_examples[i][0].get_masks(3);
+
+            //ideas:
+            //multi-objective beam search
+            //  objectives include num meta examples necessary to program, node degree, num bits modeled, num instances modeled, primitive size
+            //  intermediate bits of computation are those that segment the dataset such that single operators can now apply to a wider domain.
+            //  this leads to emergent task decomposition
+            //  optimize for task decomposition description in various cost semantics; type size, runtime, memory, depth of compilation.
+
+            //the ordering based on the structured mask ordering can be used to discover the type (init and delta)
+
+            //project the ordering of the subdomain masks onto the language of f(n) = ordering over the subdomain masks that solves the problem. 
 
             MinimalFactoringSchema my_schema =
-                    MinimalFactoringSchema(meta_examples[i], language_name, masks);
+                    MinimalFactoringSchema(
+                            meta_examples[i], language_name, masks);
 
-            for (int j = 0; j < meta_examples[i].size(); j++) {
+            for (int j = 0; j < meta_examples[i].size(); j++)
+            {
                 PartialFunction generalization = my_schema.query(meta_examples[i][j].partial_function);
                 cout << "query  " << meta_examples[i][j].to_string() << endl;
                 cout << "result " << generalization.to_string() << endl;
@@ -455,3 +494,14 @@ BitvectorTasks::BitvectorTasks()
     }
 }
 
+class SubdomainScore
+{
+
+};
+
+
+//Goal: implement Solve(Task, StateLatticeGenerator, LatticeCompressor)
+//Task is a untyped bitvector mapping
+//StateLatticeGenerator: Task -> StateLattice
+//StateLattice: TraceVersionSpace: generated from instantiating a composition of PrimitiveTemplates
+//LatticeCompressor: SubdomainLattice -> program that when executed generates a trace (where trace: input->output path) in StateLattice

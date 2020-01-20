@@ -9,24 +9,24 @@ using namespace std;
 
 
 SubdomainSwitchPosets::SubdomainSwitchPosets(
-        int _function_size, int _common_generalization_mask, int _common_optional_mask, int _all_subsets_compulsory_mask)
+        int _function_size, Bitvector common_generalization_mask, Bitvector common_optional_mask, Bitvector all_subsets_compulsory_mask)
 {
-    common_generalization_mask = _common_generalization_mask;
-    common_optional_mask = _common_optional_mask;
-    all_subsets_compulsory_mask = _all_subsets_compulsory_mask;
+    common_generalization_mask = common_generalization_mask;
+    common_optional_mask = common_optional_mask;
+    all_subsets_compulsory_mask = all_subsets_compulsory_mask;
 
     function_size = _function_size;
 
-    int num_bits_in_compulsory = __builtin_popcount(all_subsets_compulsory_mask);
+    int num_bits_in_compulsory = (all_subsets_compulsory_mask).count();
 
     for(int compulsory_mask_bits = 0;compulsory_mask_bits < (1<<num_bits_in_compulsory); compulsory_mask_bits++)
     {
-        int compulsory_mask = 0;
+        Bitvector compulsory_mask = 0;
         for(int i = 0, j = 0; i < function_size; i++)
         {
             if(get_bit(all_subsets_compulsory_mask, i))
             {
-                compulsory_mask += (get_bit(compulsory_mask_bits, j)<<i);
+                compulsory_mask.set(i, get_bit(compulsory_mask_bits, j));
                 j++;
             }
         }
@@ -51,7 +51,7 @@ string SubdomainSwitchPosets::masks_to_string(int id)
 }
 
 SubdomainSwitchPosetsFactors::SubdomainSwitchPosetsFactors(
-        int _function_size, pair<int, int> generalization_mask, pair<int, int> training_mask)
+        int _function_size, pair<Bitvector, Bitvector> generalization_mask, pair<Bitvector, Bitvector> training_mask)
 {
     function_size = _function_size;
     factors.push_back(
@@ -59,13 +59,13 @@ SubdomainSwitchPosetsFactors::SubdomainSwitchPosetsFactors(
                     function_size,
                     generalization_mask.first,
                     generalization_mask.first & training_mask.first,
-                    training_mask.first - (generalization_mask.first & training_mask.first)));
+                    training_mask.first ^ (generalization_mask.first & training_mask.first)));
     factors.push_back(
             SubdomainSwitchPosets(
                     function_size,
                     generalization_mask.second,
                     generalization_mask.second & training_mask.second,
-                    training_mask.second - (generalization_mask.second & training_mask.second)));
+                    training_mask.second ^ (generalization_mask.second & training_mask.second)));
 }
 
 void SubdomainSwitchPosetsFactors::insert(MetaExample meta_example)
@@ -79,9 +79,9 @@ void SubdomainSwitchPosetsFactors::insert(MetaExample meta_example)
 
     for(int i = 0;i<factors.size();i++)
     {
-        int compulsory_training_mask = factors[i].all_subsets_compulsory_mask & partial_function.partition;
-        int training_mask = compulsory_training_mask | (factors[i].common_optional_mask & partial_function.partition);
-        int generalization_mask = training_mask | factors[i].common_generalization_mask;
+        Bitvector compulsory_training_mask = factors[i].all_subsets_compulsory_mask & partial_function.partition;
+        Bitvector training_mask = compulsory_training_mask | (factors[i].common_optional_mask & partial_function.partition);
+        Bitvector generalization_mask = training_mask | factors[i].common_generalization_mask;
 
         MetaExample subdomain_meta_example = MetaExample(
                 function_size,
@@ -91,9 +91,9 @@ void SubdomainSwitchPosetsFactors::insert(MetaExample meta_example)
         if(generalization_mask != training_mask) {
             if (!factors[i].subdomain_posets[factors[i].compusorty_mask_to_id[compulsory_training_mask]].insert(subdomain_meta_example)) {
                 for (int j = 0; j <= i; j++) {
-                    int compulsory_training_mask_prev = factors[j].all_subsets_compulsory_mask & partial_function.partition;
-                    int training_mask_prev = compulsory_training_mask_prev | (factors[j].common_optional_mask & partial_function.partition);
-                    int generalization_mask_prev = training_mask_prev | factors[j].common_generalization_mask;
+                    Bitvector compulsory_training_mask_prev = factors[j].all_subsets_compulsory_mask & partial_function.partition;
+                    Bitvector training_mask_prev = compulsory_training_mask_prev | (factors[j].common_optional_mask & partial_function.partition);
+                    Bitvector generalization_mask_prev = training_mask_prev | factors[j].common_generalization_mask;
 
                     if(generalization_mask_prev != training_mask_prev) {
                         factors[j].subdomain_posets[factors[j].compusorty_mask_to_id[compulsory_training_mask_prev]].hard_pop();
@@ -139,7 +139,7 @@ void SubdomainSwitchPosetsFactors::print()
     cout << "inconsistent_meta_examples.size() " << inconsistent_meta_examples.size() << endl;
 }
 
-RemainderAndTwoFactorsSchema::RemainderAndTwoFactorsSchema(int function_size, int generalization_mask, int training_mask, vector<MetaExample> meta_examples) {
+RemainderAndTwoFactorsSchema::RemainderAndTwoFactorsSchema(int function_size, Bitvector generalization_mask, Bitvector training_mask, vector<MetaExample> meta_examples) {
     schema_type = leaf_schema;
     compact_poset = CompactPoset(function_size, generalization_mask, training_mask);
     for(int i = 0;i<meta_examples.size();i++)
@@ -148,7 +148,7 @@ RemainderAndTwoFactorsSchema::RemainderAndTwoFactorsSchema(int function_size, in
     }
 }
 
-RemainderAndTwoFactorsSchema::RemainderAndTwoFactorsSchema(int _function_size, vector<MetaExample> train_meta_examples, vector<pair<int, int> > masks, vector<pair<int, int> > training_masks)
+RemainderAndTwoFactorsSchema::RemainderAndTwoFactorsSchema(int _function_size, vector<MetaExample> train_meta_examples, vector<pair<Bitvector, Bitvector> > masks, vector<pair<Bitvector, Bitvector> > training_masks)
 {
     time_t local_time = time(nullptr);
     function_size = _function_size;
@@ -207,7 +207,7 @@ RemainderAndTwoFactorsSchema::RemainderAndTwoFactorsSchema(int _function_size, v
             }
 
             assert((generalization.partition & local_partial_function.partition) == local_partial_function.partition);
-            int main_subdomain = generalization.partition - local_partial_function.partition;
+            Bitvector main_subdomain = generalization.partition ^ local_partial_function.partition;
 
             vector<int> mask_ids;
 
@@ -219,10 +219,10 @@ RemainderAndTwoFactorsSchema::RemainderAndTwoFactorsSchema(int _function_size, v
             }
 
             for (int k = 0; k < mask_ids.size(); k++) {
-                int first_mask = masks[mask_ids[k]].first;
-                int second_mask = masks[mask_ids[k]].second;
-                int first_local_partition = (training_masks[mask_ids[k]].first - (main_subdomain & first_mask)) & local_partial_function.partition;
-                int second_local_partition = (training_masks[mask_ids[k]].second - (main_subdomain & second_mask)) & local_partial_function.partition;
+                Bitvector first_mask = masks[mask_ids[k]].first;
+                Bitvector second_mask = masks[mask_ids[k]].second;
+                Bitvector first_local_partition = (training_masks[mask_ids[k]].first ^ (main_subdomain & first_mask)) & local_partial_function.partition;
+                Bitvector second_local_partition = (training_masks[mask_ids[k]].second ^ (main_subdomain & second_mask)) & local_partial_function.partition;
                 first_mask |= first_local_partition;
                 second_mask |= second_local_partition;
 
@@ -493,12 +493,12 @@ RemainderAndTwoFactorsSchema::RemainderAndTwoFactorsSchema(int _function_size, v
     }
     cout << endl;
 
-    vector<pair<int, int> > root_schema__masks = masks;
+    vector<pair<Bitvector, Bitvector> > root_schema__masks = masks;
 
     vector<vector<pair<int, int> > > factor_schema__submasks = vector<vector<pair<int, int> > >(2, vector<pair<int, int> >());
 
 
-    vector<int> factor_schema__masks;
+    vector<Bitvector> factor_schema__masks;
     factor_schema__masks.push_back(masks[best_subdomain].first);
     factor_schema__masks.push_back(masks[best_subdomain].second);
 
@@ -627,7 +627,7 @@ vector<PartialFunction> RemainderAndTwoFactorsSchema::query(PartialFunction part
 //        {
 //            cout << result[k].to_string() << endl;
 //        }
-        if(result.size() == 1 && __builtin_popcount(result[0].partition) == function_size) {
+        if(result.size() == 1 && result[0].partition.count() == function_size) {
             return result;
         }
         else

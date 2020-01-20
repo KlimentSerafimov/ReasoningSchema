@@ -50,8 +50,8 @@ public:
 class CompactPoset {
 
     int function_size;
-    int generalization_mask;
-    int input_mask;
+    Bitvector generalization_mask;
+    Bitvector input_mask;
 
     vector<NewCompactPosetNode> nodes;
     vector<vector<int> > is_union_of;
@@ -78,7 +78,7 @@ class CompactPoset {
 
     vector<int> removed_edges;
 
-    map<pair<int, pair<int, int> >, int> uniques;
+    map<pair<Bitvector, pair<Bitvector, Bitvector> >, int> uniques;
 
     void push_back_meta_edge(int dominator, int dominated, int meta_edge_id);
 
@@ -131,9 +131,9 @@ public:
 
     CompactPoset(int _function_size, vector<MetaExample> &meta_examples);
 
-    CompactPoset(int _function_size, int generalization_mask, int input_mask);
+    CompactPoset(int _function_size, Bitvector generalization_mask, Bitvector input_mask);
 
-    CompactPoset(int _function_size, int generalization_mask, int input_mask, vector<MetaExample> &meta_examples);
+    CompactPoset(int _function_size, Bitvector generalization_mask, Bitvector input_mask, vector<MetaExample> &meta_examples);
 
     CompactPoset(CompactPoset *poset);
 

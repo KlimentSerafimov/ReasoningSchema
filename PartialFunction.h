@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include "BitInBittree.h"
+#include "Bitvector.h"
 
 class BittreeTaskType;
 
@@ -24,12 +25,12 @@ class PartialFunction
 
 public:
     int function_size;
-    int total_function;
-    unsigned int partition;
+    Bitvector total_function;
+    Bitvector partition;
 
     PartialFunction();
     PartialFunction(vector<BitInBittree*> bits);
-    PartialFunction(int _function_size, int _total_function, int _partition);
+    PartialFunction(int _function_size, Bitvector _total_function, Bitvector _partition);
 
     void init_via_bits(vector<BitInBittree*> bits);
 

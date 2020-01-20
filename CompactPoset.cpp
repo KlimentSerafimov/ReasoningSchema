@@ -30,7 +30,7 @@ CompactPoset::CompactPoset(int _function_size, vector<MetaExample> &meta_example
     meta_examples = insert_meta_examples_and_get_inserted(meta_examples);
 }
 
-CompactPoset::CompactPoset(int _function_size, int _generalization_mask, int _input_mask)
+CompactPoset::CompactPoset(int _function_size, Bitvector _generalization_mask, Bitvector _input_mask)
 {
     function_size = _function_size;
     generalization_mask = _generalization_mask;
@@ -38,7 +38,7 @@ CompactPoset::CompactPoset(int _function_size, int _generalization_mask, int _in
     push_back_new_node__and__get_id(NewCompactPosetNode(PartialFunction(function_size, 0, 0)));
 }
 
-CompactPoset::CompactPoset(int _function_size, int _generalization_mask, int _input_mask, vector<MetaExample> &meta_examples)
+CompactPoset::CompactPoset(int _function_size, Bitvector _generalization_mask, Bitvector _input_mask, vector<MetaExample> &meta_examples)
 {
     function_size = _function_size;
     generalization_mask = _generalization_mask;
@@ -67,7 +67,7 @@ CompactPoset::CompactPoset(CompactPoset *poset) {
 vector<MetaExample> CompactPoset::insert_meta_examples_and_get_inserted(vector<MetaExample> &meta_examples)
 {
     assert(generalization_mask == input_mask);
-    int subdomain_mask = input_mask;
+    Bitvector subdomain_mask = input_mask;
 
     vector<MetaExample> ret_meta_examples;
     for (int id = 0; id < meta_examples.size(); id++) {
@@ -356,10 +356,11 @@ bool CompactPoset::insert(MetaExample meta_example)
     meta_example.partial_function.total_function &= meta_example.generalization.partition;
     meta_example.generalization.total_function &= meta_example.generalization.partition;
 
-    pair<int, pair<int, int> > to_insert =
+    pair<Bitvector, pair<Bitvector, Bitvector> > to_insert =
             make_pair(
                     meta_example.generalization.total_function,
-                    make_pair(meta_example.partial_function.partition, meta_example.generalization.partition));
+                    make_pair(meta_example.partial_function.partition,
+                            meta_example.generalization.partition));
 
     if(uniques.find(to_insert) != uniques.end())
     {
@@ -383,6 +384,8 @@ bool CompactPoset::insert(MetaExample meta_example)
 
     NewCompactPosetNode dominator = NewCompactPosetNode(meta_example.generalization);
     NewCompactPosetNode dominated = NewCompactPosetNode(meta_example.partial_function, difference, &dominator);
+
+    assert(is_intersection_empty(&dominator, &dominated));
 
     vector<int> dominator_set_cover = get__set_cover(&dominator);
 
@@ -748,7 +751,7 @@ void CompactPoset::erase_from_uniques(int id)
 
 
     MetaExample meta_example = delta_stack[id].meta_example;
-    pair<int, pair<int, int> > to_erase =
+    pair<Bitvector, pair<Bitvector, Bitvector> > to_erase =
             make_pair(
                     meta_example.generalization.total_function,
                     make_pair(meta_example.partial_function.partition, meta_example.generalization.partition));
@@ -880,7 +883,7 @@ void CompactPoset::re_insert(int id) {
     assert(delta_stack[id].soft_deleted);
 
     MetaExample meta_example = delta_stack[id].meta_example;
-    pair<int, pair<int, int> > to_re_insert =
+    pair<Bitvector, pair<Bitvector, Bitvector> > to_re_insert =
             make_pair(
                     meta_example.generalization.total_function,
                     make_pair(meta_example.partial_function.partition, meta_example.generalization.partition));
@@ -1553,7 +1556,7 @@ vector<PartialFunction> CompactPoset::query(PartialFunction partial_function)
 //        }
 //    }
 
-    set<pair<int, int> > unique_ret;
+    set<pair<Bitvector, Bitvector> > unique_ret;
     for(int i = 0;i<ret.size();i++)
     {
         ret[i].partition &= generalization_mask;
@@ -1642,7 +1645,7 @@ vector<MetaExample> CompactPoset::get_all_meta_examples_without_duplicates() {
     vector<MetaExample> ret;
     for(auto it = uniques.begin(); it!=uniques.end(); it++)
     {
-        pair<int, pair<int, int> > element = (*it).first;
+        pair<Bitvector, pair<Bitvector, Bitvector> > element = (*it).first;
         ret.push_back(
                 MetaExample(function_size, element.first, element.second.first, element.second.second)
         );

@@ -63,9 +63,10 @@ class BitvectorTasks {
     int function_size;
 
     vector<PartialFunction> ordering_over_boolean_functions;
+    MetaExample get_meta_example(PartialFunction partial_function);
+
     void populate_ordering_over_boolean_functions_with_small_sum();
     void populate_ordering_over_boolean_functions_with_bitwise_and();
-    MetaExample get_meta_example(PartialFunction partial_function);
 
 public:
 

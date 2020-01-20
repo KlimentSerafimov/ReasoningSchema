@@ -6,7 +6,7 @@
 
 void enumerate_meta_training_sets()
 {
-    int n = 2;
+    int n = 1;
 
     all_meta_examples = AllMetaExamples(n, false);
 

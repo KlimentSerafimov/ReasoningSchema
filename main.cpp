@@ -24,14 +24,14 @@ vector<MetaExample> get_meta_examples_of_language_over_boolean_functions(int lan
         num_partitions = (1<<macro_partition);
     }
 
-    auto partitions_by_size = vector<vector<int> >(function_size, vector<int>());
+    auto partitions_by_size = vector<vector<Bitvector> >(function_size, vector<Bitvector>());
     auto meta_examples_per_total_function = vector<vector<MetaExample> >(num_functions, vector<MetaExample>());
 
 //            auto meta_examples_per_total_function = vector<DecisionTree>(num_functions, PartialFunction(function_size, 0, 0));
 
 
-    for (int partition = 0; partition < num_partitions; partition++) {
-        partitions_by_size[__builtin_popcount(partition)].push_back(partition);
+    for (Bitvector partition = 0; partition < num_partitions; partition++) {
+        partitions_by_size[partition.count()].push_back(partition);
     }
     if(max_partition_size == -1)
     {
@@ -51,15 +51,15 @@ vector<MetaExample> get_meta_examples_of_language_over_boolean_functions(int lan
     for(int partition_size = min_partition_size;partition_size<=max_partition_size;partition_size++) {
 //                cout << "partition_size = " << partition_size << " time: " << (double)time(nullptr) - local_time << endl;
         for (int partition_idx = 0; partition_idx < partitions_by_size[partition_size].size(); partition_idx++) {
-            int partition = partitions_by_size[partition_size][partition_idx];
+            Bitvector partition = partitions_by_size[partition_size][partition_idx];
             int num_partition_assignments = (1 << partition_size);
             for (int partial_assignment = 0;
                  partial_assignment < num_partition_assignments; partial_assignment++) {
-                int total_function = 0;
+                Bitvector total_function = 0;
                 int j = 0;
                 for (int i = 0; i < function_size; i++) {
                     if (get_bit(partition, i)) {
-                        total_function += (get_bit(partial_assignment, j) << i);
+                        total_function.set(i, get_bit(partial_assignment, j));
                         j++;
                     }
                 }
@@ -67,9 +67,9 @@ vector<MetaExample> get_meta_examples_of_language_over_boolean_functions(int lan
                         language.get_meta_example(PartialFunction((1<<num_inputs), total_function, partition));
 
                 bool add = !local_meta_example.fully_constrained();
-                for(int i = 0; i<meta_examples_per_total_function[local_meta_example.generalization.total_function].size(); i++)
+                for(int i = 0; i<meta_examples_per_total_function[local_meta_example.generalization.total_function.to_ullong()].size(); i++)
                 {
-                    MetaExample smaller_meta_example = meta_examples_per_total_function[local_meta_example.generalization.total_function][i];
+                    MetaExample smaller_meta_example = meta_examples_per_total_function[local_meta_example.generalization.total_function.to_ullong()][i];
 
                     if(local_meta_example.partial_function.is_contained_in(
                             smaller_meta_example.partial_function))
@@ -88,7 +88,7 @@ vector<MetaExample> get_meta_examples_of_language_over_boolean_functions(int lan
 //                            local_meta_example.print();
                     local_meta_example.idx = (int) meta_examples.size();
                     meta_examples.push_back(local_meta_example);
-                    meta_examples_per_total_function[local_meta_example.generalization.total_function].push_back(local_meta_example);
+                    meta_examples_per_total_function[local_meta_example.generalization.total_function.to_ullong()].push_back(local_meta_example);
 //                            meta_examples_per_total_function[local_meta_example.generalization.generalization].apply_operation(
 //                                    my_union, new DecisionTree(local_meta_example.partial_function));
                 }
@@ -160,8 +160,8 @@ void monolith_test(int num_inputs, vector<MetaExample> meta_examples)
 void remainder_and_two_factors_schema(int num_inputs, int function_size, vector<MetaExample> meta_examples)
 {
 
-    vector<pair<int, int> > masks;
-    vector<pair<int, int> > partition_masks;
+    vector<pair<Bitvector, Bitvector> > masks;
+    vector<pair<Bitvector, Bitvector> > partition_masks;
 
     for (int j = 0; j < num_inputs; j++) {
         int mask = 0;
@@ -272,7 +272,7 @@ void recursive_minimal_factoring_schema(int num_inputs, int language_id, vector<
 
 void modeling_of_language_over_boolean_functions()
 {
-    for(int language_id = 0; language_id < 10;language_id++)
+    for(int language_id = 0; language_id < 2;language_id++)
     {
 
         int num_inputs = 3;
@@ -289,7 +289,8 @@ void modeling_of_language_over_boolean_functions()
 
         bool insert_in_monolith = false;
 
-        if(insert_in_monolith) {
+        if(insert_in_monolith)
+        {
             monolith_test(num_inputs, meta_examples);
         }
 
@@ -299,7 +300,7 @@ void modeling_of_language_over_boolean_functions()
             remainder_and_two_factors_schema(num_inputs, function_size, meta_examples);
         }
 
-        bool run_recursive_minimal_factoring_schema = true;
+        bool run_recursive_minimal_factoring_schema = false;
 
         if(run_recursive_minimal_factoring_schema) {
             recursive_minimal_factoring_schema(num_inputs, language_id, meta_examples);

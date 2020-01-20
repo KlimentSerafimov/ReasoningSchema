@@ -19,6 +19,7 @@ public:
     bool do_cummulative_binary_operator = false;
     bool do_bitwise_binary_operator = false;
     bool do_multiplication_by = false;
+    bool do_one_shift_idx = false;
     int multiply_by = false;
 
     TaskName() = default;
@@ -32,6 +33,7 @@ public:
         do_greater_task_type = task_name == "greater";
         do_cummulative_binary_operator = task_name == "cumulative_binary_operator";
         do_bitwise_binary_operator = task_name == "bitwise_binary_operator";
+        do_one_shift_idx = task_name == "one_shift_idx";
     }
 
     TaskName(string _task_name, int _multiply_by) {

@@ -12,13 +12,13 @@
 class SwitchMasks
 {
 public:
-    int generalization_mask;
-    int optional_training_mask;
-    int compulsory_training_mask;
+    Bitvector generalization_mask;
+    Bitvector optional_training_mask;
+    Bitvector compulsory_training_mask;
     SwitchMasks(
-            int _generalization_mask,
-            int _optional_training_mask,
-            int _compulsory_training_mask)
+            Bitvector _generalization_mask,
+            Bitvector _optional_training_mask,
+            Bitvector _compulsory_training_mask)
 
     {
         generalization_mask = _generalization_mask;
@@ -33,15 +33,16 @@ class SubdomainSwitchPosets
 
 public:
 
-    int common_generalization_mask;
-    int common_optional_mask;
-    int all_subsets_compulsory_mask;
+    Bitvector common_generalization_mask;
+    Bitvector common_optional_mask;
+    Bitvector all_subsets_compulsory_mask;
 
-    map<int, int> compusorty_mask_to_id;
+    map<Bitvector, int> compusorty_mask_to_id;
     vector<SwitchMasks> switch_masks;
     vector<CompactPoset> subdomain_posets;
 
-    SubdomainSwitchPosets(int _function_size, int common_generalization_mask, int common_optional_mask, int all_subsets_compulsory_mask);
+    SubdomainSwitchPosets(
+            int _function_size, Bitvector common_generalization_mask, Bitvector common_optional_mask, Bitvector all_subsets_compulsory_mask);
 
     string masks_to_string(int id);
 };
@@ -54,7 +55,7 @@ public:
     vector<MetaExample> contained_meta_examples;
     vector<MetaExample> inconsistent_meta_examples;
 
-    SubdomainSwitchPosetsFactors(int _function_size, pair<int, int> generalization_mask, pair<int, int> training_mask);
+    SubdomainSwitchPosetsFactors(int _function_size, pair<Bitvector, Bitvector> generalization_mask, pair<Bitvector, Bitvector> training_mask);
 
     void insert(MetaExample meta_example);
 
@@ -86,9 +87,11 @@ class RemainderAndTwoFactorsSchema
 
 
 public:
-    RemainderAndTwoFactorsSchema(int function_size, int generalization_mask, int training_mask, vector<MetaExample> meta_examples);
+    RemainderAndTwoFactorsSchema(int function_size, Bitvector generalization_mask, Bitvector training_mask, vector<MetaExample> meta_examples);
 
-    RemainderAndTwoFactorsSchema(int function_size, vector<MetaExample> train_meta_examples, vector<pair<int, int> > masks, vector<pair<int, int> > training_masks);
+    RemainderAndTwoFactorsSchema(
+            int function_size, vector<MetaExample> train_meta_examples,
+            vector<pair<Bitvector, Bitvector> > masks, vector<pair<Bitvector, Bitvector> > training_masks);
 
     bool test(vector<MetaExample> test_meta_examples);
 

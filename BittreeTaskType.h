@@ -19,6 +19,8 @@ public:
     TreeNode* parent;
 };
 
+enum BittreeTypeLeafNodeType {bit_node, double_node};
+
 class BittreeTypeNode: public TreeNode
 {
 public:
@@ -27,15 +29,23 @@ public:
     //if internal_node
     vector<BittreeTypeNode*>* children;
 
+    //if leaf_node;
+    BittreeTypeLeafNodeType leaf_node_type;
+
+    //if leaf_node_type == bit_node;
     BitInBittree *bit = NULL;
-    //if bit_node;
-    //no additional information needed;
+
+    //if leaf_node_type == double_node;
 
     BittreeTypeNode(TreeNode* parent, NodeType _node_type);
 
     BittreeTypeNode(TreeNode* parent, NodeType _node_type, BitInBittreeType bit_type);
 
+    BittreeTypeNode(TreeNode* parent, NodeType _node_type, BittreeTypeLeafNodeType leaf_node_type);
+
     BittreeTypeNode(TreeNode* parent, BittreeTypeNode* to_copy, bool all_new_bits);
+
+    void copy_leaf_node(BittreeTypeNode *to_copy, bool all_new_bits);
 
     void init(TreeNode *_parent);
 
@@ -98,6 +108,8 @@ public:
     void bitwise_binary_operator();
 
     void do_multiplication_by(int multiply_by);
+
+    void solve_one_shift_idx();
 
     MetaExample to_meta_example(int id);
 
