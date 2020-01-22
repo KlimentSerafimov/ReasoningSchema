@@ -3,6 +3,7 @@
 //
 
 #include "BitvectorTasks.h"
+#include "BittreeTypeExpression.h"
 
 #include <iostream>
 
@@ -91,9 +92,7 @@ BitvectorTasks::BitvectorTasks(int _function_size, int task_id) {
     }
 }
 
-
-
-InstanceTree::InstanceTree(BittreeTaskType* _instance, DeltaBittreeTaskType* _delta, TaskName _task_name) {
+InstanceTree::InstanceTree(BittreeTaskType* _instance, BittreeTaskType* _delta, TaskName _task_name) {
     instance = _instance;
     delta = _delta;
     task_name = _task_name;
@@ -101,7 +100,7 @@ InstanceTree::InstanceTree(BittreeTaskType* _instance, DeltaBittreeTaskType* _de
 
 void InstanceTree::prepare_for_deepening()
 {
-    superinstance_type = instance->get_supertask_type(*delta);
+    superinstance_type = instance->get_supertask_type(delta);
 
     vector<BitInBittree*> input_bits;
 
@@ -229,198 +228,34 @@ BitvectorTasks::BitvectorTasks()
 {
     string str_task_name;
 
-//    str_task_name = "sum";
-//    str_task_name = "greater";
-//    str_task_name = "cumulative_binary_operator";
-//    str_task_name = "bitwise_binary_operator";
-    str_task_name = "one_shift_idx";
-
+//    str_task_name = str_task_name__sum;
+//    str_task_name = str_task_name__greater;
+//    str_task_name = str_task_name__cumulative_binary_operator;
+//    str_task_name = str_task_name__bitwise_binary_operator;
+//    str_task_name = str_task_name__one_shift_idx;
+//    str_task_name = str_task_name__count_unary;
+//    str_task_name = str_task_name__unary_sum;
+//    str_task_name = str_task_name__least_set_bit;
+    str_task_name = str_task_name__max_window_between_bits;
     TaskName task_name = TaskName(str_task_name);
 
-//    str_task_name = "multiply_by";
-//    int multiply_by = 9;
+//    str_task_name = str_task_name__multiply_by;
+//    int multiply_by = 3;
 //    TaskName task_name = TaskName(str_task_name, multiply_by);
 
-    BittreeTaskType input_task_type(internal_node, internal_node);
-    DeltaBittreeTaskType delta_bittree_task_type(internal_node, internal_node);
+//    str_task_name = str_task_name__one_shift_idx__reverse_subtask;
+//    str_task_name = str_task_name__count_unary__reverse_subtask;
+//    int init_size = 3;
+//    TaskName task_name = TaskName(str_task_name, init_size);
 
-    if(task_name.do_sum_task_type) {
-
-        input_task_type.input->node_type = internal_node;
-        input_task_type.input->children->push_back(new BittreeTypeNode(input_task_type.input, internal_node));
-        input_task_type.input->children->push_back(new BittreeTypeNode(input_task_type.input, internal_node));
-
-        input_task_type.output->node_type = internal_node;
-        input_task_type.output->children->push_back(
-                new BittreeTypeNode(input_task_type.output, leaf_node, new_machine_bit));
-
-
-        delta_bittree_task_type.delta_input->node_type = internal_node;
-        delta_bittree_task_type.delta_input->children->push_back(new DeltaBittreeType(internal_node));
-        delta_bittree_task_type.delta_input->children->push_back(new DeltaBittreeType(internal_node));
-        delta_bittree_task_type.delta_input->children->at(0)->delta =
-                new BittreeTypeNode(NULL, internal_node);
-        delta_bittree_task_type.delta_input->children->at(0)->delta->children->push_back(
-                new BittreeTypeNode(NULL, leaf_node, shared_blanko_bit));
-        delta_bittree_task_type.delta_input->children->at(1)->delta =
-                new BittreeTypeNode(NULL, internal_node);
-        delta_bittree_task_type.delta_input->children->at(1)->delta->children->push_back(
-                new BittreeTypeNode(NULL, leaf_node, shared_blanko_bit));
-
-        delta_bittree_task_type.delta_output->delta->children->push_back(
-                new BittreeTypeNode(NULL, leaf_node, new_blanko_bit));
-
-        cout << input_task_type.to_string() << endl;
-    }
-
-    if(task_name.do_greater_task_type)
-    {
-
-        input_task_type.input->node_type = internal_node;
-        input_task_type.input->children->push_back(new BittreeTypeNode(input_task_type.input, internal_node));
-        input_task_type.input->children->push_back(new BittreeTypeNode(input_task_type.input, internal_node));
-
-        input_task_type.output->node_type = internal_node;
-        input_task_type.output->children->push_back(
-                new BittreeTypeNode(input_task_type.output, leaf_node, new_machine_bit));
-
-
-        delta_bittree_task_type.delta_input->node_type = internal_node;
-        delta_bittree_task_type.delta_input->children->push_back(new DeltaBittreeType(internal_node));
-        delta_bittree_task_type.delta_input->children->push_back(new DeltaBittreeType(internal_node));
-        delta_bittree_task_type.delta_input->children->at(0)->delta =
-                new BittreeTypeNode(NULL, internal_node);
-        delta_bittree_task_type.delta_input->children->at(0)->delta->children->push_back(
-                new BittreeTypeNode(NULL, leaf_node, shared_blanko_bit));
-        delta_bittree_task_type.delta_input->children->at(1)->delta =
-                new BittreeTypeNode(NULL, internal_node);
-        delta_bittree_task_type.delta_input->children->at(1)->delta->children->push_back(
-                new BittreeTypeNode(NULL, leaf_node, shared_blanko_bit));
-
-        cout << input_task_type.to_string() << endl;
-    }
-
-    if(task_name.do_cummulative_binary_operator)
-    {
-
-        input_task_type.input->node_type = internal_node;
-        input_task_type.input->children->push_back(new BittreeTypeNode(input_task_type.input, internal_node));
-
-        input_task_type.output->node_type = internal_node;
-        input_task_type.output->children->push_back(
-                new BittreeTypeNode(input_task_type.output, leaf_node, new_machine_bit));
-
-
-        delta_bittree_task_type.delta_input->node_type = internal_node;
-        delta_bittree_task_type.delta_input->children->push_back(new DeltaBittreeType(internal_node));
-        delta_bittree_task_type.delta_input->children->at(0)->delta =
-                new BittreeTypeNode(NULL, internal_node);
-        delta_bittree_task_type.delta_input->children->at(0)->delta->children->push_back(
-                new BittreeTypeNode(NULL, leaf_node, shared_blanko_bit));
-
-        cout << input_task_type.to_string() << endl;
-    }
-
-    if(task_name.do_bitwise_binary_operator)
-    {
-        input_task_type.input->node_type = internal_node;
-        input_task_type.input->children->push_back(new BittreeTypeNode(input_task_type.input, internal_node));
-        input_task_type.input->children->push_back(new BittreeTypeNode(input_task_type.input, internal_node));
-
-        delta_bittree_task_type.delta_input->node_type = internal_node;
-        delta_bittree_task_type.delta_input->children->push_back(new DeltaBittreeType(internal_node));
-        delta_bittree_task_type.delta_input->children->push_back(new DeltaBittreeType(internal_node));
-        delta_bittree_task_type.delta_input->children->at(0)->delta =
-                new BittreeTypeNode(NULL, internal_node);
-        delta_bittree_task_type.delta_input->children->at(0)->delta->children->push_back(
-                new BittreeTypeNode(NULL, leaf_node, shared_blanko_bit));
-        delta_bittree_task_type.delta_input->children->at(1)->delta =
-                new BittreeTypeNode(NULL, internal_node);
-        delta_bittree_task_type.delta_input->children->at(1)->delta->children->push_back(
-                new BittreeTypeNode(NULL, leaf_node, shared_blanko_bit));
-
-        delta_bittree_task_type.delta_output->delta->children->push_back(
-                new BittreeTypeNode(NULL, leaf_node, new_blanko_bit));
-
-        cout << input_task_type.to_string() << endl;
-    }
-
-    if(task_name.do_multiplication_by)
-    {
-        input_task_type.input->node_type = internal_node;
-        input_task_type.input->children->push_back(new BittreeTypeNode(input_task_type.input, internal_node));
-
-        input_task_type.output->node_type = internal_node;
-        int buffer = -1;
-        if(task_name.multiply_by <= 1)
-        {
-            buffer = 0;
-        }
-        else if(task_name.multiply_by <= 2)
-        {
-            buffer = 1;
-        }
-        else if(task_name.multiply_by <= 4)
-        {
-            buffer = 2;
-        }
-        else if(task_name.multiply_by <= 8)
-        {
-            buffer = 3;
-        }
-        else if(task_name.multiply_by <= 16)
-        {
-            buffer = 4;
-        }
-        for(int i = 0;i<buffer;i++){
-            input_task_type.output->children->push_back(
-                    new BittreeTypeNode(input_task_type.output, leaf_node, new_machine_bit));
-        }
-
-        delta_bittree_task_type.delta_input->node_type = internal_node;
-        delta_bittree_task_type.delta_input->children->push_back(new DeltaBittreeType(internal_node));
-        delta_bittree_task_type.delta_input->children->at(0)->delta =
-                new BittreeTypeNode(NULL, internal_node);
-        delta_bittree_task_type.delta_input->children->at(0)->delta->children->push_back(
-                new BittreeTypeNode(NULL, leaf_node, shared_blanko_bit));
-
-        delta_bittree_task_type.delta_output->delta->children->push_back(
-                new BittreeTypeNode(NULL, leaf_node, new_blanko_bit));
-
-        cout << "HERE" << input_task_type.to_string() << endl;
-    }
-
-    if(task_name.do_one_shift_idx)
-    {
-        input_task_type.input->node_type = internal_node;
-        input_task_type.input->children->push_back(new BittreeTypeNode(input_task_type.input, internal_node));
-
-        input_task_type.output->node_type = internal_node;
-        input_task_type.output->children->push_back(
-                new BittreeTypeNode(input_task_type.output, leaf_node, new_machine_bit));
-
-
-        delta_bittree_task_type.delta_input->node_type = internal_node;
-        delta_bittree_task_type.delta_input->children->push_back(new DeltaBittreeType(internal_node));
-        delta_bittree_task_type.delta_input->children->at(0)->delta =
-                new BittreeTypeNode(NULL, internal_node);
-        delta_bittree_task_type.delta_input->children->at(0)->delta->children->push_back(
-                new BittreeTypeNode(NULL, leaf_node, shared_blanko_bit));
-
-        delta_bittree_task_type.delta_output->delta =
-                new BittreeTypeNode(NULL, leaf_node, double_node);
-
-        cout << "HERE" << input_task_type.to_string() << endl;
-    }
-
-
+    BittreeTypeExpression type_expression = BittreeTypeExpression(task_name);
 
     if(false)
     {
         BittreeTaskType curriculum[5];
-        curriculum[0] = input_task_type;
+        curriculum[0] = type_expression.base_task_type;
         for (int i = 0; i < 4; i++) {
-            curriculum[i + 1] = curriculum[i].get_supertask_type(delta_bittree_task_type);
+            curriculum[i + 1] = curriculum[i].get_supertask_type(&type_expression.delta_task_type);
             cout << curriculum[i + 1].to_string() << endl;
         }
 
@@ -428,11 +263,20 @@ BitvectorTasks::BitvectorTasks()
     }
     else
     {
-        input_task_type.solve(task_name);
-        cout << input_task_type.to_string() << endl;
-        InstanceTree instances = InstanceTree(&input_task_type, &delta_bittree_task_type, task_name);
-        instances.prepare_for_deepening();
+        type_expression.base_task_type.solve(task_name);
+        cout << type_expression.base_task_type.to_string() << endl;
+
         int num_iter = 4;
+
+        if(task_name.num_iter_defined)
+        {
+            num_iter = task_name.num_iter;
+        }
+
+        InstanceTree instances = InstanceTree(&type_expression.base_task_type, &type_expression.delta_task_type, task_name);
+        instances.prepare_for_deepening();
+        num_iter--;
+
         for(int iter = 0;iter<num_iter;iter++)
         {
             vector<vector<MetaExample> > meta_examples;
@@ -456,13 +300,16 @@ BitvectorTasks::BitvectorTasks()
         vector<vector<MetaExample> > meta_examples;
         instances.populate_meta_examples(meta_examples, 0);
 
-        for(int i = meta_examples.size()-1;i<meta_examples.size();i++) {
+        for(int i = 0;i<meta_examples.size();i++) {
+
+            int max_mask_size = 3;
+
             string language_name =
-                    task_name.get_task_name()+"[size="+std::to_string(i+1)+", num_prev_subtasks=1]";
+                    task_name.get_task_name()+ "[" + "max_wire_width="+ std::to_string(max_mask_size) + ",size="+std::to_string(i+1)+",num_prev_subtasks=1]";
 
             assert(meta_examples[i].size() >= 0);
 
-            vector<Bitvector> masks = meta_examples[i][0].get_masks(3);
+            vector<Bitvector> masks = meta_examples[i][0].get_masks(max_mask_size);
 
             //ideas:
             //multi-objective beam search

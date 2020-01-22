@@ -21,6 +21,7 @@ public:
     int bit_id;
     bool is_bit_set = false;
     int bit_val;
+
     BitInBittree(BittreeTypeNode* parent, BitInBittreeType _bit_type);
 };
 

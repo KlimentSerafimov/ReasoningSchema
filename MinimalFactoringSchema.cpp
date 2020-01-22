@@ -710,6 +710,27 @@ void MinimalFactoringSchema::calc_module(Bitvector subdomain_mask, Module *modul
 
 }
 
+
+bool MinimalFactoringSchema::skip_mask(Bitvector subdomain_mask)
+{
+    if(parent_pointer == nullptr)
+    {
+        return false;
+    }
+    else
+    {
+        if((subdomain_mask & parent_pointer->best_module.subdomain_mask) != 0)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+}
+
+
 void MinimalFactoringSchema::main__minimal_factoring_schema(vector<MetaExample> _meta_examples) {
 
     meta_examples = _meta_examples;
@@ -720,11 +741,11 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(vector<MetaExample> 
     if (parent_pointer == nullptr) {
         init_time = local_time;
         root_pointer = this;
-        moule_id = 0;
+        module_id = 0;
     } else {
         init_time = parent_pointer->init_time;
         root_pointer = parent_pointer->root_pointer;
-        moule_id = parent_pointer->moule_id+1;
+        module_id = parent_pointer->module_id + 1;
     }
 
     calc_masks(set_init_mask_size);
@@ -733,49 +754,39 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(vector<MetaExample> 
 
     if(init_num_missing_bits >= 1) {
 
-        vector<pair<HeuristicScore, int> > mask_ids_by_heuristic;
-
         bool possible_candidate_found = false;
-        int possible_candindate_num_input_bits = -1;
-        bool try_all = false;
 
-        for (int mask_id = 0; mask_id < masks.size(); mask_id++) {
-
-            if(possible_candidate_found){
-                if (masks[mask_id].count() > possible_candindate_num_input_bits+1 || possible_candindate_num_input_bits==4)
-                {
-                    continue;
-                }
-            }
-//            if (possible_candidate_found) {
-//                if (__builtin_popcount(masks[mask_id]) > skip_after_mask_size_if_not_necessary) {
-//                    if (!try_all) {
-//                        continue;
-//                    }
-//                }
-//            } else {
-//                if (__builtin_popcount(masks[mask_id]) > skip_after_mask_size_if_not_necessary) {
-////                try_all = true;
-//                }
-//            }
-
-            Module local_module = Module(this);
+        for (int mask_id = 0; mask_id < masks.size(); mask_id++)
+        {
+            HeuristicScore heuristic;
 
             cout << "working on mask = " << bitvector_to_str(masks[mask_id], function_size) << " time: "
-                 << (double) time(nullptr) - local_time << endl;
+                 << (double) time(nullptr) - local_time << " ";
 
-            calc_module(masks[mask_id], &local_module);
+            if(skip_mask(masks[mask_id]))
+            {
+                cout << "skip" << endl;
+                assert(parent_pointer != nullptr);
+                heuristic = parent_pointer->heuristic_score_by_mask_id[mask_id];
+            }
+            else
+            {
+                cout << "calc" << endl;
+                Module local_module = Module(this);
 
-            local_module.compact_poset->clear();
+                calc_module(masks[mask_id], &local_module);
 
-            HeuristicScore heuristic = calculate_heuristic(&local_module);
+                local_module.compact_poset->clear();
 
-            if (heuristic.defined && !possible_candidate_found) {
+                heuristic = local_module.heuristic_score = calculate_heuristic(&local_module);
+            }
+
+            if (heuristic.defined) {
                 possible_candidate_found = true;
-                possible_candindate_num_input_bits = heuristic.num_input_bits;
             }
 
             mask_ids_by_heuristic.push_back(make_pair(heuristic, mask_id));
+            heuristic_score_by_mask_id.push_back(heuristic);
 
 //            cout << "heuristic = " << fixed << setprecision(4) << heuristic.to_string() << endl;
         }
@@ -810,7 +821,7 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(vector<MetaExample> 
 
             calc_module(masks[best_mask_id], (&best_module));
 
-            calculate_heuristic((&best_module));
+            best_module.heuristic_score = calculate_heuristic((&best_module));
 
             fout << best_module.print_module_sketch(time(nullptr) - init_time) << std::flush;
 
@@ -969,7 +980,7 @@ void MinimalFactoringSchema::record_trace_of_query(
 
         if(intermediate_result.partition != trace[trace.size()-1].partition)
         {
-            active_operators.push_back(moule_id);
+            active_operators.push_back(module_id);
             active_trace.push_back(intermediate_result);
         }
         trace.push_back(intermediate_result);

@@ -7,69 +7,21 @@
 
 #include "Module.h"
 
-class HeuristicScore
-{
-public:
-    bool defined = false;
-    int num_input_bits;
-    double ratio_delta_meta_examples_per_new_bit;
-
-    bool operator < (const HeuristicScore& other) const
-    {
-        if(defined && other.defined) {
-//            if (num_input_bits == other.num_input_bits) {
-                return ratio_delta_meta_examples_per_new_bit > other.ratio_delta_meta_examples_per_new_bit;
-//            } else {
-//                return num_input_bits < other.num_input_bits;
-//            }
-        }
-        else
-        {
-            if(defined)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-    }
-
-public:
-    HeuristicScore(int _num_input_bits, double _ratio_delta_meta_examples_per_new_bit) {
-        num_input_bits = _num_input_bits;
-        ratio_delta_meta_examples_per_new_bit = _ratio_delta_meta_examples_per_new_bit;
-        defined = true;
-    }
-
-    HeuristicScore() {}
-
-    string to_string()
-    {
-        if(defined) {
-            return std::to_string(num_input_bits) + " " + std::to_string(ratio_delta_meta_examples_per_new_bit);
-        }
-        else
-        {
-            return "inf";
-        }
-    }
-};
-
 class MinimalFactoringSchema
 {
     MinimalFactoringSchema* parent_pointer = NULL;
     int function_size;
-
-    vector<Bitvector> masks;
-    int moule_id;
 
     time_t init_time;
     time_t local_time;
 
     vector<MetaExample> meta_examples;
     int init_num_missing_bits;
+
+    vector<Bitvector> masks;
+    int module_id;
+    vector<pair<HeuristicScore, int> > mask_ids_by_heuristic;
+    vector<HeuristicScore> heuristic_score_by_mask_id;
 
     MinimalFactoringSchema* next = nullptr;
 
@@ -90,6 +42,8 @@ class MinimalFactoringSchema
     void calc_module(Bitvector subdomain_mask, Module *module);
 
     void main__minimal_factoring_schema(vector<MetaExample> _meta_examples);
+
+    bool skip_mask(Bitvector subdomain_mask);
 
 public:
 

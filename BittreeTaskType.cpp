@@ -13,10 +13,10 @@ void BittreeTypeNode::init(TreeNode *_parent)
 
 BittreeTypeNode::BittreeTypeNode(TreeNode* _parent, NodeType _node_type)
 {
-    assert(_node_type == internal_node);
+//    assert(_node_type == internal_node);
     init(_parent);
     node_type = _node_type;
-    leaf_node_type = bit_node;
+    leaf_node_type = not_leaf_node;
 };
 
 BittreeTypeNode::BittreeTypeNode(TreeNode* _parent, NodeType _node_type, BitInBittreeType bit_type)
@@ -131,7 +131,7 @@ string BittreeTypeNode::to_string()
     }
 }
 
-void BittreeTypeNode::apply_delta(DeltaBittreeType *delta_bittree_type) {
+void BittreeTypeNode::apply_delta(BittreeTypeNode *delta_bittree_type) {
     if(node_type == internal_node && delta_bittree_type->node_type == internal_node)
     {
         assert(children->size() == delta_bittree_type->children->size());
@@ -215,11 +215,12 @@ void BittreeTypeNode::append_bits(vector<BitInBittree *>& bits) {
     }
 }
 
-DeltaBittreeTaskType::DeltaBittreeTaskType(NodeType delta_input_type, NodeType delta_output_typee)
-{
-    delta_input = new DeltaBittreeType(delta_input_type);
-    delta_output = new DeltaBittreeType(delta_output_typee);
-}
+//
+//DeltaBittreeTaskType::DeltaBittreeTaskType(NodeType delta_input_type, NodeType delta_output_typee)
+//{
+//    delta_input = new DeltaBittreeType(delta_input_type);
+//    delta_output = new DeltaBittreeType(delta_output_typee);
+//}
 
 BittreeTaskType::BittreeTaskType(NodeType input_node_type, NodeType output_node_type)
 {
@@ -260,19 +261,19 @@ string BittreeTaskType::to_string()
     return ret;
 };
 
-void BittreeTaskType::apply_delta(DeltaBittreeTaskType type) {
-    input->apply_delta(type.delta_input);
-    output->apply_delta(type.delta_output);
+void BittreeTaskType::apply_delta(BittreeTaskType* type) {
+    input->apply_delta(type->input);
+    output->apply_delta(type->output);
 }
 
-BittreeTaskType BittreeTaskType::get_delta_application(DeltaBittreeTaskType type)
+BittreeTaskType BittreeTaskType::get_delta_application(BittreeTaskType* type)
 {
     BittreeTaskType ret = BittreeTaskType(this, false);
     ret.apply_delta(type);
     return ret;
 }
 
-BittreeTaskType BittreeTaskType::get_supertask_type(DeltaBittreeTaskType type)
+BittreeTaskType BittreeTaskType::get_supertask_type(BittreeTaskType* type)
 {
     BittreeTaskType ret = BittreeTaskType(this, false);
     ret.apply_delta(type);
@@ -282,38 +283,289 @@ BittreeTaskType BittreeTaskType::get_supertask_type(DeltaBittreeTaskType type)
 
 void BittreeTaskType::solve(TaskName task_name) {
 
-    if(task_name.do_sum_task_type){
-        solve_sum();
+    if(task_name.do__sum){
+        solve__sum();
     }
 
-    if(task_name.do_greater_task_type)
+    if(task_name.do__greater)
     {
-        solve_greater();
+        solve__greater();
     }
 
-    if(task_name.do_cummulative_binary_operator)
+    if(task_name.do__cummulative_binary_operator)
     {
-        solve_cumulative_binary_operator();
+        solve__cumulative_binary_operator();
     }
 
-    if(task_name.do_bitwise_binary_operator)
+    if(task_name.do__bitwise_binary_operator)
     {
-        bitwise_binary_operator();
+        solve__bitwise_binary_operator();
     }
 
-    if(task_name.do_multiplication_by)
+    if(task_name.do__multiply_by)
     {
-        do_multiplication_by(task_name.multiply_by);
+        solve__multiply_by(task_name.param__multiply_by);
     }
 
-    if(task_name.do_one_shift_idx)
+    if(task_name.do__one_shift_idx)
     {
-        solve_one_shift_idx();
+        solve__one_shift_idx();
     }
 
+    if(task_name.do__one_shift_idx__reverse_subtask)
+    {
+        solve__one_shift_idx__reverse_subtask(task_name.param__init_size);
+    }
+
+    if(task_name.do__count_unary)
+    {
+        solve__count_unary();
+    }
+
+    if(task_name.do__count_unary__reverse_subtask)
+    {
+        solve__count_unary__reverse_subtask(task_name.param__init_size);
+    }
+
+    if(task_name.do__unary_sum)
+    {
+        solve__unary_sum();
+    }
+
+    if(task_name.do__least_set_bit)
+    {
+        solve__least_set_bit();
+    }
+
+    if(task_name.do__max_window_between_bits)
+    {
+        solve__max_window_between_bits();
+    }
 }
 
-void BittreeTaskType::solve_one_shift_idx()
+void BittreeTaskType::solve__max_window_between_bits()
+{
+    solution = new BittreeTaskType(this, true);
+    if(subtask != NULL)
+    {
+        solution->subtask = subtask->solution;
+    }
+
+    const int num_operands = 1;
+    assert(solution->input->children->size() == num_operands);
+    int operands[num_operands] = {0};
+    for(int i = 0;i<num_operands;i++)
+    {
+        int pow = 1;
+        for(int j = 0;j<solution->input->children->at(i)->children->size();j++)
+        {
+            assert(solution->input->children->at(i)->children->at(j)->bit->is_bit_set == true);
+            operands[i]+=pow*solution->input->children->at(i)->children->at(j)->bit->bit_val;
+            pow*=2;
+        }
+    }
+
+    int prev_set_bit = -1;
+    pair<int, pair<int, int> > max_window = make_pair(-1, make_pair(-1, -1));
+    for(int i = 0; i<solution->input->children->at(0)->children->size();i++)
+    {
+        if(get_bit(operands[0], i))
+        {
+            if(prev_set_bit == -1)
+            {
+                prev_set_bit = i;
+            } else
+            {
+                max_window = max(make_pair(i-prev_set_bit+1, make_pair(prev_set_bit, i)), max_window);
+                prev_set_bit = i;
+            }
+        }
+    }
+
+    Bitvector sum = 0;
+
+    if(max_window.first != -1)
+    {
+        sum.set_range(max_window.second.first, max_window.second.second);
+    }
+
+    for(int i = 0;i<solution->output->children->size();i++)
+    {
+        assert(solution->output->children->at(i)->bit->is_bit_set == false);
+        solution->output->children->at(i)->bit->is_bit_set = true;
+        solution->output->children->at(i)->bit->bit_val = get_bit(sum, i);
+    }
+}
+
+void BittreeTaskType::solve__least_set_bit()
+{
+    solution = new BittreeTaskType(this, true);
+    if(subtask != NULL)
+    {
+        solution->subtask = subtask->solution;
+    }
+
+    const int num_operands = 1;
+    assert(solution->input->children->size() == num_operands);
+    int operands[num_operands] = {0};
+    for(int i = 0;i<num_operands;i++)
+    {
+        int pow = 1;
+        for(int j = 0;j<solution->input->children->at(i)->children->size();j++)
+        {
+            assert(solution->input->children->at(i)->children->at(j)->bit->is_bit_set == true);
+            operands[i]+=pow*solution->input->children->at(i)->children->at(j)->bit->bit_val;
+            pow*=2;
+        }
+    }
+    Bitvector sum = 0;
+    int edge_case_bit = 0;
+    if(operands[0] == 0)
+    {
+        edge_case_bit = 1;
+    }
+    else
+    {
+        sum.set(num_trailing_zeroes(operands[0]));
+    }
+
+    assert(solution->output->children->at(0)->children->at(0)->bit->is_bit_set == false);
+    solution->output->children->at(0)->children->at(0)->bit->is_bit_set = true;
+    solution->output->children->at(0)->children->at(0)->bit->bit_val = edge_case_bit;
+
+    for(int i = 0;i<solution->output->children->at(1)->children->size();i++)
+    {
+        assert(solution->output->children->at(1)->children->at(i)->bit->is_bit_set == false);
+        solution->output->children->at(1)->children->at(i)->bit->is_bit_set = true;
+        solution->output->children->at(1)->children->at(i)->bit->bit_val = get_bit(sum, i);
+    }
+}
+
+void BittreeTaskType::solve__unary_sum()
+{
+    solution = new BittreeTaskType(this, true);
+    if(subtask != NULL)
+    {
+        solution->subtask = subtask->solution;
+    }
+
+    const int num_operands = 2;
+    assert(solution->input->children->size() == num_operands);
+    int operands[num_operands] = {0, 0};
+    for(int i = 0;i<num_operands;i++)
+    {
+        int pow = 1;
+        for(int j = 0;j<solution->input->children->at(i)->children->size();j++)
+        {
+            assert(solution->input->children->at(i)->children->at(j)->bit->is_bit_set == true);
+            operands[i]+=pow*solution->input->children->at(i)->children->at(j)->bit->bit_val;
+            pow*=2;
+        }
+    }
+    Bitvector sum = 0;
+    sum.set(operands[0]+operands[1]);
+    for(int i = 0;i<solution->output->children->size();i++)
+    {
+        assert(solution->output->children->at(i)->bit->is_bit_set == false);
+        solution->output->children->at(i)->bit->is_bit_set = true;
+        solution->output->children->at(i)->bit->bit_val = get_bit(sum, i);
+    }
+}
+
+void BittreeTaskType::solve__count_unary__reverse_subtask(int init_size)
+{
+    solution = new BittreeTaskType(this, true);
+    if(subtask != NULL)
+    {
+        solution->subtask = subtask->solution;
+    }
+
+    const int num_operands = 1;
+    assert(solution->input->children->size() == num_operands);
+    int operands[num_operands] = {0};
+    for(int i = 0;i<num_operands;i++)
+    {
+        int pow = 1;
+        for(int j = 0;j<solution->input->children->at(i)->children->size();j++)
+        {
+            assert(solution->input->children->at(i)->children->at(j)->bit->is_bit_set == true);
+            operands[i]+=pow*solution->input->children->at(i)->children->at(j)->bit->bit_val;
+            pow*=2;
+        }
+    }
+    Bitvector sum = 0;
+    sum.set_range(0, (operands[0] << (init_size - solution->input->children->at(0)->children->size())));
+    for(int i = 0;i<solution->output->children->size();i++)
+    {
+        assert(solution->output->children->at(i)->bit->is_bit_set == false);
+        solution->output->children->at(i)->bit->is_bit_set = true;
+        solution->output->children->at(i)->bit->bit_val = get_bit(sum, i);
+    }
+}
+
+void BittreeTaskType::solve__one_shift_idx__reverse_subtask(int init_size)
+{
+    solution = new BittreeTaskType(this, true);
+    if(subtask != NULL)
+    {
+        solution->subtask = subtask->solution;
+    }
+
+    const int num_operands = 1;
+    assert(solution->input->children->size() == num_operands);
+    int operands[num_operands] = {0};
+    for(int i = 0;i<num_operands;i++)
+    {
+        int pow = 1;
+        for(int j = 0;j<solution->input->children->at(i)->children->size();j++)
+        {
+            assert(solution->input->children->at(i)->children->at(j)->bit->is_bit_set == true);
+            operands[i]+=pow*solution->input->children->at(i)->children->at(j)->bit->bit_val;
+            pow*=2;
+        }
+    }
+    Bitvector sum = 0;
+    sum.set(operands[0] << (init_size - solution->input->children->at(0)->children->size()));
+    for(int i = 0;i<solution->output->children->size();i++)
+    {
+        assert(solution->output->children->at(i)->bit->is_bit_set == false);
+        solution->output->children->at(i)->bit->is_bit_set = true;
+        solution->output->children->at(i)->bit->bit_val = get_bit(sum, i);
+    }
+}
+
+void BittreeTaskType::solve__count_unary()
+{
+    solution = new BittreeTaskType(this, true);
+    if(subtask != NULL)
+    {
+        solution->subtask = subtask->solution;
+    }
+
+    const int num_operands = 1;
+    assert(solution->input->children->size() == num_operands);
+    int operands[num_operands] = {0};
+    for(int i = 0;i<num_operands;i++)
+    {
+        int pow = 1;
+        for(int j = 0;j<solution->input->children->at(i)->children->size();j++)
+        {
+            assert(solution->input->children->at(i)->children->at(j)->bit->is_bit_set == true);
+            operands[i]+=pow*solution->input->children->at(i)->children->at(j)->bit->bit_val;
+            pow*=2;
+        }
+    }
+    Bitvector sum = 0;
+    sum.set_range(0,operands[0]-1);
+    for(int i = 0;i<solution->output->children->size();i++)
+    {
+        assert(solution->output->children->at(i)->bit->is_bit_set == false);
+        solution->output->children->at(i)->bit->is_bit_set = true;
+        solution->output->children->at(i)->bit->bit_val = get_bit(sum, i);
+    }
+}
+
+void BittreeTaskType::solve__one_shift_idx()
 {
     solution = new BittreeTaskType(this, true);
     if(subtask != NULL)
@@ -344,7 +596,7 @@ void BittreeTaskType::solve_one_shift_idx()
     }
 }
 
-void BittreeTaskType::do_multiplication_by(int multiply_by)
+void BittreeTaskType::solve__multiply_by(int multiply_by)
 {
     solution = new BittreeTaskType(this, true);
     if(subtask != NULL)
@@ -374,7 +626,7 @@ void BittreeTaskType::do_multiplication_by(int multiply_by)
     }
 }
 
-void BittreeTaskType::bitwise_binary_operator()
+void BittreeTaskType::solve__bitwise_binary_operator()
 {
     solution = new BittreeTaskType(this, true);
     if(subtask != NULL)
@@ -404,7 +656,7 @@ void BittreeTaskType::bitwise_binary_operator()
     }
 }
 
-void BittreeTaskType::solve_cumulative_binary_operator()
+void BittreeTaskType::solve__cumulative_binary_operator()
 {
    solution = new BittreeTaskType(this, true);
    if(subtask != NULL)
@@ -433,7 +685,7 @@ void BittreeTaskType::solve_cumulative_binary_operator()
 }
 
 
-void BittreeTaskType::solve_greater()
+void BittreeTaskType::solve__greater()
 {
     solution = new BittreeTaskType(this, true);
     if(subtask != NULL)
@@ -462,7 +714,7 @@ void BittreeTaskType::solve_greater()
     }
 }
 
-void BittreeTaskType::solve_sum()
+void BittreeTaskType::solve__sum()
 {
     solution = new BittreeTaskType(this, true);
     if(subtask != NULL)

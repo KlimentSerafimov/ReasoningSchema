@@ -5,7 +5,6 @@
 #ifndef COMPACTPOSET_BITVECTORTASKS_H
 #define COMPACTPOSET_BITVECTORTASKS_H
 
-//#include "MetaExample.h"
 #include "util.h"
 #include <iostream>
 #include "MinimalFactoringSchema.h"
@@ -20,7 +19,7 @@ class InstanceTree
 {
 public:
     BittreeTaskType* instance;
-    DeltaBittreeTaskType* delta;
+    BittreeTaskType* delta;
     TaskName task_name;
 
     bool prepared_for_deepening = false;
@@ -32,7 +31,7 @@ public:
     bool deepened = false;
     vector<InstanceTree*> superinstance_trees;
 
-    InstanceTree(BittreeTaskType* _instance, DeltaBittreeTaskType* _delta, TaskName _task_name);
+    InstanceTree(BittreeTaskType* _instance, BittreeTaskType* _delta, TaskName _task_name);
 
     void prepare_for_deepening();
 
@@ -46,7 +45,7 @@ class BittreeTaskInstance
 public:
 
     BittreeTaskType* initialization;
-    DeltaBittreeType* delta;
+    BittreeTaskType* delta;
 
     BittreeTaskType curriculum[5];
 

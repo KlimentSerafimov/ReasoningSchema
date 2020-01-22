@@ -9,6 +9,58 @@
 #include "CompactPoset.h"
 #include "MetaExample.h"
 
+
+class HeuristicScore
+{
+public:
+    bool defined = false;
+    int num_input_bits;
+    double ratio_delta_meta_examples_per_new_bit;
+
+    bool operator < (const HeuristicScore& other) const
+    {
+        if(defined && other.defined) {
+//            if (num_input_bits == other.num_input_bits) {
+            return ratio_delta_meta_examples_per_new_bit > other.ratio_delta_meta_examples_per_new_bit;
+//            } else {
+//                return num_input_bits < other.num_input_bits;
+//            }
+        }
+        else
+        {
+            if(defined)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+
+public:
+    HeuristicScore(int _num_input_bits, double _ratio_delta_meta_examples_per_new_bit) {
+        num_input_bits = _num_input_bits;
+        ratio_delta_meta_examples_per_new_bit = _ratio_delta_meta_examples_per_new_bit;
+        defined = true;
+    }
+
+    HeuristicScore() {}
+
+    string to_string()
+    {
+        if(defined) {
+            return std::to_string(num_input_bits) + " " + std::to_string(ratio_delta_meta_examples_per_new_bit);
+        }
+        else
+        {
+            return "inf";
+        }
+    }
+};
+
+
 class MinimalFactoringSchema;
 
 class Module
@@ -16,6 +68,7 @@ class Module
 public:
     int function_size;
     Bitvector subdomain_mask;
+    HeuristicScore heuristic_score;
 
     Module* parent_module;
 
