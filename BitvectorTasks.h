@@ -5,11 +5,8 @@
 #ifndef COMPACTPOSET_BITVECTORTASKS_H
 #define COMPACTPOSET_BITVECTORTASKS_H
 
-#include "util.h"
-#include <iostream>
 #include "MinimalFactoringSchema.h"
-#include "TaskName.h"
-#include "BittreeTaskType.h"
+#include "BittreeTypeExpression.h"
 
 class MetaExample;
 
@@ -23,10 +20,10 @@ public:
     TaskName task_name;
 
     bool prepared_for_deepening = false;
-    BittreeTaskType superinstance_type;
+    BittreeTaskType* superinstance_type;
 
     int num_superinstances;
-    BittreeTaskType superinstances[max_instance_tree_degree];
+    BittreeTaskType* superinstances[max_instance_tree_degree];
 
     bool deepened = false;
     vector<InstanceTree*> superinstance_trees;
@@ -37,7 +34,7 @@ public:
 
     void deepen();
 
-    void populate_meta_examples(vector<vector<MetaExample> > &ret, int at_depth);
+    void populate_meta_examples(vector<vector<MetaExample> >& ret, int at_depth, int subtask_depth);
 };
 
 class BittreeTaskInstance
@@ -66,6 +63,13 @@ class BitvectorTasks {
 
     void populate_ordering_over_boolean_functions_with_small_sum();
     void populate_ordering_over_boolean_functions_with_bitwise_and();
+
+    vector<vector<Bitvector> > masks_generator(
+            BittreeTypeExpression* type_expression, int num_iter);
+
+    vector<vector<MetaExample> >
+    get_meta_examples(BittreeTypeExpression *type_expression, TaskName task_name, int num_iter,
+                      int subtask_depth);
 
 public:
 

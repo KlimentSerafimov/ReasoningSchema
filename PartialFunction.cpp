@@ -186,7 +186,19 @@ void PartialFunction::init_via_bits(vector<BitInBittree*> bits)
     }
 }
 
-BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(BittreeTaskType* _bittree_taks_type)
+bool PartialFunction::operator < (const PartialFunction& other) const {
+    if(total_function == other.total_function)
+    {
+        if(partition == other.partition)
+        {
+            return function_size < other.function_size;
+        }
+        return partition < other.partition;
+    }
+    return total_function < other.total_function;
+}
+
+BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(BittreeTaskType *_bittree_taks_type, int subtask_depth)
 {
     bittree_taks_type = _bittree_taks_type;
 
@@ -195,13 +207,15 @@ BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(BittreeTaskTy
     int num_prev_subtasks = 0;
     while(local_subtask != NULL)
     {
-        if(num_prev_subtasks < 1 || local_subtask->solution == NULL)
+        if(num_prev_subtasks < subtask_depth || subtask_depth == -1 || local_subtask->solution == NULL)
         {
-            local_subtask->append_bits(partial_bits);
+            memset_visited(vis_bits);
+            local_subtask->append_IO_bits(partial_bits);
             local_subtask = local_subtask->subtask;
         } else
         {
-            local_subtask->solution->append_bits(partial_bits);
+            memset_visited(vis_bits);
+            local_subtask->solution->append_IO_bits(partial_bits);
             local_subtask = local_subtask->subtask;
         }
         if(num_prev_subtasks == 1)
@@ -210,5 +224,6 @@ BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(BittreeTaskTy
         }
         num_prev_subtasks+=1;
     }
+
     init_via_bits(partial_bits);
 }

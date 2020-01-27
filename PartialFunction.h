@@ -61,13 +61,16 @@ public:
     bool empty();
 
     bool full();
+
+    bool operator < (const PartialFunction& other) const;
 };
 
 class BittreeTaskTypeAsPartialFunction : public PartialFunction
 {
 public:
     BittreeTaskType* bittree_taks_type;
-    BittreeTaskTypeAsPartialFunction(BittreeTaskType* _bittree_taks_type);
+    BittreeTaskTypeAsPartialFunction(BittreeTaskType *_bittree_taks_type,
+                                     int subtask_depth);
 };
 
 #endif //COMPACTPOSET_PARTIALFUNCTION_H

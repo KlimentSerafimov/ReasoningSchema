@@ -115,6 +115,10 @@ MetaExample::MetaExample(PartialFunction _partial_function, PartialFunction _gen
 vector<Bitvector> MetaExample::get_masks(int max_mask_size)
 {
     vector<Bitvector> ret;
+    if(get_function_size() == 0)
+    {
+        return ret;
+    }
     cout << "MASKS: " << endl;
     for(int i = 1;i<=max_mask_size;i++)
     {
