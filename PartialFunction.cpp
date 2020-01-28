@@ -10,11 +10,18 @@
 
 PartialFunction::PartialFunction() = default;
 
+PartialFunction::PartialFunction(int _function_size, Bitvector _total_function) {
+    function_size = _function_size;
+    total_function = _total_function;
+    partition.set_range(0, function_size-1);
+}
+
 PartialFunction::PartialFunction(int _function_size, Bitvector _total_function, Bitvector _partition) {
     function_size = _function_size;
     total_function = _total_function;
     if(_partition == -1)
     {
+        assert(false);
         _partition.set_range(0, function_size-1);
     }
     partition = _partition;
@@ -184,6 +191,7 @@ void PartialFunction::init_via_bits(vector<BitInBittree*> bits)
             function_size++;
         }
     }
+    total_function.set_size(function_size);
 }
 
 bool PartialFunction::operator < (const PartialFunction& other) const {
@@ -218,7 +226,7 @@ BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(BittreeTaskTy
             local_subtask->solution->append_IO_bits(partial_bits);
             local_subtask = local_subtask->subtask;
         }
-        if(num_prev_subtasks == 1)
+        if(num_prev_subtasks == subtask_depth && subtask_depth != -1)
         {
             break;
         }

@@ -513,7 +513,7 @@ void BittreeTaskType::apply_delta(BittreeTaskType* type) {
 
 BittreeTaskType* BittreeTaskType::get_supertask_type(BittreeTaskType* type)
 {
-    BittreeTaskType* ret = new BittreeTaskType(NULL, Name("root"), this, false);
+    BittreeTaskType* ret = new BittreeTaskType(NULL, Name("supertask_of_"+names[0].to_string()), this, false);
     ret->delta = new BittreeTaskType(ret, Name("delta"), type, true);
     ret->apply_delta(ret->delta);
 //    ret->apply_delta(type);
@@ -1047,7 +1047,7 @@ void BittreeProgram::recurse_on_bittree_programs()
             for (int j = 0; j < bits.size(); j++) {
                 bits[j]->flip();
             }
-//            cout << bittree_programs[i]->node->root_to_node_path__to__string() << " :: " << endl;
+            cout << bittree_programs[i]->node->root_to_node_path__to__string() << " :: " << endl;
 
             PartialFunction local_partial_function = root->to_partial_function();
             assert(local_partial_function.full());
@@ -1059,7 +1059,7 @@ void BittreeProgram::recurse_on_bittree_programs()
                 memset_visited(vis_type, rec_depth - 1);
                 next_rec_programs.push_back(
                         new BittreeProgram(bittree_programs[i]->node, root, rec_depth - 1));
-                cout << endl;
+//                cout << endl;
             }
             else
             {
@@ -1154,14 +1154,14 @@ BittreeProgram::BittreeProgram(TreeNode *_node, BittreeTaskType *_root, int _rec
             uniques.insert(all_bittree_masks_as_bitvectors[i]);
         }
         all_bittree_masks_as_bitvectors.clear();
-        cout << "----------------------------" << endl;
+//        cout << "----------------------------" << endl;
         for(auto item: uniques)
         {
 
             all_bittree_masks_as_bitvectors.push_back(item);
-            cout << item.to_string() << endl;
+//            cout << item.to_string() << endl;
         }
-        cout << "all_partial_functions.size() " << all_bittree_masks_as_bitvectors.size() << endl;
+//        cout << "all_partial_functions.size() " << all_bittree_masks_as_bitvectors.size() << endl;
     }
 }
 

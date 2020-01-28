@@ -9,7 +9,7 @@
 MetaExample::MetaExample(
         int _function_size, Bitvector _total_function, Bitvector _partition) {
     partial_function = PartialFunction(_function_size, _total_function, _partition);
-    generalization = PartialFunction(_function_size, _total_function, -1);
+    generalization = PartialFunction(_function_size, _total_function, Bitvector((1<<_function_size)-1));
 }
 
 MetaExample::MetaExample(int _function_size, Bitvector _total_function, Bitvector _partition, Bitvector generalization_partition) {

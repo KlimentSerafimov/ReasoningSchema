@@ -10,9 +10,11 @@ using namespace std;
 
 BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
 {
-
+    bool enter = false;
     if(task_name.do__sum)
     {
+        assert(!enter);
+        enter = true;
         int num_input_operands = 2;
 //        int init_input_operand_sizes[1] = {0};
 //        int delta_input_operand_sizes[1] = {1};
@@ -27,6 +29,8 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
     if(task_name.do__greater)
     {
 
+        assert(!enter);
+        enter = true;
         int num_input_operands = 2;
 //        int init_input_operand_sizes[1] = {0};
 //        int delta_input_operand_sizes[1] = {1};
@@ -41,6 +45,8 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
 
     if(task_name.do__cummulative_binary_operator)
     {
+        assert(!enter);
+        enter = true;
         int num_input_operands = 1;
 //        int init_input_operand_sizes[1] = {0};
 //        int delta_input_operand_sizes[1] = {1};
@@ -54,6 +60,8 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
 
     if(task_name.do__bitwise_binary_operator)
     {
+        assert(!enter);
+        enter = true;
         int num_input_operands = 2;
 //        int init_input_operand_sizes[1] = {0};
 //        int delta_input_operand_sizes[1] = {1};
@@ -67,6 +75,8 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
 
     if(task_name.do__multiply_by)
     {
+        assert(!enter);
+        enter = true;
         int num_input_operands = 1;
 //        int init_input_operand_sizes[1] = {0};
 //        int delta_input_operand_sizes[1] = {1};
@@ -89,6 +99,8 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
 
     if(task_name.do__one_shift_idx || task_name.do__count_unary)
     {
+        assert(!enter);
+        enter = true;
         int num_input_operands = 1;
 //        int init_input_operand_sizes[1] = {0};
 //        int delta_input_operand_sizes[1] = {1};
@@ -122,6 +134,8 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
     if(task_name.do__one_shift_idx__reverse_subtask || task_name.do__count_unary__reverse_subtask)
     {
 
+        assert(!enter);
+        enter = true;
         int num_input_operands = 1;
 //        int init_input_operand_sizes[1] = {0};
 //        int delta_input_operand_sizes[1] = {1};
@@ -137,6 +151,8 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
     if(task_name.do__unary_sum)
     {
 
+        assert(!enter);
+        enter = true;
         int num_input_operands = 2;
 //        int init_input_operand_sizes[1] = {0};
 //        int delta_input_operand_sizes[1] = {1};
@@ -168,6 +184,8 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
     if(task_name.do__least_set_bit)
     {
 
+        assert(!enter);
+        enter = true;
         int num_input_operands = 1;
 //        int init_input_operand_sizes[1] = {0};
 //        int delta_input_operand_sizes[1] = {1};
@@ -188,6 +206,8 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
     if(task_name.do__max_window_between_bits)
     {
 
+        assert(!enter);
+        enter = true;
         int num_input_operands = 1;
 //        int init_input_operand_sizes[1] = {0};
 //        int delta_input_operand_sizes[1] = {1};
@@ -199,7 +219,7 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
         build_type(num_input_operands, init_output_size, delta_output_size);
     }
 
-    cout << base_task_type->to_string() << endl;
+//    cout << base_task_type->to_string() << endl;
 }
 
 void BittreeTypeExpression::build_input_type(int num_input_operands)

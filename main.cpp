@@ -247,7 +247,7 @@ void recursive_minimal_factoring_schema(int num_inputs, int language_id, vector<
         prev_meta_examples_size = now_meta_examples_size;
 
         string language_name =
-                "language(n=" + std::to_string(num_inputs) + ",id=" + std::to_string(language_id) + ")[rec="+std::to_string(rec_id)+"]";
+                "HERE_language(n=" + std::to_string(num_inputs) + ",id=" + std::to_string(language_id) + ")[rec="+std::to_string(rec_id)+"]";
 
         MinimalFactoringSchema my_schema =
                 MinimalFactoringSchema(local_meta_examples, language_name, true || (rec_id != 0));
@@ -267,7 +267,7 @@ void recursive_minimal_factoring_schema(int num_inputs, int language_id, vector<
         now_meta_examples_size = (int) local_meta_examples.size();
         rec_id++;
 
-    }while(false && now_meta_examples_size != prev_meta_examples_size);
+    }while(now_meta_examples_size != prev_meta_examples_size);
 }
 
 void modeling_of_language_over_boolean_functions()
@@ -288,7 +288,6 @@ void modeling_of_language_over_boolean_functions()
         cout << "enumerated " << meta_examples.size() <<" meta examples for language_" << language_id << endl;
 
         bool insert_in_monolith = false;
-
         if(insert_in_monolith)
         {
             monolith_test(num_inputs, meta_examples);

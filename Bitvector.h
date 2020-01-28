@@ -11,16 +11,27 @@ using namespace std;
 
 #define BITVECTOR_SIZE 64
 
+enum BitvectorConstructorType {all_zeroes, all_ones};
+
 class Bitvector: public bitset<BITVECTOR_SIZE>
 {
+    bool size_defined = false;
+    int size;
 public:
     Bitvector() = default;
+    Bitvector(BitvectorConstructorType type, int _size);
     Bitvector(bitset<BITVECTOR_SIZE> num);
-    Bitvector(unsigned long long num);
+    Bitvector(long long num);
 
     bool operator < (const int &other) const
     {
         return to_ullong() < other;
+    }
+
+    int get_size()
+    {
+        assert(size_defined);
+        return size;
     }
 
     bool operator < (const Bitvector &other) const
@@ -80,6 +91,8 @@ public:
         }
     }
 
+
+    void set_size(int i);
 };
 
 

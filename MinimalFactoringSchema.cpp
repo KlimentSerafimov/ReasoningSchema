@@ -496,7 +496,7 @@ void MinimalFactoringSchema::calc_masks(int set_init_mask_size)
 
         assert(num_masks >= 0);
 
-        for (int i = 1; i <num_masks; i++) {
+        for (int i = 1; i < num_masks-1; i++) {
             if (minimal_factoring_schema_depth_counter < maximal_factoring_schema_depth_counter) {
                 i = string_to_bitvector(best_subdomains[minimal_factoring_schema_depth_counter++]);
                 masks_by_size[__builtin_popcount(i)].push_back(i);
@@ -796,6 +796,7 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(vector<MetaExample> 
         cout << "PRINT mask_ids_by_heuristic" << endl;
         for (int local_id = 0; local_id < mask_ids_by_heuristic.size(); local_id++) {
             int mask_id = mask_ids_by_heuristic[local_id].second;
+            assert(masks[mask_id].get_size() == function_size);
             cout << bitvector_to_str(masks[mask_id], function_size) << fixed << setprecision(6)
                  << " heuristic_measure = " << mask_ids_by_heuristic[local_id].first.to_string() << endl;
             if(!mask_ids_by_heuristic[local_id].first.defined)

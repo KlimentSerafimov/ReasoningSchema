@@ -198,6 +198,10 @@ void recursively_enumerate_meta_training_sets(
             cout << "(" << partition_id << ", " << partial_assignment_id << ", " << generalization_id << "); " << endl;
         }
 
+        assert(partition_id<all_meta_examples.meta_examples.size());
+        assert(partial_assignment_id<all_meta_examples.meta_examples[partition_id].size());
+        assert(generalization_id<all_meta_examples.meta_examples[partition_id][partial_assignment_id].size());
+
         if (poset.insert(all_meta_examples.meta_examples[partition_id][partial_assignment_id][generalization_id]))
         {
 //            cout << "enter " << poset.get_num_nodes() << endl;

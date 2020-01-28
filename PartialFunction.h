@@ -30,6 +30,7 @@ public:
 
     PartialFunction();
     PartialFunction(vector<BitInBittree*> bits);
+    PartialFunction(int _function_size, Bitvector _total_function);
     PartialFunction(int _function_size, Bitvector _total_function, Bitvector _partition);
 
     void init_via_bits(vector<BitInBittree*> bits);

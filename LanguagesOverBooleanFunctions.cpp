@@ -59,42 +59,42 @@ LanguagesOverBooleanFunctions::LanguagesOverBooleanFunctions(int _num_inputs, in
 
     if (language_id == 0) {
         append_inputs(1);
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 1, -1), "nor"));
+        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 1), "nor"));
     } else if (language_id == 1) {
         append_inputs(-1);
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 1, -1), "nor"));
+        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 1), "nor"));
     } else if (language_id == 2) {
         append_inputs(1);
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 7, -1), "nand"));
+        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 7), "nand"));
     } else if (language_id == 3) {
         append_inputs(-1);
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 7, -1), "nand"));
+        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 7), "nand"));
     } else if (language_id == 4) {
         append_inputs(1);
-        primitives_by_num_inputs[1].push_back(Primitive(PartialFunction(2, 1, -1), "not"));
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 14, -1), "or"));
+        primitives_by_num_inputs[1].push_back(Primitive(PartialFunction(2, 1), "not"));
+        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 14), "or"));
     } else if (language_id == 5) {
         append_inputs(-1);
-        primitives_by_num_inputs[1].push_back(Primitive(PartialFunction(2, 1, -1), "not"));
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 14, -1), "or"));
+        primitives_by_num_inputs[1].push_back(Primitive(PartialFunction(2, 1), "not"));
+        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 14), "or"));
     } else if (language_id == 6) {
         append_inputs(1);
-        primitives_by_num_inputs[1].push_back(Primitive(PartialFunction(2, 1, -1), "not"));
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 8, -1), "and"));
+        primitives_by_num_inputs[1].push_back(Primitive(PartialFunction(2, 1), "not"));
+        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 8), "and"));
     } else if (language_id == 7) {
         append_inputs(-1);
-        primitives_by_num_inputs[1].push_back(Primitive(PartialFunction(2, 1, -1), "not"));
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 8, -1), "and"));
+        primitives_by_num_inputs[1].push_back(Primitive(PartialFunction(2, 1), "not"));
+        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 8), "and"));
     } else if (language_id == 8) {
         append_inputs(1);
-        primitives_by_num_inputs[1].push_back(Primitive(PartialFunction(2, 1, -1), "not"));
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 8, -1), "and"));
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 14, -1), "or"));
+        primitives_by_num_inputs[1].push_back(Primitive(PartialFunction(2, 1), "not"));
+        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 8), "and"));
+        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 14), "or"));
     } else if (language_id == 9) {
         append_inputs(-1);
-        primitives_by_num_inputs[1].push_back(Primitive(PartialFunction(2, 1, -1), "not"));
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 8, -1), "and"));
-        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 14, -1), "or"));
+        primitives_by_num_inputs[1].push_back(Primitive(PartialFunction(2, 1), "not"));
+        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 8), "and"));
+        primitives_by_num_inputs[2].push_back(Primitive(PartialFunction(2, 14), "or"));
     } else if (language_id == 10) {
 
     } else if (language_id == 11) {
@@ -136,7 +136,7 @@ void LanguagesOverBooleanFunctions::enumerate() {
             ss >> num;
 
 //            cout << num << " ";
-            ordering_over_boolean_functions.push_back(PartialFunction((1<<num_inputs), num, -1));
+            ordering_over_boolean_functions.push_back(PartialFunction((1<<num_inputs), num));
 
         }
         cout << endl;
@@ -160,7 +160,8 @@ void LanguagesOverBooleanFunctions::enumerate() {
         if(!boolean_functions__contains(total_function))
         {
             boolean_functions__insert(total_function);
-            ordering_over_boolean_functions.push_back(PartialFunction((1<<num_inputs), total_function, -1));
+            ordering_over_boolean_functions.push_back(
+                    PartialFunction((1<<num_inputs), total_function));
             program_roots_by_size[1].push_back(new_program);
 //                                new_program->print();
         }else
@@ -197,7 +198,7 @@ void LanguagesOverBooleanFunctions::enumerate() {
                         if(!boolean_functions__contains(total_function))
                         {
                             boolean_functions__insert(total_function);
-                            ordering_over_boolean_functions.push_back(PartialFunction((1<<num_inputs), total_function, -1));
+                            ordering_over_boolean_functions.push_back(PartialFunction((1<<num_inputs), total_function));
                             program_roots_by_size[size].push_back(new_program);
 //                                new_program->print();
                         }else
@@ -236,7 +237,8 @@ void LanguagesOverBooleanFunctions::enumerate() {
                                 if(!boolean_functions__contains(total_function))
                                 {
                                     boolean_functions__insert(total_function);
-                                    ordering_over_boolean_functions.push_back(PartialFunction((1<<num_inputs), total_function, -1));
+                                    ordering_over_boolean_functions.push_back(
+                                            PartialFunction((1<<num_inputs), total_function));
                                     program_roots_by_size[size].push_back(new_program);
 //                                new_program->print();
                                 } else

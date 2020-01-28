@@ -39,7 +39,6 @@ public:
         }
     }
 
-public:
     HeuristicScore(int _num_input_bits, double _ratio_delta_meta_examples_per_new_bit) {
         num_input_bits = _num_input_bits;
         ratio_delta_meta_examples_per_new_bit = _ratio_delta_meta_examples_per_new_bit;

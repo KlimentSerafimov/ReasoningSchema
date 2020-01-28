@@ -55,13 +55,26 @@ int get_bit(Bitvector bitvector, int idx) {
     return bitvector.test(idx);
 }
 
+Bitvector::Bitvector(BitvectorConstructorType type, int _size)
+{
+    size_defined = true;
+    size = _size;
+    if(type == all_ones)
+    {
+        for(int i = 0;i<size;i++)
+        {
+            set(i);
+        }
+    }
+}
 
 Bitvector::Bitvector(bitset<BITVECTOR_SIZE> _bitset): bitset<BITVECTOR_SIZE>(_bitset)
 {
 }
 
-Bitvector::Bitvector(unsigned long long num): bitset<BITVECTOR_SIZE>(num)
+Bitvector::Bitvector(long long num): bitset<BITVECTOR_SIZE>(num)
 {
+    assert(num >= 0);
 }
 
 unsigned int Bitvector::num_trailing_zeroes() {
@@ -77,6 +90,18 @@ unsigned int Bitvector::num_trailing_zeroes() {
     }
     return ret;
 }
+
+void Bitvector::set_size(int _size)
+{
+    assert(!size_defined);
+    for(int i = _size; i<BITVECTOR_SIZE; i++)
+    {
+        assert(!test(i));
+    }
+    size_defined = true;
+    size = _size;
+}
+
 
 string vector_of_vector_of_int_to_string(vector<vector<int> > to_print, string title)
 {
