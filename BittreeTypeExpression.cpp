@@ -111,13 +111,13 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
 
         base_task_type = new BittreeTaskType(
                 NULL, Name("base_task_type"), internal_node, internal_node);
-        delta_task_type = new BittreeTaskType(
+        delta_task_type = new BittreeInputOutputType(
                 NULL, Name("delta_task_type"), internal_node, leaf_node);
 
         build_input_type(num_input_operands);
 
         BittreeTypeNode* base_task_type__output_child =
-                base_task_type->add_output_child(leaf_node, new_machine_bit);
+                base_task_type->io->add_output_child(leaf_node, new_machine_bit);
 
 //        base_task_type->output->children.push_back(
 //                new BittreeTypeNode(base_task_type->output, Name("children", base_task_type->output->children.size()), leaf_node, new_machine_bit));
@@ -165,16 +165,16 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
                 new BittreeTaskType(
                         NULL, Name("base_task_type"), internal_node, internal_node);
         delta_task_type =
-                new BittreeTaskType(
+                new BittreeInputOutputType(
                         NULL, Name("delta_task_type"), internal_node, leaf_node);
 
         build_input_type(num_input_operands);
 
         BittreeTypeNode* base_task_type__output_child_1 =
-                base_task_type->add_output_child(leaf_node, new_machine_bit);
+                base_task_type->io->add_output_child(leaf_node, new_machine_bit);
 
         BittreeTypeNode* base_task_type__output_child_2 =
-                base_task_type->add_output_child(leaf_node, new_machine_bit);
+                base_task_type->io->add_output_child(leaf_node, new_machine_bit);
 
         BittreeTypeNode* delta_task_type__output_delta =
                 delta_task_type->output->set_delta(leaf_node, double_node);
@@ -195,7 +195,7 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
         int delta_output_size[2] = {0, 1};
 
         base_task_type = new BittreeTaskType(NULL, Name("base_task_type"), internal_node, internal_node);
-        delta_task_type = new BittreeTaskType(NULL, Name("delta_task_type"), internal_node, internal_node);
+        delta_task_type = new BittreeInputOutputType(NULL, Name("delta_task_type"), internal_node, internal_node);
 
         build_input_type(num_input_operands);
 
@@ -229,7 +229,7 @@ void BittreeTypeExpression::build_input_type(int num_input_operands)
     {
         //init_input_operand_sizes == 0
         BittreeTypeNode* base_task_type__input_child =
-                base_task_type->add_input_child(internal_node);
+                base_task_type->io->add_input_child(internal_node);
 
         BittreeTypeNode* delta_task_type__input_child =
                 delta_task_type->add_input_child(leaf_node);
@@ -245,7 +245,7 @@ void BittreeTypeExpression::build_output_type(int num_outputs, int* init_output_
     for(int i = 0;i<num_outputs;i++)
     {
         BittreeTypeNode* base_task_type__output_child =
-                base_task_type->add_output_child(internal_node);
+                base_task_type->io->add_output_child(internal_node);
 
         for(int j = 0;j<init_output_sizes[i];j++)
         {
@@ -282,7 +282,7 @@ void BittreeTypeExpression::build_type(int num_input_operands, int init_output_s
 {
     base_task_type = new BittreeTaskType(
             NULL, Name("base_task_type"), internal_node, internal_node);
-    delta_task_type = new BittreeTaskType(
+    delta_task_type = new BittreeInputOutputType(
             NULL, Name("delta_task_type"), internal_node, leaf_node);
 
     build_input_type(num_input_operands);
@@ -297,7 +297,7 @@ void BittreeTypeExpression::build_type(int num_input_operands, int init_output_s
     for(int i = 0;i<init_output_size;i++)
     {
         BittreeTypeNode* base_task_type__output_child =
-                base_task_type->add_output_child(leaf_node, new_machine_bit);
+                base_task_type->io->add_output_child(leaf_node, new_machine_bit);
 
 //        base_task_type->output->children.push_back(
 //                new BittreeTypeNode(base_task_type->output, Name("children", base_task_type->output->children.size()),

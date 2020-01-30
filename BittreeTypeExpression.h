@@ -13,7 +13,7 @@ class BittreeTypeExpression
 public:
 
     BittreeTaskType* base_task_type;
-    BittreeTaskType* delta_task_type;
+    BittreeInputOutputType* delta_task_type;
 
     BittreeTypeExpression(TaskName task_name);
 

@@ -82,55 +82,62 @@ public:
     BittreeTypeNode *add_child(NodeType node_type, BitInBittreeType bit_in_bittree_type);
 };
 
-//class DeltaBittreeTaskType
-//{
-//public:
-//    DeltaBittreeType* delta_input = NULL;
-//    DeltaBittreeType* delta_output = NULL;
-//    DeltaBittreeTaskType(NodeType delta_input_type, NodeType delta_output_typee);
-//};
-
-class BittreeTaskInputOutputType: public TreeNode
-{
-
-};
-
-class BittreeTaskType: public TreeNode
+class BittreeInputOutputType: public TreeNode
 {
 public:
-
     BittreeTypeNode* input = NULL;
     BittreeTypeNode* output = NULL;
 
-    BittreeTaskType* delta = NULL;
-    BittreeTaskType* subtask = NULL;
+    BittreeInputOutputType();
 
-    BittreeTaskType* solution = NULL;
+    BittreeInputOutputType(TreeNode *_parent, Name name, NodeType input_node_type, NodeType output_node_type);
 
-    BittreeTaskType();
+    BittreeInputOutputType(TreeNode *_parent, Name name, BittreeInputOutputType *to_copy, bool all_new_bits);
 
-    BittreeTaskType(TreeNode *_parent, Name name, NodeType input_node_type, NodeType output_node_type);
 
-    BittreeTaskType(TreeNode *_parent, Name name, BittreeTaskType *to_copy, bool all_new_bits);
+    void append_bits(vector<BitInBittree*>& bits)
+    {
+        input->append_bits(bits);
+        output->append_bits(bits);
+    }
 
-    BittreeTaskType(TreeNode *_parent, BittreeTaskType *to_copy, bool all_new_bits, bool hard_pointer_assign_bits,
-                    Name name);
+    string to_string(int num_tabs)
+    {
+        string ret = "";
+        int next_tabs = num_tabs;
+        int next_next_tabs = next_tabs+1;
+        string open_bracket = "\n"+tabs(next_tabs) + "{\n";
+        string close_bracket = tabs(next_tabs) + "}\n";
+        ret += tabs(num_tabs)+"input"+input->TreeNode::to_string()+open_bracket + input->to_string(next_next_tabs) + close_bracket;
+        ret += tabs(num_tabs)+"output"+output->TreeNode::to_string()+open_bracket + output->to_string(next_next_tabs) + close_bracket;
+        return ret;
+    }
 
-    void append_bits(vector<BitInBittree*>& bits);
+    string bits_to_string(int num_tabs)
+    {
+        string ret = "";
 
-    void append_IO_bits(vector<BitInBittree*>& bits);
+        int next_tabs = num_tabs;
+        int next_next_tabs = next_tabs+1;
+        string open_bracket = "{\n";
+        string close_bracket = tabs(num_tabs) + "}\n";
+        ret += tabs(next_tabs)+"input"+open_bracket + input->bits_to_string(next_next_tabs) + close_bracket;
+        ret += tabs(next_tabs)+"output"+open_bracket + output->bits_to_string(next_next_tabs) + close_bracket;
 
-    string to_string();
+        return ret;
+    }
 
-    string to_string(int num_tabs);
+    void apply_delta(BittreeInputOutputType* delta)
+    {
+        input->apply_delta(delta->input);
+        output->apply_delta(delta->output);
+    }
 
-    string bits_to_string(int num_tabs);
+    BittreeTypeNode * add_input_child(NodeType child_type);
 
-    void apply_delta(BittreeTaskType* type) ;
+    BittreeTypeNode * add_output_child(NodeType child_type);
 
-    BittreeTaskType get_delta_application(BittreeTaskType* type);
-
-    BittreeTaskType* get_supertask_type(BittreeTaskType* type);
+    BittreeTypeNode * add_output_child(NodeType child_type, BitInBittreeType bit_in_bittree_type);
 
     void solve(TaskName task_name);
 
@@ -158,18 +165,63 @@ public:
 
     void solve__count_unary__reverse_subtask(int init_size);
 
+};
+
+class BittreeTaskType: public TreeNode
+{
+public:
+
+    BittreeInputOutputType* io;
+
+    BittreeInputOutputType* delta = NULL;
+    BittreeTaskType* subtask = NULL;
+
+    BittreeTaskType* solution = NULL;
+
+    BittreeTaskType();
+
+    BittreeTaskType(TreeNode *_parent, Name name, NodeType input_node_type, NodeType output_node_type);
+
+    BittreeTaskType(TreeNode *_parent, Name name, BittreeTaskType *to_copy, bool all_new_bits);
+
+    void solve(TaskName task_name);
+
+    void append_bits(vector<BitInBittree*>& bits);
+
+    void append_IO_bits(vector<BitInBittree*>& bits);
+
+    string to_string();
+
+    string to_string(int num_tabs);
+
+    string bits_to_string(int num_tabs);
+
+    void apply_delta(BittreeInputOutputType* type) ;
+
+    BittreeTaskType* get_supertask_type(BittreeInputOutputType* type);
+
     PartialFunction to_partial_function();
 
     MetaExample to_meta_example(int id);
 
     MetaExample to_meta_example_of_subtask_decomposition(int id, int subtask_depth);
 
-    BittreeTypeNode * add_input_child(NodeType child_type);
-
-    BittreeTypeNode * add_output_child(NodeType child_type);
-
-    BittreeTypeNode * add_output_child(NodeType child_type, BitInBittreeType bit_in_bittree_type);
 };
+
+//class BittreeTaskTypeDecomposition: public TreeNode
+//{
+//    BittreeTaskInputOutputType* delta = NULL;
+//    BittreeTaskInputOutputType* subtask = NULL;
+//};
+//
+//class BittreeTaskType: public TreeNode
+//{
+//    BittreeTaskInputOutputType input_output;
+//
+//    BittreeTaskInputOutputType solution;
+//
+//    BittreeTaskTypeDecomposition* decomposition;
+//};
 
 class BittreeProgram
 {

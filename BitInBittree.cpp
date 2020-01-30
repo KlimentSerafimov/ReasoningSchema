@@ -84,5 +84,13 @@ void TreeNode::append_bits(vector<BitInBittree*>& bits) {
         enter = true;
         bit_in_bittree->append_bits(bits);
     }
+
+    if(bittree_io_type != NULL)
+    {
+//        cout << "in bit_in_bittree" << endl;
+        assert(!enter);
+        enter = true;
+        bittree_io_type->append_bits(bits);
+    }
     assert(enter);
 }

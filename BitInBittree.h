@@ -12,8 +12,9 @@
 
 using namespace std;
 
-class BittreeTypeNode;
 class BittreeTaskType;
+class BittreeInputOutputType;
+class BittreeTypeNode;
 class BitInBittree;
 
 class TreeNode: public NodeTemplate
@@ -21,6 +22,7 @@ class TreeNode: public NodeTemplate
 public:
 
     BittreeTypeNode* bittree_type_node = NULL;
+    BittreeInputOutputType* bittree_io_type = NULL;
     BittreeTaskType* bittree_task_type = NULL;
     BitInBittree* bit_in_bittree = NULL;
 
@@ -40,6 +42,12 @@ public:
     {
         init(_parent, name);
         bit_in_bittree = _subclass_instance;
+    }
+
+    TreeNode(NodeTemplate* _parent, Name name, BittreeInputOutputType* _subclass_instance)
+    {
+        init(_parent, name);
+        bittree_io_type = _subclass_instance;
     }
 
     void append_bits(vector<BitInBittree*>& bits);

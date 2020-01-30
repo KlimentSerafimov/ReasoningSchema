@@ -16,7 +16,7 @@ class InstanceTree
 {
 public:
     BittreeTaskType* instance;
-    BittreeTaskType* delta;
+    BittreeInputOutputType* delta;
     TaskName task_name;
 
     bool prepared_for_deepening = false;
@@ -28,7 +28,7 @@ public:
     bool deepened = false;
     vector<InstanceTree*> superinstance_trees;
 
-    InstanceTree(BittreeTaskType* _instance, BittreeTaskType* _delta, TaskName _task_name);
+    InstanceTree(BittreeTaskType* _instance, BittreeInputOutputType* _delta, TaskName _task_name);
 
     void prepare_for_deepening();
 

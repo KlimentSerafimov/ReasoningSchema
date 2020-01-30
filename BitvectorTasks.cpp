@@ -94,7 +94,7 @@ BitvectorTasks::BitvectorTasks(int _function_size, int task_id) {
     }
 }
 
-InstanceTree::InstanceTree(BittreeTaskType* _instance, BittreeTaskType* _delta, TaskName _task_name) {
+InstanceTree::InstanceTree(BittreeTaskType* _instance, BittreeInputOutputType* _delta, TaskName _task_name) {
     instance = _instance;
     delta = _delta;
     task_name = _task_name;
@@ -107,7 +107,7 @@ void InstanceTree::prepare_for_deepening()
     vector<BitInBittree*> input_bits;
 
     memset_visited(vis_bits);
-    superinstance_type->input->append_bits(input_bits);
+    superinstance_type->io->input->append_bits(input_bits);
 
     int num_input_bits = 0;
     for(int i = 0;i<input_bits.size();i++)
@@ -131,7 +131,7 @@ void InstanceTree::prepare_for_deepening()
 //        cout <<superinstances[i]->to_string() << endl;
         vector<BitInBittree*> local_input_bits;
         memset_visited(vis_bits);
-       superinstances[i]->input->append_bits(local_input_bits);
+       superinstances[i]->io->input->append_bits(local_input_bits);
         int num_unassigned_bits = 0;
         for(int j = 0, k = 0;j<local_input_bits.size();j++)
         {
@@ -210,8 +210,8 @@ BittreeTaskInstance::BittreeTaskInstance(BittreeTaskType* _bittree_task_type)
     vector<BitInBittree*> output_bits;
 
     memset_visited(vis_bits);
-    bittree_task_type->input->append_bits(input_bits);
-    bittree_task_type->output->append_bits(output_bits);
+    bittree_task_type->io->input->append_bits(input_bits);
+    bittree_task_type->io->output->append_bits(output_bits);
 
     int num_input_bits = input_bits.size();
     int num_instances = (1<<num_input_bits);
@@ -220,7 +220,7 @@ BittreeTaskInstance::BittreeTaskInstance(BittreeTaskType* _bittree_task_type)
         instances.push_back(BittreeTaskType(NULL, Name("instances", instances.size()), bittree_task_type, true));
         vector<BitInBittree*> local_input_bits;
         memset_visited(vis_bits);
-        instances[i].input->append_bits(local_input_bits);
+        instances[i].io->input->append_bits(local_input_bits);
         assert(local_input_bits.size() == num_input_bits);
         for(int j = 0;j<local_input_bits.size();j++)
         {
@@ -459,4 +459,4 @@ class SubdomainScore
 //Task is a untyped bitvector mapping
 //StateLatticeGenerator: Task -> StateLattice
 //StateLattice: TraceVersionSpace: generated from instantiating a composition of PrimitiveTemplates
-//LatticeCompressor: SubdomainLattice -> program that when executed generates a trace (where trace: input->output path) in StateLattice
+//LatticeCompressor: SubdomainLattice -> program that when executed generates a trace (where trace: io->input->output path) in StateLattice
