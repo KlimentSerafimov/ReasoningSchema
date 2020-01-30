@@ -29,10 +29,6 @@ class MinimalFactoringSchema
 
     bool test_compact_poset_for_consistency_with_all_meta_examples(Bitvector subdomain_mask, CompactPoset *compact_poset);
 
-    void prune_globally_inconsistent_meta_examples(Bitvector subdomain_mask, CompactPoset *compact_poset);
-
-    int get_meta_edge_id_to_remove(CompactPoset* compact_poset, Bitvector subdomain_mask, int special_meta_example_id);
-
     HeuristicScore calculate_heuristic(Module* module);
 
     void repeat_apply_parents(Module *module);
@@ -70,13 +66,5 @@ public:
                                    vector<PartialFunction> &active_trace);
 
 };
-
-vector<MetaExample> get_meta_examples_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(
-        int subdomain_mask, vector<MetaExample> meta_examples);
-
-vector<MetaExample> get_meta_examples_after_query(Bitvector subdomain_mask, CompactPoset *compact_poset, vector<MetaExample> meta_examples,
-                                                  bool print, bool query_only_active, bool carry_over_active);
-
-
 
 #endif //COMPACTPOSET_MINIMALFACTORINGSCHEMA_H

@@ -201,5 +201,19 @@ public:
     void compare_nodes();
 };
 
+vector<MetaExample> get_meta_examples_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(
+        Bitvector subdomain_mask, vector<MetaExample> meta_examples);
+
+void prune_globally_inconsistent_meta_examples(vector<MetaExample> local_meta_examples,
+                                               Bitvector subdomain_mask,
+                                               CompactPoset *compact_poset);
+
+int get_meta_edge_id_to_remove(CompactPoset* compact_poset, Bitvector subdomain_mask, int special_meta_example_id, vector<MetaExample>* meta_examples);
+
+vector<MetaExample>
+get_meta_examples_after_query(Bitvector subdomain_mask, CompactPoset *compact_poset, vector<MetaExample> meta_examples,
+                              bool print, bool carry_over_active);
+
+
 
 #endif //COMPACTPOSET_COMPACTPOSET_H

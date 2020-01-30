@@ -9,7 +9,6 @@
 
 using namespace std;
 
-
 static const string str_task_name__sum = "sum";
 static const string str_task_name__greater = "greater";
 static const string str_task_name__cumulative_binary_operator = "cumulative_binary_operator";

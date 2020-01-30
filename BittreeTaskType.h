@@ -79,7 +79,7 @@ public:
 
     BittreeTypeNode *set_delta(NodeType delta_type_node, BittreeTypeLeafNodeType leaf_node_type);
 
-    BittreeTypeNode * add_child(NodeType node_type, BitInBittreeType bit_in_bittree_type);
+    BittreeTypeNode *add_child(NodeType node_type, BitInBittreeType bit_in_bittree_type);
 };
 
 //class DeltaBittreeTaskType
@@ -89,6 +89,11 @@ public:
 //    DeltaBittreeType* delta_output = NULL;
 //    DeltaBittreeTaskType(NodeType delta_input_type, NodeType delta_output_typee);
 //};
+
+class BittreeTaskInputOutputType: public TreeNode
+{
+
+};
 
 class BittreeTaskType: public TreeNode
 {
@@ -171,7 +176,8 @@ class BittreeProgram
 public:
 
     BittreeTaskType *root;
-    int rec_depth;
+    int num_subtree_markers;
+    int max_mask_type_depth;
     
     TreeNode* node = NULL;
     vector<Bitvector> bittree_masks_as_bitvectors;
@@ -183,7 +189,9 @@ public:
     //if is_root;
     vector<Bitvector> all_bittree_masks_as_bitvectors;
 
-    BittreeProgram(TreeNode *_node, BittreeTaskType *root, int rec_depth);
+    BittreeProgram* get_child_bittree_program(TreeNode* child);
+
+    BittreeProgram(TreeNode *_node, BittreeTaskType *root, int num_subtree_markers, int max_mask_type_depth);
     
     void populate_bittree_programs();
     

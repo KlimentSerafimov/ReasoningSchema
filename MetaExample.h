@@ -103,5 +103,6 @@ public:
     vector<Bitvector> get_masks(int max_mask_size);
 };
 
+int get_num_missing_bits(vector<MetaExample> meta_examples);
 
 #endif //COMPACTPOSET_METAEXAMPLE_H

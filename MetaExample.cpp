@@ -135,4 +135,15 @@ vector<Bitvector> MetaExample::get_masks(int max_mask_size)
     return ret;
 }
 
+int get_num_missing_bits(vector<MetaExample> meta_examples)
+{
+    int ret = 0;
+    for(int i = 0; i<meta_examples.size();i++)
+    {
+        ret += meta_examples[i].generalization.partition.count() -
+               meta_examples[i].partial_function.partition.count();
+    }
+    return ret;
+}
+
 

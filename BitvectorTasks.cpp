@@ -4,6 +4,7 @@
 
 #include "util.h"
 #include "BitvectorTasks.h"
+#include "TraceVersionSpace.h"
 
 #include <iostream>
 
@@ -260,18 +261,19 @@ vector<vector<Bitvector> > BitvectorTasks::masks_generator(
         vector<vector<Bitvector> > masks;
 
         vector<BittreeTaskType *> curriculum;
-        int rec_depth = 2;
+        int num_subtree_markers = 10;
+        int max_mask_type_depth = 10;
         curriculum.push_back(type_expression->base_task_type);
 
-//        memset_visited(vis_type, rec_depth);
-//        BittreeProgram program = BittreeProgram(curriculum[0], NULL, rec_depth);
+//        memset_visited(vis_type, num_subtree_markers);
+//        BittreeProgram program = BittreeProgram(curriculum[0], NULL, num_subtree_markers);
 //        masks.push_back(program.all_bittree_masks_as_bitvectors);
 //        num_iter--;
         for (int i = 0; i < num_iter; i++) {
             curriculum.push_back(curriculum[i]->get_supertask_type(type_expression->delta_task_type));
 //            cout << curriculum[i + 1]->to_string() << endl;
-            memset_visited(vis_type, rec_depth);
-            BittreeProgram program = BittreeProgram(curriculum[i + 1], NULL, rec_depth);
+            memset_visited(vis_type, num_subtree_markers);
+            BittreeProgram program = BittreeProgram(curriculum[i + 1], NULL, num_subtree_markers, max_mask_type_depth);
             masks.push_back(program.all_bittree_masks_as_bitvectors);
         }
 
@@ -352,16 +354,17 @@ BitvectorTasks::BitvectorTasks()
         BittreeTypeExpression type_expression_for_masks = BittreeTypeExpression(task_name);
         vector<BittreeTaskType*> curriculum;
         int num_iter = 4;
-        int rec_depth = 1;
+        int num_subtree_markers = 1;
+        int max_mask_type_depth = 1;
         curriculum.push_back(type_expression_for_masks.base_task_type);
 
-        memset_visited(vis_type, rec_depth);
-        BittreeProgram program = BittreeProgram(curriculum[0], NULL, rec_depth);
+        memset_visited(vis_type, num_subtree_markers);
+        BittreeProgram program = BittreeProgram(curriculum[0], NULL, num_subtree_markers, max_mask_type_depth);
         for (int i = 0; i < num_iter; i++) {
             curriculum.push_back(curriculum[i]->get_supertask_type(type_expression_for_masks.delta_task_type));
             cout << curriculum[i + 1]->to_string() << endl;
-            memset_visited(vis_type, rec_depth);
-            BittreeProgram program = BittreeProgram(curriculum[i + 1], NULL, rec_depth);
+            memset_visited(vis_type, num_subtree_markers);
+            BittreeProgram program = BittreeProgram(curriculum[i + 1], NULL, num_subtree_markers, max_mask_type_depth);
         }
 
 //      BittreeTaskInstance instances = BittreeTaskInstance(curriculum[4]);
@@ -422,21 +425,27 @@ BitvectorTasks::BitvectorTasks()
 
             //project the ordering of the subdomain masks onto the language of f(n) = ordering over the subdomain masks that solves the problem. 
 
-            MinimalFactoringSchema my_schema =
-                    MinimalFactoringSchema(
-                            meta_examples[i], language_name, masks[i]);
+            if(false) {
+                MinimalFactoringSchema my_schema =
+                        MinimalFactoringSchema(
+                                meta_examples[i], language_name, masks[i]);
 
-            for (int j = 0; j < meta_examples[i].size(); j++)
-            {
-                PartialFunction generalization = my_schema.query(meta_examples[i][j].partial_function);
-                cout << "query  " << meta_examples[i][j].to_string() << endl;
-                cout << "result " << generalization.to_string() << endl;
-                cout << endl;
-                assert(generalization.is_contained_in(meta_examples[i][j].generalization));
+                for (int j = 0; j < meta_examples[i].size(); j++) {
+                    PartialFunction generalization = my_schema.query(meta_examples[i][j].partial_function);
+                    cout << "query  " << meta_examples[i][j].to_string() << endl;
+                    cout << "result " << generalization.to_string() << endl;
+                    cout << endl;
+                    assert(generalization.is_contained_in(meta_examples[i][j].generalization));
+                }
+                cout << "TESTING DONE. ALL CORRECT" << endl;
+
+                vector<MetaExample> necessary_meta_examples = my_schema.get_necessary_meta_examples(false);
             }
-            cout << "TESTING DONE. ALL CORRECT" << endl;
-
-            vector<MetaExample> necessary_meta_examples = my_schema.get_necessary_meta_examples(false);
+            else
+            {
+                TraceVersionSpace trace_version_space =
+                        TraceVersionSpace(meta_examples[i], masks[i]);
+            }
         }
     }
 }

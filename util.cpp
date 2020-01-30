@@ -37,14 +37,16 @@ string bitvector_to_str(int bitvector, int n)
 
 string bitvector_to_str(Bitvector bitvector, int n)
 {
-    string to_remove_0s = bitvector.to_string();
-    string ret;
-    for(int i = to_remove_0s.size()-1; i >= to_remove_0s.size()-n ;i--)
-    {
-        ret += to_remove_0s[i];
-    }
-    reverse(ret.begin(), ret.end());
-    return ret;
+    assert(bitvector.get_size() == n);
+    return bitvector.to_string();
+//    string to_remove_0s = bitvector.to_string();
+//    string ret;
+//    for(int i = to_remove_0s.size()-1; i >= to_remove_0s.size()-n ;i--)
+//    {
+//        ret += to_remove_0s[i];
+//    }
+//    reverse(ret.begin(), ret.end());
+//    return ret;
 }
 
 int get_bit_of_int(int bitvector, int idx) {

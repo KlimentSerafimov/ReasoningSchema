@@ -93,8 +93,19 @@ public:
 
 
     void set_size(int i);
-};
 
+    string to_string()
+    {
+        string to_remove_0s = bitset<BITVECTOR_SIZE>::to_string();
+        string ret;
+        for(int i = to_remove_0s.size()-1; i >= to_remove_0s.size()-get_size() ;i--)
+        {
+            ret += to_remove_0s[i];
+        }
+        reverse(ret.begin(), ret.end());
+        return ret;
+    }
+};
 
 
 #endif //COMPACTPOSET_BITVECTOR_H

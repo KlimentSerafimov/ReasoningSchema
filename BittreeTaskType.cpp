@@ -973,6 +973,11 @@ BittreeTypeNode* BittreeTaskType::add_output_child(NodeType child_type, BitInBit
     return new_child;
 }
 
+BittreeProgram* BittreeProgram::get_child_bittree_program(TreeNode* child)
+{
+    return new BittreeProgram(child, root, num_subtree_markers, max_mask_type_depth-1);
+}
+
 void BittreeProgram::populate_bittree_programs()
 {
     if(is_root)
@@ -989,13 +994,13 @@ void BittreeProgram::populate_bittree_programs()
             assert(local_bittree->delta == NULL);
             assert(local_bittree->bit == NULL);
             for (int i = 0; i < local_bittree->children.size(); i++) {
-                bittree_programs.push_back(new BittreeProgram(local_bittree->children[i], root, rec_depth));
+                bittree_programs.push_back(get_child_bittree_program(local_bittree->children[i]));
             }
         } else if (local_bittree->node_type == leaf_node) {
             if (local_bittree->leaf_node_type == bit_node) {
-                bittree_programs.push_back(new BittreeProgram(local_bittree->bit, root, rec_depth));
+                bittree_programs.push_back(get_child_bittree_program(local_bittree->bit));
             } else if (local_bittree->leaf_node_type == delta_node) {
-                bittree_programs.push_back(new BittreeProgram(local_bittree->delta, root, rec_depth));
+                bittree_programs.push_back(get_child_bittree_program(local_bittree->delta));
             } else {
                 assert(false);
             }
@@ -1008,17 +1013,17 @@ void BittreeProgram::populate_bittree_programs()
         enter = true;
         BittreeTaskType *local_bittree = node->bittree_task_type;
         assert(local_bittree->input != NULL);
-        bittree_programs.push_back(new BittreeProgram(local_bittree->input, root, rec_depth));
+        bittree_programs.push_back(get_child_bittree_program(local_bittree->input));
         assert(local_bittree->output != NULL);
-        bittree_programs.push_back(new BittreeProgram(local_bittree->output, root, rec_depth));
+        bittree_programs.push_back(get_child_bittree_program(local_bittree->output));
         if (local_bittree->delta != NULL) {
-            bittree_programs.push_back(new BittreeProgram(local_bittree->delta, root, rec_depth));
+            bittree_programs.push_back(get_child_bittree_program(local_bittree->delta));
         }
         if (local_bittree->subtask != NULL) {
-            bittree_programs.push_back(new BittreeProgram(local_bittree->subtask, root, rec_depth));
+            bittree_programs.push_back(get_child_bittree_program(local_bittree->subtask));
         }
 //        if (local_bittree->solution != NULL) {
-//            bittree_programs.push_back(new BittreeProgram(local_bittree->solution, root, rec_depth));
+//            bittree_programs.push_back(new BittreeProgram(local_bittree->solution, root, num_subtree_markers));
 //        }
     }
     if (node->bit_in_bittree != NULL) {
@@ -1052,13 +1057,14 @@ void BittreeProgram::recurse_on_bittree_programs()
             PartialFunction local_partial_function = root->to_partial_function();
             assert(local_partial_function.full());
             bittree_masks_as_bitvectors.push_back(local_partial_function.total_function);
-            cout << root->to_partial_function().to_string() << " rec_depth " << rec_depth << " :" << endl;
+            cout << root->to_partial_function().to_string() << " num_subtree_markers " << num_subtree_markers << " :" << endl;
 
-            if(rec_depth>=2)
+            if(num_subtree_markers>=2)
             {
-                memset_visited(vis_type, rec_depth - 1);
+                memset_visited(vis_type, num_subtree_markers - 1);
                 next_rec_programs.push_back(
-                        new BittreeProgram(bittree_programs[i]->node, root, rec_depth - 1));
+                        new BittreeProgram(
+                                bittree_programs[i]->node, root, num_subtree_markers - 1, max_mask_type_depth));
 //                cout << endl;
             }
             else
@@ -1073,7 +1079,7 @@ void BittreeProgram::recurse_on_bittree_programs()
         }
         else
         {
-            if(rec_depth>=2)
+            if(num_subtree_markers>=2)
             {
                 next_rec_programs.push_back(NULL);
             }
@@ -1102,21 +1108,26 @@ void BittreeProgram::extract_partial_functions(vector<Bitvector> &ret)
     }
 }
 
-BittreeProgram::BittreeProgram(TreeNode *_node, BittreeTaskType *_root, int _rec_depth)
+BittreeProgram::BittreeProgram(TreeNode *_node, BittreeTaskType *_root, int _num_subtree_markers, int _max_mask_type_depth)
 {
-    rec_depth = _rec_depth;
-    if(rec_depth == 0)
+    max_mask_type_depth = _max_mask_type_depth;
+    num_subtree_markers = _num_subtree_markers;
+    if(num_subtree_markers == 0)
     {
         assert(false);
         return;
     }
-    if(_node->visited(vis_type, rec_depth))
+    if(max_mask_type_depth == 0)
+    {
+        return;
+    }
+    if(_node->visited(vis_type, num_subtree_markers))
     {
         return;
     }
     else
     {
-        _node->visit(vis_type, rec_depth);
+        _node->visit(vis_type, num_subtree_markers);
     }
 
     node = _node;

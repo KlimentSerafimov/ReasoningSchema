@@ -1654,3 +1654,177 @@ vector<MetaExample> CompactPoset::get_all_meta_examples_without_duplicates() {
 }
 
 
+vector<MetaExample> get_meta_examples_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(
+        Bitvector subdomain_mask, vector<MetaExample> meta_examples)
+{
+    vector<MetaExample> consistent_meta_examples;
+
+    for (int insert_meta_example_id = 0; insert_meta_example_id < meta_examples.size(); insert_meta_example_id++)
+    {
+        MetaExample local_insert_meta_example =
+                meta_examples[insert_meta_example_id].get_application_of_subdomain(subdomain_mask);
+        if (!local_insert_meta_example.fully_constrained())
+        {
+            bool is_consistent = true;
+            for (int test_meta_example_id = 0; test_meta_example_id < meta_examples.size(); test_meta_example_id++)
+            {
+                MetaExample local_test_meta_example =
+                        meta_examples[test_meta_example_id].get_application_of_subdomain(subdomain_mask);
+                if (!local_test_meta_example.fully_constrained())
+                {
+                    bool new_implementation_for_consistency =
+                            local_insert_meta_example.is_consistent_with(local_test_meta_example);
+
+                    if (!new_implementation_for_consistency)
+                    {
+                        is_consistent = false;
+                        break;
+                    }
+                }
+            }
+            if (is_consistent)
+            {
+//                MetaExample local_consistent_meta_example =
+//                        meta_examples[insert_meta_example_id].get_application_of_subdomain(subdomain_mask);
+                consistent_meta_examples.push_back(local_insert_meta_example);
+            }
+        }
+    }
+    return consistent_meta_examples;
+}
+
+void prune_globally_inconsistent_meta_examples(
+        vector<MetaExample> local_meta_examples, Bitvector subdomain_mask, CompactPoset *compact_poset)
+{
+    for (int test_meta_example_id = 0; test_meta_example_id < local_meta_examples.size(); test_meta_example_id++) {
+        MetaExample local_test_meta_example =
+                local_meta_examples[test_meta_example_id].get_application_of_subdomain(subdomain_mask);
+        assert(local_test_meta_example.idx == test_meta_example_id);
+        if (!local_test_meta_example.fully_constrained()) {
+            if (!compact_poset->insert(local_test_meta_example)) {
+                int soft_delete_count = 0;
+                do {
+
+                    int meta_edge_id_to_remove =
+                            get_meta_edge_id_to_remove(compact_poset, subdomain_mask, test_meta_example_id, &local_meta_examples);
+
+                    compact_poset->hard_pop();
+
+                    soft_delete_count++;
+                    cout << "soft_delete_count = " << soft_delete_count << endl;
+
+                    compact_poset->soft_delete(meta_edge_id_to_remove);
+
+                }while(!compact_poset->insert(local_test_meta_example));
+
+                compact_poset->hard_pop();
+            }
+            compact_poset->hard_pop();
+        }
+    }
+}
+
+int get_meta_edge_id_to_remove(
+        CompactPoset* compact_poset, Bitvector subdomain_mask, int special_meta_example_id, vector<MetaExample>* meta_examples)
+{
+    pair<vector<int>, vector<int> > meta_example_ids_in_cycle =
+            compact_poset->get_cycle_of_meta_example_ids_and_meta_edge_ids();
+
+    vector<int> meta_example_ids = meta_example_ids_in_cycle.first;
+    vector<int> meta_edges_ids = meta_example_ids_in_cycle.second;
+
+    assert(meta_example_ids.size() == meta_edges_ids.size());
+
+    //find meta_edge that corresponds to meta_example with most specified_bits that is not test_meta_example_id
+    pair<int, int> meta_edge_id_to_remove = make_pair(-1, -1);
+
+    for(int i = 0;i<meta_example_ids.size(); i++)
+    {
+        if(special_meta_example_id != meta_example_ids[i]) {
+            int local_meta_example_id = meta_example_ids[i];
+            MetaExample local_test_meta_example =
+                    meta_examples->at(local_meta_example_id).get_application_of_subdomain(subdomain_mask);
+            meta_edge_id_to_remove = max(
+                    meta_edge_id_to_remove,
+                    make_pair((int) local_test_meta_example.partial_function.partition.count(), meta_edges_ids[i]));
+        }
+    }
+    assert(meta_edge_id_to_remove.first != -1);
+    return meta_edge_id_to_remove.second;
+}
+
+vector<MetaExample>
+get_meta_examples_after_query(Bitvector subdomain_mask, CompactPoset *compact_poset, vector<MetaExample> meta_examples,
+                              bool print, bool carry_over_active)
+{
+    vector<MetaExample> meta_examples_with_hints;
+
+    int new_bits = 0;
+    int expanded_meta_example = 0;
+
+    for (int to_query_meta_example_id = 0; to_query_meta_example_id < meta_examples.size(); to_query_meta_example_id++) {
+//
+//        if(!query_only_active)
+//        {
+//            meta_examples[to_query_meta_example_id].active = true;
+//        }
+
+        MetaExample local_meta_example = meta_examples[to_query_meta_example_id];
+        MetaExample local_query_meta_example = local_meta_example.get_application_of_subdomain(subdomain_mask);
+
+//        if(query_only_active)
+//        {
+//            if(!local_query_meta_example.active)
+//            {
+//                meta_examples_with_hints.push_back(local_meta_example);
+//                continue;
+//            }
+//        }
+
+        vector<PartialFunction> result = compact_poset->query(local_query_meta_example.partial_function);
+
+        PartialFunction intermediate_result = result[0];
+        for (int k = 1; k < result.size(); k++) {
+            intermediate_result.apply_common_partition(result[k]);
+        }
+
+        assert((intermediate_result.partition & local_query_meta_example.generalization.partition) ==
+               intermediate_result.partition);
+
+        assert((intermediate_result.partition & local_query_meta_example.partial_function.partition) ==
+               local_query_meta_example.partial_function.partition);
+
+        int local_new_bits = (
+                intermediate_result.partition ^ local_query_meta_example.partial_function.partition).count();
+        expanded_meta_example += (local_new_bits >= 1);
+        new_bits += local_new_bits;
+
+
+        MetaExample meta_example_with_hint = MetaExample(
+                local_meta_example.generalization.function_size,
+                local_meta_example.generalization.total_function,
+                local_meta_example.partial_function.partition | intermediate_result.partition,
+                local_meta_example.generalization.partition,
+                local_meta_example.idx,
+                (local_new_bits >= 1) || (carry_over_active && local_meta_example.active)
+        );
+
+        meta_examples_with_hints.push_back(meta_example_with_hint);
+
+        if(print) {
+            cout << local_query_meta_example.to_string() << " :: " << "{"
+                 << meta_examples[to_query_meta_example_id].to_string() << "} -> {"
+                 << meta_example_with_hint.to_string() << "} delta = " << local_new_bits << endl;
+        }
+    }
+
+    if(print) {
+        cout << "new_bits = " << new_bits << endl;
+        cout << "expanded_meta_examples = " << expanded_meta_example << endl;
+    }
+
+    return meta_examples_with_hints;
+}
+
+
+
