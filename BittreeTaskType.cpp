@@ -9,11 +9,11 @@
 
 using namespace std;
 
-void BittreeTypeNode::init()
+void BittreeNode::init()
 {
 }
 
-BittreeTypeNode::BittreeTypeNode(TreeNode *parent, Name name, NodeType _node_type) : TreeNode(parent, name, this)
+BittreeNode::BittreeNode(TreeNode *parent, Name name, NodeType _node_type) : TreeNode(parent, name, this)
 {
 //    assert(_node_type == internal_node);
     init();
@@ -21,7 +21,7 @@ BittreeTypeNode::BittreeTypeNode(TreeNode *parent, Name name, NodeType _node_typ
     leaf_node_type = not_leaf_node;
 };
 
-BittreeTypeNode::BittreeTypeNode(TreeNode *parent, Name name, NodeType _node_type, BitInBittreeType bit_type)
+BittreeNode::BittreeNode(TreeNode *parent, Name name, NodeType _node_type, BitInBittreeType bit_type)
         : TreeNode(parent, name, this)
 {
     assert(_node_type == leaf_node);
@@ -34,8 +34,8 @@ BittreeTypeNode::BittreeTypeNode(TreeNode *parent, Name name, NodeType _node_typ
     leaf_node_type = bit_node;
 };
 
-BittreeTypeNode::BittreeTypeNode(TreeNode *parent, Name name, NodeType _node_type,
-                                 BittreeTypeLeafNodeType _leaf_node_type) : TreeNode(parent, name, this)
+BittreeNode::BittreeNode(TreeNode *parent, Name name, NodeType _node_type,
+                         BittreeTypeLeafNodeType _leaf_node_type) : TreeNode(parent, name, this)
 {
     assert(_node_type == leaf_node);
     assert(_leaf_node_type == double_node);
@@ -43,12 +43,12 @@ BittreeTypeNode::BittreeTypeNode(TreeNode *parent, Name name, NodeType _node_typ
     leaf_node_type = _leaf_node_type;
 }
 
-void BittreeTypeNode::copy_leaf_node(BittreeTypeNode *to_copy, bool all_new_bits)
+void BittreeNode::copy_leaf_node(BittreeNode *to_copy, bool all_new_bits)
 {
     copy_leaf_node(to_copy, all_new_bits, false);
 }
 
-void BittreeTypeNode::copy_leaf_node(BittreeTypeNode *to_copy, bool all_new_bits, bool hard_pointer_assign_bits)
+void BittreeNode::copy_leaf_node(BittreeNode *to_copy, bool all_new_bits, bool hard_pointer_assign_bits)
 {
     if(to_copy->bit != NULL) {
         if(hard_pointer_assign_bits)
@@ -60,6 +60,8 @@ void BittreeTypeNode::copy_leaf_node(BittreeTypeNode *to_copy, bool all_new_bits
         else {
             if (to_copy->bit->is_bit_set && to_copy->bit->bit_type == shared_machine_bit) {
                 bit = to_copy->bit;
+                bit->parents.push_back(this);
+                bit->names.push_back(Name("bit"));
             } else {
                 if (to_copy->bit->bit_type == new_blanko_bit || to_copy->bit->bit_type == new_machine_bit) {
                     bit = new BitInBittree(this, Name("bit"), new_machine_bit, to_copy->bit);
@@ -67,6 +69,7 @@ void BittreeTypeNode::copy_leaf_node(BittreeTypeNode *to_copy, bool all_new_bits
                     if (!all_new_bits) {
                         bit = to_copy->bit;
                         bit->parents.push_back(this);
+                        bit->names.push_back(Name("bit"));
                     } else {
                         bit = new BitInBittree(this, Name("bit"), shared_machine_bit, to_copy->bit);
                     }
@@ -79,7 +82,7 @@ void BittreeTypeNode::copy_leaf_node(BittreeTypeNode *to_copy, bool all_new_bits
     }
     else if(to_copy->delta != NULL)
     {
-        delta = new BittreeTypeNode(
+        delta = new BittreeNode(
                 this, Name("delta"), to_copy->delta, all_new_bits, hard_pointer_assign_bits);
     }
     else
@@ -90,10 +93,11 @@ void BittreeTypeNode::copy_leaf_node(BittreeTypeNode *to_copy, bool all_new_bits
     assert(to_copy->children.size() == 0);
 }
 
-BittreeTypeNode::BittreeTypeNode(TreeNode *parent, Name name, BittreeTypeNode *to_copy, bool all_new_bits)
+BittreeNode::BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool all_new_bits)
         : TreeNode(parent, name, this)
 {
     init();
+    copied_from = to_copy;
     node_type = to_copy->node_type;
     leaf_node_type = to_copy->leaf_node_type;
     if(node_type == leaf_node)
@@ -104,8 +108,8 @@ BittreeTypeNode::BittreeTypeNode(TreeNode *parent, Name name, BittreeTypeNode *t
     {
         for (int i = 0; i < to_copy->children.size(); i++)
         {
-            children.push_back(new BittreeTypeNode(this, Name("children", children.size()), to_copy->children.at(i),
-                                                   all_new_bits));
+            children.push_back(new BittreeNode(this, Name("children", children.size()), to_copy->children.at(i),
+                                               all_new_bits));
         }
     }
     else
@@ -114,10 +118,11 @@ BittreeTypeNode::BittreeTypeNode(TreeNode *parent, Name name, BittreeTypeNode *t
     }
 };
 
-BittreeTypeNode::BittreeTypeNode(TreeNode *parent, Name name, BittreeTypeNode *to_copy, bool all_new_bits,
-                                 bool hard_pointer_assign_bits) : TreeNode(parent, name, this)
+BittreeNode::BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool all_new_bits,
+                         bool hard_pointer_assign_bits) : TreeNode(parent, name, this)
 {
     init();
+    copied_from = to_copy;
     node_type = to_copy->node_type;
     leaf_node_type = to_copy->leaf_node_type;
     if(node_type == leaf_node)
@@ -129,7 +134,7 @@ BittreeTypeNode::BittreeTypeNode(TreeNode *parent, Name name, BittreeTypeNode *t
         for (int i = 0; i < to_copy->children.size(); i++)
         {
             children.push_back(
-                    new BittreeTypeNode(
+                    new BittreeNode(
                             this, Name("children", children.size()), to_copy->children.at(i), all_new_bits));
         }
     }
@@ -139,7 +144,7 @@ BittreeTypeNode::BittreeTypeNode(TreeNode *parent, Name name, BittreeTypeNode *t
     }
 };
 
-string BittreeTypeNode::to_string(int num_tabs)
+string BittreeNode::to_string(int num_tabs)
 {
     int next_num_tabs = num_tabs+1;
 //    string node_id_str = TreeNode::to_string();
@@ -178,7 +183,7 @@ string BittreeTypeNode::to_string(int num_tabs)
 }
 
 
-string BittreeTypeNode::bits_to_string(int num_tabs)
+string BittreeNode::bits_to_string(int num_tabs)
 {
     int next_num_tabs = num_tabs+1;
 //    string node_id_str = TreeNode::to_string();
@@ -219,7 +224,7 @@ string BittreeTypeNode::bits_to_string(int num_tabs)
     }
 }
 
-void BittreeTypeNode::apply_delta(BittreeTypeNode *delta_bittree_type) {
+void BittreeNode::apply_delta(BittreeNode *delta_bittree_type) {
     if(node_type == internal_node && delta_bittree_type->node_type == internal_node)
     {
         assert(children.size() == delta_bittree_type->children.size());
@@ -253,12 +258,12 @@ void BittreeTypeNode::apply_delta(BittreeTypeNode *delta_bittree_type) {
     }
 }
 
-//    void assign_bittree_type_node(BittreeTypeNode* new_value) {
+//    void assign_bittree_type_node(BittreeNode* new_value) {
 //        node_type = new_value->node_type;
 //        children.clear();
 //        append_children_from(new_value);
 //    }
-void BittreeTypeNode::append_children_from(BittreeTypeNode* new_value)
+void BittreeNode::append_children_from(BittreeNode* new_value)
 {
     if(node_type == leaf_node)
     {
@@ -269,8 +274,8 @@ void BittreeTypeNode::append_children_from(BittreeTypeNode* new_value)
     {
         assert(node_type == internal_node);
         for (int i = 0; i < new_value->children.size(); i++) {
-            children.push_back(new BittreeTypeNode(this, Name("children", children.size()), new_value->children.at(i), false,
-                                                   true));
+            children.push_back(new BittreeNode(this, Name("children", children.size()), new_value->children.at(i), false,
+                                               true));
         }
     }
     else
@@ -283,7 +288,7 @@ void BittreeTypeNode::append_children_from(BittreeTypeNode* new_value)
             for (int i = 0; i < init_children_size; i++)
             {
                 children.push_back(
-                        new BittreeTypeNode(
+                        new BittreeNode(
                                 this, Name("children", children.size()), children.at(i), false));
             }
         }
@@ -294,7 +299,7 @@ void BittreeTypeNode::append_children_from(BittreeTypeNode* new_value)
     }
 }
 
-void BittreeTypeNode::append_bits(vector<BitInBittree *>& bits) {
+void BittreeNode::append_bits(vector<BitInBittree *>& bits) {
 
     if(node_type == internal_node || (node_type == leaf_node && leaf_node_type == not_leaf_node))
     {
@@ -327,59 +332,60 @@ void BittreeTypeNode::append_bits(vector<BitInBittree *>& bits) {
     }
 }
 
-BittreeTypeNode *BittreeTypeNode::set_delta(NodeType delta_type_node, int num_children, BitInBittreeType bit_type) {
+BittreeNode *BittreeNode::set_delta(NodeType delta_type_node, int num_children, BitInBittreeType bit_type) {
     assert(delta == NULL);
     assert(delta_type_node == internal_node);
     assert(node_type == leaf_node);
     assert(leaf_node_type == not_leaf_node);
     leaf_node_type = delta_node;
-    delta = new BittreeTypeNode(this, Name("delta"), delta_type_node);
+    delta = new BittreeNode(this, Name("delta"), delta_type_node);
 
     assert(delta->children.size() == 0);
     for(int i = 0; i<num_children; i++)
     {
         assert(i == delta->children.size());
         delta->children.push_back(
-                new BittreeTypeNode(
+                new BittreeNode(
                         delta,Name("children", i),leaf_node, bit_type));
     }
     return delta;
 }
 
-BittreeTypeNode *BittreeTypeNode::set_delta(NodeType delta_type_node, BittreeTypeLeafNodeType delta_leaf_node_type) {
+BittreeNode *BittreeNode::set_delta(NodeType delta_type_node, BittreeTypeLeafNodeType delta_leaf_node_type) {
     assert(delta_leaf_node_type == double_node);
     assert(delta == NULL);
     assert(delta_type_node == leaf_node);
     assert(node_type == leaf_node);
     leaf_node_type = delta_node;
-    delta = new BittreeTypeNode(this, Name("delta"), delta_type_node, delta_leaf_node_type);
+    delta = new BittreeNode(this, Name("delta"), delta_type_node, delta_leaf_node_type);
 
     return delta;
 }
 
-BittreeTypeNode* BittreeTypeNode::add_child(NodeType node_type, BitInBittreeType bit_in_bittree_type) {
-    BittreeTypeNode* new_child =
-            new BittreeTypeNode(this, Name("children", children.size()), node_type, bit_in_bittree_type);
+BittreeNode* BittreeNode::add_child(NodeType node_type, BitInBittreeType bit_in_bittree_type) {
+    BittreeNode* new_child =
+            new BittreeNode(this, Name("children", children.size()), node_type, bit_in_bittree_type);
     children.push_back(new_child);
     return new_child;
 }
 
-BittreeInputOutputType::BittreeInputOutputType(): TreeNode(NULL, Name("NULL"), this)
-{
-}
+//BittreeInputOutputType::BittreeInputOutputType(): TreeNode(NULL, Name("NULL"), this)
+//{
+//}
 
 BittreeInputOutputType::BittreeInputOutputType(TreeNode *_parent, Name name, NodeType input_node_type, NodeType output_node_type)
         : TreeNode(_parent, name, this)
 {
-    input = new BittreeTypeNode(this, Name("input"), input_node_type);
-    output = new BittreeTypeNode(this, Name("output"), output_node_type);
+    input = new BittreeNode(this, Name("input"), input_node_type);
+    output = new BittreeNode(this, Name("output"), output_node_type);
 }
 
 BittreeInputOutputType::BittreeInputOutputType(TreeNode *_parent, Name name, BittreeInputOutputType *to_copy, bool all_new_bits)
         : TreeNode(_parent, name, this)
 {
-    input = new BittreeTypeNode(this, Name("input"), to_copy->input, all_new_bits);
-    output = new BittreeTypeNode(this, Name("output"), to_copy->output, all_new_bits);
+    copied_from = to_copy;
+    input = new BittreeNode(this, Name("input"), to_copy->input, all_new_bits);
+    output = new BittreeNode(this, Name("output"), to_copy->output, all_new_bits);
 }
 
 BittreeTaskType::BittreeTaskType(): TreeNode(NULL, Name("NULL"), this)
@@ -390,16 +396,40 @@ BittreeTaskType::BittreeTaskType(TreeNode *_parent, Name name, NodeType input_no
         : TreeNode(_parent, name, this)
 {
     io = new BittreeInputOutputType(this, Name("io"), input_node_type, output_node_type);
-//    input = new BittreeTypeNode(this, Name("input"), input_node_type);
-//    output = new BittreeTypeNode(this, Name("output"), output_node_type);
+//    input = new BittreeNode(this, Name("input"), input_node_type);
+//    output = new BittreeNode(this, Name("output"), output_node_type);
 }
 
 BittreeTaskType::BittreeTaskType(TreeNode *_parent, Name name, BittreeTaskType *to_copy, bool all_new_bits)
         : TreeNode(_parent, name, this)
 {
+    copied_from = to_copy;
+    assert(to_copy->io != NULL);
     io = new BittreeInputOutputType(this, Name("io"), to_copy->io, all_new_bits);
-//    input = new BittreeTypeNode(this, Name("input"), to_copy->input, all_new_bits);
-//    output = new BittreeTypeNode(this, Name("output"), to_copy->output, all_new_bits);
+//    if(name.to_string() == "solution")
+//    {
+//        if(to_copy->solution != NULL)
+//        {
+//            if (to_copy->solution->decomposition != NULL)
+//            {
+//                decomposition = new BittreeTaskDecomposition(
+//                        this, Name("decomposition"), to_copy->solution->decomposition, all_new_bits);
+//            }
+//        }
+//    }
+//    else
+//    {
+//        if (to_copy->decomposition != NULL) {
+//            decomposition = new BittreeTaskDecomposition(
+//                    this, Name("decomposition"), to_copy->decomposition, all_new_bits);
+//        }
+//        if(to_copy->solution != NULL)
+//        {
+//            solution = new BittreeTaskType(this, Name("solution"), to_copy->solution, all_new_bits);
+//        }
+//    }
+//    input = new BittreeNode(this, Name("input"), to_copy->input, all_new_bits);
+//    output = new BittreeNode(this, Name("output"), to_copy->output, all_new_bits);
 }
 
 
@@ -410,13 +440,9 @@ void BittreeTaskType::append_bits(vector<BitInBittree*>& bits)
     {
         solution->append_bits(bits);
     }
-    if(subtask!=NULL)
+    if(decomposition!=NULL)
     {
-        subtask->append_bits(bits);
-    }
-    if(delta!=NULL)
-    {
-        delta->append_bits(bits);
+        decomposition->append_bits(bits);
     }
 }
 
@@ -447,19 +473,9 @@ string BittreeTaskType::to_string(int num_tabs)
         ret += solution->to_string(next_next_tabs);
         ret += close_bracket;
     }
-
-    if(subtask != NULL)
+    if(decomposition != NULL)
     {
-        ret += tabs(next_tabs)+"subtask"+subtask->TreeNode::to_string()+open_bracket;
-        ret += subtask->to_string(next_next_tabs);
-        ret += close_bracket;
-    }
-
-    if(delta != NULL)
-    {
-        ret += tabs(next_tabs)+"delta"+delta->TreeNode::to_string()+open_bracket;
-        ret += delta->to_string(next_next_tabs);
-        ret += close_bracket;
+        ret+=decomposition->to_string(next_tabs);
     }
 
     return ret;
@@ -482,18 +498,9 @@ string BittreeTaskType::bits_to_string(int num_tabs)
         ret += close_bracket;
     }
 
-    if(subtask != NULL)
+    if(decomposition != NULL)
     {
-        ret += tabs(next_tabs)+"subtask"+open_bracket;
-        ret += subtask->bits_to_string(next_next_tabs);
-        ret += close_bracket;
-    }
-
-    if(delta != NULL)
-    {
-        ret += tabs(next_tabs)+"delta"+open_bracket;
-        ret += delta->bits_to_string(next_next_tabs);
-        ret += close_bracket;
+        ret+=decomposition->bits_to_string(next_tabs);
     }
 
     return ret;
@@ -510,16 +517,14 @@ void BittreeTaskType::apply_delta(BittreeInputOutputType* type) {
 //    return ret;
 //}
 
-BittreeTaskType* BittreeTaskType::get_supertask_type(BittreeInputOutputType* type)
+BittreeTaskType* BittreeTaskType::get_supertask_type(BittreeInputOutputType* delta)
 {
-    BittreeTaskType* ret = new BittreeTaskType(NULL, Name("supertask_of_"+names[0].to_string()), this, false);
-    ret->delta = new BittreeInputOutputType(ret, Name("delta"), type, true);
-    ret->apply_delta(ret->delta);
-//    ret->apply_delta(type);
-//    assert(false);
-    ret->subtask = this;
-    parents.push_back(ret);
-    names.push_back(Name("subtask"));
+    assert(names.size() == 1);
+    BittreeTaskType* ret =
+            new BittreeTaskType(
+                    NULL, Name("supertask_of_"+names[0].to_string()), this, false);
+    ret->decomposition = new BittreeTaskDecomposition(ret, Name("decomposition"), delta, this);
+    ret->apply_delta(ret->decomposition->delta);
     return ret;
 }
 
@@ -527,9 +532,15 @@ void BittreeTaskType::solve(TaskName task_name) {
 
     solution = new BittreeTaskType(this, Name("solution"), this, true);
 
-    if(subtask != NULL)
+    if(decomposition != NULL)
     {
-        solution->subtask = subtask->solution;
+        if(decomposition->subtask->solution != NULL)
+        {
+            solution->decomposition =
+                    new BittreeTaskDecomposition(
+                            solution, Name("decomposition"), NULL, decomposition->subtask->solution);
+        }
+
     }
     
     solution->io->solve(task_name);
@@ -952,26 +963,26 @@ MetaExample BittreeTaskType::to_meta_example_of_subtask_decomposition(int id, in
     return MetaExample(partial_function, total_function, id);
 }
 
-BittreeTypeNode* BittreeInputOutputType::add_input_child(NodeType child_type) {
+BittreeNode* BittreeInputOutputType::add_input_child(NodeType child_type) {
     assert(input != NULL);
-    BittreeTypeNode* new_child = new BittreeTypeNode(input, Name("children", input->children.size()), child_type);
+    BittreeNode* new_child = new BittreeNode(input, Name("children", input->children.size()), child_type);
     input->children.push_back(new_child);
     return new_child;
 }
 
-BittreeTypeNode* BittreeInputOutputType::add_output_child(NodeType child_type) {
+BittreeNode* BittreeInputOutputType::add_output_child(NodeType child_type) {
     assert(output != NULL);
-    BittreeTypeNode* new_child =
-            new BittreeTypeNode(
+    BittreeNode* new_child =
+            new BittreeNode(
                     output, Name("children", input->children.size()), child_type);
     output->children.push_back(new_child);
     return new_child;
 }
 
-BittreeTypeNode* BittreeInputOutputType::add_output_child(NodeType child_type, BitInBittreeType bit_in_bittree_type) {
+BittreeNode* BittreeInputOutputType::add_output_child(NodeType child_type, BitInBittreeType bit_in_bittree_type) {
     assert(output != NULL);
-    BittreeTypeNode* new_child =
-            new BittreeTypeNode(
+    BittreeNode* new_child =
+            new BittreeNode(
                     output, Name("children", input->children.size()), child_type, bit_in_bittree_type);
     output->children.push_back(new_child);
     return new_child;
@@ -991,7 +1002,7 @@ void BittreeProgram::populate_bittree_programs()
 
     bool enter = false;
     if (node->bittree_type_node != NULL) {
-        BittreeTypeNode *local_bittree = node->bittree_type_node;
+        BittreeNode *local_bittree = node->bittree_type_node;
         enter = true;
         if (local_bittree->node_type == internal_node ||
             (local_bittree->node_type == leaf_node && local_bittree->leaf_node_type == not_leaf_node)) {
@@ -1020,12 +1031,16 @@ void BittreeProgram::populate_bittree_programs()
         bittree_programs.push_back(get_child_bittree_program(local_bittree->io));
 //        assert(local_bittree->io->output != NULL);
 //        bittree_programs.push_back(get_child_bittree_program(local_bittree->output));
-        if (local_bittree->delta != NULL) {
-            bittree_programs.push_back(get_child_bittree_program(local_bittree->delta));
+
+        if (local_bittree->decomposition != NULL) {
+            bittree_programs.push_back(get_child_bittree_program(local_bittree->decomposition));
         }
-        if (local_bittree->subtask != NULL) {
-            bittree_programs.push_back(get_child_bittree_program(local_bittree->subtask));
-        }
+//        if (local_bittree->delta != NULL) {
+//            bittree_programs.push_back(get_child_bittree_program(local_bittree->delta));
+//        }
+//        if (local_bittree->subtask != NULL) {
+//            bittree_programs.push_back(get_child_bittree_program(local_bittree->subtask));
+//        }
 //        if (local_bittree->solution != NULL) {
 //            bittree_programs.push_back(new BittreeProgram(local_bittree->solution, root, num_subtree_markers));
 //        }
@@ -1040,6 +1055,17 @@ void BittreeProgram::populate_bittree_programs()
         bittree_programs.push_back(get_child_bittree_program(local_bittree->output));
         assert(local_bittree->output != NULL);
         bittree_programs.push_back(get_child_bittree_program(local_bittree->output));
+    }
+
+    if(node->bittree_task_decomposition != NULL)
+    {
+        assert(!enter);
+        enter = true;
+        BittreeTaskDecomposition *local_bittree = node->bittree_task_decomposition;
+        assert (local_bittree->delta != NULL);
+        bittree_programs.push_back(get_child_bittree_program(local_bittree->delta));
+        assert(local_bittree->subtask != NULL);
+        bittree_programs.push_back(get_child_bittree_program(local_bittree->subtask));
     }
 
     if (node->bit_in_bittree != NULL) {
@@ -1193,3 +1219,87 @@ BittreeProgram::BittreeProgram(TreeNode *_node, BittreeTaskType *_root, int _num
 }
 
 
+void BittreeTaskDecomposition::append_bits(vector<BitInBittree *>& bits)
+{
+    if(subtask!=NULL)
+    {
+        subtask->append_bits(bits);
+    }
+    if(delta!=NULL)
+    {
+        delta->append_bits(bits);
+    }
+}
+
+string BittreeTaskDecomposition::to_string(int num_tabs)
+{
+    string ret;
+    int next_tabs = num_tabs;
+    int next_next_tabs = next_tabs+1;
+    string open_bracket = "\n"+tabs(next_tabs) + "{\n";
+    string close_bracket = tabs(next_tabs) + "}\n";
+
+    if(subtask != NULL)
+    {
+        ret += tabs(next_tabs)+"subtask"+subtask->TreeNode::to_string()+open_bracket;
+        ret += subtask->to_string(next_next_tabs);
+        ret += close_bracket;
+    }
+
+    if(delta != NULL)
+    {
+        ret += tabs(next_tabs)+"delta"+delta->TreeNode::to_string()+open_bracket;
+        ret += delta->to_string(next_next_tabs);
+        ret += close_bracket;
+    }
+    return ret;
+}
+
+string BittreeTaskDecomposition::bits_to_string(int num_tabs) {
+
+    string ret;
+    int next_tabs = num_tabs;
+    int next_next_tabs = next_tabs+1;
+    string open_bracket = "\n"+tabs(next_tabs) + "{\n";
+    string close_bracket = tabs(next_tabs) + "}\n";
+
+    if(subtask != NULL)
+    {
+        ret += tabs(next_tabs)+"subtask"+open_bracket;
+        ret += subtask->bits_to_string(next_next_tabs);
+        ret += close_bracket;
+    }
+
+    if(delta != NULL)
+    {
+        ret += tabs(next_tabs)+"delta"+open_bracket;
+        ret += delta->bits_to_string(next_next_tabs);
+        ret += close_bracket;
+    }
+    return ret;
+}
+
+BittreeTaskDecomposition::BittreeTaskDecomposition(
+        TreeNode *parent, Name name, BittreeInputOutputType *delta_to_copy, BittreeTaskType *_subtask): TreeNode(parent, name, this) {
+    if(delta_to_copy != NULL)
+    {
+        delta = new BittreeInputOutputType(this, Name("delta"), delta_to_copy, true);
+    }
+    if(_subtask != NULL)
+    {
+        subtask = _subtask;
+        subtask->parents.push_back(this);
+        subtask->names.push_back(Name("subtask"));
+    }
+}
+
+BittreeTaskDecomposition::BittreeTaskDecomposition(
+        TreeNode *parent, Name name, BittreeTaskDecomposition *to_copy, bool all_new_bits): TreeNode(parent, name, this)
+{
+    if(to_copy != NULL)
+    {
+        copied_from = to_copy;
+        delta = new BittreeInputOutputType(this, Name("delta"), to_copy->delta, all_new_bits);
+        subtask = new BittreeTaskType(this, Name("subtask"), to_copy->subtask, all_new_bits);
+    }
+}

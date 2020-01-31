@@ -10,5 +10,5 @@
 //{
 //    node_type = leaf_node;
 //    children = new vector<DeltaBittreeType*>();
-//    delta = new BittreeTypeNode(NULL, delta_node_type);
+//    delta = new BittreeNode(NULL, delta_node_type);
 //}

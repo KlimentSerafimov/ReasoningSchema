@@ -126,7 +126,12 @@ void InstanceTree::prepare_for_deepening()
     {
         superinstances[i] = new BittreeTaskType(
                 NULL, Name("superinstances", i), superinstance_type, true);
-        superinstances[i]->subtask = superinstance_type->subtask;
+        if(superinstance_type->decomposition->subtask != NULL)
+        {
+            superinstances[i]->decomposition = new BittreeTaskDecomposition(
+                    superinstances[i], Name("decomposition"), NULL, superinstance_type->decomposition->subtask);
+        }
+
 //        cout << "---------------------------------------------------" << endl;
 //        cout <<superinstances[i]->to_string() << endl;
         vector<BitInBittree*> local_input_bits;
@@ -261,8 +266,8 @@ vector<vector<Bitvector> > BitvectorTasks::masks_generator(
         vector<vector<Bitvector> > masks;
 
         vector<BittreeTaskType *> curriculum;
-        int num_subtree_markers = 10;
-        int max_mask_type_depth = 10;
+        int num_subtree_markers = 100;
+        int max_mask_type_depth = 100;
         curriculum.push_back(type_expression->base_task_type);
 
 //        memset_visited(vis_type, num_subtree_markers);
@@ -376,7 +381,7 @@ BitvectorTasks::BitvectorTasks()
         BittreeTypeExpression type_expression_for_masks = BittreeTypeExpression(task_name);
 
         //parameter
-        int num_iter = 4;
+        int num_iter = 2;
 
         if(task_name.num_iter_defined)
         {
@@ -405,6 +410,9 @@ BitvectorTasks::BitvectorTasks()
                     ",size="+std::to_string(i+1) + "]";
 
             assert(meta_examples[i].size() >= 0);
+            assert(masks[i].size() >= 0);
+
+            assert(meta_examples[i][0].get_function_size() == masks[i][0].get_size());
 
 //            vector<Bitvector> masks =
 //                    meta_examples[i][0].get_masks(max_mask_size);
@@ -413,6 +421,8 @@ BitvectorTasks::BitvectorTasks()
             {
                 cout << bitvector_to_str(masks[i][j], masks[i][j].get_size()) << endl;
             }
+
+
 
             //ideas:
             //multi-objective beam search
@@ -443,8 +453,7 @@ BitvectorTasks::BitvectorTasks()
             }
             else
             {
-                TraceVersionSpace trace_version_space =
-                        TraceVersionSpace(meta_examples[i], masks[i]);
+                TraceVersionSpace trace_version_space = TraceVersionSpace(meta_examples[i], masks[i]);
             }
         }
     }

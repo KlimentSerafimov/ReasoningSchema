@@ -104,6 +104,14 @@ public:
 
     TraceVersionSpace(vector<MetaExample> _meta_examples, vector<Bitvector> masks)
     {
+        cout << endl;
+        cout << "meta_examples" << endl;
+        for(int i = 0;i<_meta_examples.size();i++)
+        {
+            cout << _meta_examples[i].to_string() << endl;
+        }
+        cout << endl;
+
         root = new TraceNode(_meta_examples);
         all_nodes.push_back(root);
 
@@ -115,19 +123,28 @@ public:
 
         int num_iter = 0;
 
+        int in_q_prev_max_widht = 0;
+
+        int while_loop_count = 0;
+
         while(!fronteer.empty())
         {
+            while_loop_count++;
             TraceNode* at = fronteer.top().second.first;
             int mask_id = fronteer.top().second.second;
             int prev_max_width = fronteer.top().first;
-            cout << "prev_max_width " << prev_max_width << endl;
             fronteer.pop();
+            if(in_q_prev_max_widht != prev_max_width)
+            {
+                cout << "prev_max_width " << prev_max_width << " @ |q| = " << num_iter << " |while| = " << while_loop_count << endl;
+                in_q_prev_max_widht = prev_max_width;
+            }
 
             TraceOperation* operation = new TraceOperation(compact_poset_operation, at, masks[mask_id]);
             TraceNode* output = operation->get_output();
             if(output != NULL) {
                 for (int i = 0; i < masks.size(); i++) {
-                    if (num_iter < 100) {
+                    if (num_iter < 10000) {
                         fronteer.push(make_pair(max(prev_max_width, (int) masks[i].count()), make_pair(output, i)));
                         num_iter++;
                     }
@@ -143,6 +160,7 @@ public:
 
         assert(leafs.size() >= 1);
 
+        cout << "traces" << endl;
         for(int i = 0;i<leafs.size(); i++)
         {
             cout << leafs[i]->string__of__root_to_this_path() << endl;

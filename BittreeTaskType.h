@@ -15,19 +15,19 @@
 class PartialFunction;
 class MetaExample;
 
-class BittreeTypeNode;
+class BittreeNode;
 class BittreeTaskType;
 
 enum BittreeTypeLeafNodeType {not_leaf_node, bit_node, double_node, delta_node};
 
 
-class BittreeTypeNode: public TreeNode
+class BittreeNode: public TreeNode
 {
 public:
     NodeType node_type;
 
     //if internal_node
-    vector<BittreeTypeNode*> children;
+    vector<BittreeNode*> children;
 
     //if leaf_node;
     BittreeTypeLeafNodeType leaf_node_type;
@@ -38,22 +38,22 @@ public:
     //if leaf_node_type == double_node;
 
     //if leaf_nod_type == delta_node;
-    BittreeTypeNode* delta = NULL;
+    BittreeNode* delta = NULL;
 
-    BittreeTypeNode(TreeNode *parent, Name name, NodeType _node_type);
+    BittreeNode(TreeNode *parent, Name name, NodeType _node_type);
 
-    BittreeTypeNode(TreeNode *parent, Name name, NodeType _node_type, BitInBittreeType bit_type);
+    BittreeNode(TreeNode *parent, Name name, NodeType _node_type, BitInBittreeType bit_type);
 
-    BittreeTypeNode(TreeNode *parent, Name name, NodeType _node_type, BittreeTypeLeafNodeType leaf_node_type);
+    BittreeNode(TreeNode *parent, Name name, NodeType _node_type, BittreeTypeLeafNodeType leaf_node_type);
 
-    BittreeTypeNode(TreeNode *parent, Name name, BittreeTypeNode *to_copy, bool all_new_bits);
+    BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool all_new_bits);
 
-    BittreeTypeNode(TreeNode *parent, Name name, BittreeTypeNode *to_copy, bool all_new_bits,
-                    bool hard_pointer_assign_bits);
+    BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool all_new_bits,
+                bool hard_pointer_assign_bits);
 
-    void copy_leaf_node(BittreeTypeNode *to_copy, bool all_new_bits);
+    void copy_leaf_node(BittreeNode *to_copy, bool all_new_bits);
 
-    void copy_leaf_node(BittreeTypeNode *to_copy, bool all_new_bits, bool hard_pointer_assign_bits);
+    void copy_leaf_node(BittreeNode *to_copy, bool all_new_bits, bool hard_pointer_assign_bits);
 
     void init();
 
@@ -63,32 +63,32 @@ public:
 
     string bits_to_string(int num_tabs);
 
-    void apply_delta(BittreeTypeNode *delta_bittree_type);
+    void apply_delta(BittreeNode *delta_bittree_type);
 
-//    void assign_bittree_type_node(BittreeTypeNode* new_value) {
+//    void assign_bittree_type_node(BittreeNode* new_value) {
 //        node_type = new_value->node_type;
 //        children->clear();
 //        append_children_from(new_value);
 //    }
 
-    void append_children_from(BittreeTypeNode* new_value);
+    void append_children_from(BittreeNode* new_value);
 
     void append_bits(vector<BitInBittree*>& bits);
 
-    BittreeTypeNode *set_delta(NodeType type, int i, BitInBittreeType bit_in_bittree_type);
+    BittreeNode *set_delta(NodeType type, int i, BitInBittreeType bit_in_bittree_type);
 
-    BittreeTypeNode *set_delta(NodeType delta_type_node, BittreeTypeLeafNodeType leaf_node_type);
+    BittreeNode *set_delta(NodeType delta_type_node, BittreeTypeLeafNodeType leaf_node_type);
 
-    BittreeTypeNode *add_child(NodeType node_type, BitInBittreeType bit_in_bittree_type);
+    BittreeNode *add_child(NodeType node_type, BitInBittreeType bit_in_bittree_type);
 };
 
 class BittreeInputOutputType: public TreeNode
 {
 public:
-    BittreeTypeNode* input = NULL;
-    BittreeTypeNode* output = NULL;
+    BittreeNode* input = NULL;
+    BittreeNode* output = NULL;
 
-    BittreeInputOutputType();
+//    BittreeInputOutputType();
 
     BittreeInputOutputType(TreeNode *_parent, Name name, NodeType input_node_type, NodeType output_node_type);
 
@@ -133,11 +133,11 @@ public:
         output->apply_delta(delta->output);
     }
 
-    BittreeTypeNode * add_input_child(NodeType child_type);
+    BittreeNode * add_input_child(NodeType child_type);
 
-    BittreeTypeNode * add_output_child(NodeType child_type);
+    BittreeNode * add_output_child(NodeType child_type);
 
-    BittreeTypeNode * add_output_child(NodeType child_type, BitInBittreeType bit_in_bittree_type);
+    BittreeNode * add_output_child(NodeType child_type, BitInBittreeType bit_in_bittree_type);
 
     void solve(TaskName task_name);
 
@@ -167,14 +167,34 @@ public:
 
 };
 
+
+class BittreeTaskDecomposition: public TreeNode
+{
+public:
+
+    BittreeInputOutputType* delta = NULL;
+    BittreeTaskType* subtask = NULL;
+
+    BittreeTaskDecomposition(
+            TreeNode *parent, Name name, BittreeInputOutputType *delta_to_copy, BittreeTaskType *subtask);
+
+    BittreeTaskDecomposition(TreeNode *parent, Name name, BittreeTaskDecomposition* to_copy, bool all_new_bits);
+
+    void append_bits(vector<BitInBittree*>& bits);
+
+    string to_string(int num_tabs);
+
+    string bits_to_string(int num_tabs);
+};
+
+
 class BittreeTaskType: public TreeNode
 {
 public:
 
-    BittreeInputOutputType* io;
+    BittreeInputOutputType* io = NULL;
 
-    BittreeInputOutputType* delta = NULL;
-    BittreeTaskType* subtask = NULL;
+    BittreeTaskDecomposition* decomposition = NULL;
 
     BittreeTaskType* solution = NULL;
 

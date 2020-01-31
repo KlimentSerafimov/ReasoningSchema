@@ -8,7 +8,7 @@
 
 //#include "util.h"
 //
-//class BittreeTypeNode;
+//class BittreeNode;
 //
 //class DeltaBittreeType
 //{
@@ -19,7 +19,7 @@
 //    vector<DeltaBittreeType*>* children;
 //
 //    //if node_type == leaf_node;
-//    BittreeTypeNode* delta = NULL;
+//    BittreeNode* delta = NULL;
 //
 //    DeltaBittreeType(NodeType delta_node_type);
 //};

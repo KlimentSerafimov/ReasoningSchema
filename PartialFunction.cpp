@@ -219,12 +219,26 @@ BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(BittreeTaskTy
         {
             memset_visited(vis_bits);
             local_subtask->append_IO_bits(partial_bits);
-            local_subtask = local_subtask->subtask;
+            if(local_subtask->decomposition != NULL)
+            {
+                local_subtask = local_subtask->decomposition->subtask;
+            }
+            else
+            {
+                local_subtask = NULL;
+            }
         } else
         {
             memset_visited(vis_bits);
             local_subtask->solution->append_IO_bits(partial_bits);
-            local_subtask = local_subtask->subtask;
+            if(local_subtask->decomposition != NULL)
+            {
+                local_subtask = local_subtask->decomposition->subtask;
+            }
+            else
+            {
+                local_subtask = NULL;
+            }
         }
         if(num_prev_subtasks == subtask_depth && subtask_depth != -1)
         {

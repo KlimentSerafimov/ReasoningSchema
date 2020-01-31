@@ -6,7 +6,7 @@
 #include "BittreeTaskType.h"
 
 
-BitInBittree::BitInBittree(BittreeTypeNode *parent, Name name, BitInBittreeType _bit_type) : TreeNode(parent, name, this)
+BitInBittree::BitInBittree(BittreeNode *parent, Name name, BitInBittreeType _bit_type) : TreeNode(parent, name, this)
 {
     bit_type = _bit_type;
     if(bit_type == new_machine_bit || bit_type == shared_machine_bit)
@@ -16,7 +16,7 @@ BitInBittree::BitInBittree(BittreeTypeNode *parent, Name name, BitInBittreeType 
     }
 }
 
-BitInBittree::BitInBittree(BittreeTypeNode* _parent, Name name, BitInBittreeType _bit_type, BitInBittree* _copied_from): TreeNode(_parent, name, this)
+BitInBittree::BitInBittree(BittreeNode* _parent, Name name, BitInBittreeType _bit_type, BitInBittree* _copied_from): TreeNode(_parent, name, this)
 {
     bit_type = _bit_type;
     if(bit_type == new_machine_bit || bit_type == shared_machine_bit)
@@ -25,14 +25,18 @@ BitInBittree::BitInBittree(BittreeTypeNode* _parent, Name name, BitInBittreeType
         global_bit_id++;
     }
     copied_from = _copied_from;
+    is_bit_set = copied_from->bit_in_bittree->is_bit_set;
+    bit_val = copied_from->bit_in_bittree->bit_val;
 }
 
 string BitInBittree::to_string() {
     if (!is_bit_set) {
         string copied_from_str = "";
         if(copied_from != NULL){
-            if(copied_from->bit_type == new_machine_bit || copied_from->bit_type == shared_machine_bit){
-                copied_from_str = ", "+std::to_string(copied_from->bit_id) + ": original_id";
+            BitInBittree* copied_from_bit = copied_from->bit_in_bittree;
+            if(copied_from_bit->bit_type == new_machine_bit || copied_from_bit->bit_type == shared_machine_bit)
+            {
+                copied_from_str = ", "+std::to_string(copied_from_bit->bit_id) + ": original_id";
             }
         }
         string bit_id_str;
@@ -66,31 +70,32 @@ void TreeNode::append_bits(vector<BitInBittree*>& bits) {
     bool enter = false;
     if(bittree_type_node != NULL)
     {
-//        cout << "in bittree_type_node" << endl;
         enter = true;
         bittree_type_node->append_bits(bits);
     }
     if(bittree_task_type != NULL)
     {
-//        cout << "in bittree_task_type" << endl;
         assert(!enter);
         enter = true;
         bittree_task_type->append_bits(bits);
     }
     if(bit_in_bittree != NULL)
     {
-//        cout << "in bit_in_bittree" << endl;
         assert(!enter);
         enter = true;
         bit_in_bittree->append_bits(bits);
     }
-
     if(bittree_io_type != NULL)
     {
-//        cout << "in bit_in_bittree" << endl;
         assert(!enter);
         enter = true;
         bittree_io_type->append_bits(bits);
+    }
+    if(bittree_task_decomposition != NULL)
+    {
+        assert(!enter);
+        enter = true;
+        bittree_task_decomposition->append_bits(bits);
     }
     assert(enter);
 }

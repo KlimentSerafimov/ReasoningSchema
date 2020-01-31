@@ -14,19 +14,24 @@ using namespace std;
 
 class BittreeTaskType;
 class BittreeInputOutputType;
-class BittreeTypeNode;
+class BittreeNode;
 class BitInBittree;
+class BittreeTaskDecomposition;
 
 class TreeNode: public NodeTemplate
 {
 public:
 
-    BittreeTypeNode* bittree_type_node = NULL;
+    BittreeNode* bittree_type_node = NULL;
     BittreeInputOutputType* bittree_io_type = NULL;
     BittreeTaskType* bittree_task_type = NULL;
     BitInBittree* bit_in_bittree = NULL;
+    BittreeTaskDecomposition* bittree_task_decomposition = NULL;
 
-    TreeNode(NodeTemplate* _parent, Name name, BittreeTypeNode* _subclass_instance)
+    vector<TreeNode*> copies;
+    TreeNode* copied_from;
+
+    TreeNode(NodeTemplate* _parent, Name name, BittreeNode* _subclass_instance)
     {
         init(_parent, name);
         bittree_type_node = _subclass_instance;
@@ -50,6 +55,12 @@ public:
         bittree_io_type = _subclass_instance;
     }
 
+    TreeNode(NodeTemplate* _parent, Name name, BittreeTaskDecomposition* _subclass_instance)
+    {
+        init(_parent, name);
+        bittree_task_decomposition = _subclass_instance;
+    }
+
     void append_bits(vector<BitInBittree*>& bits);
 };
 
@@ -67,11 +78,9 @@ public:
     bool is_bit_set = false;
     int bit_val;
 
-    BitInBittree* copied_from;
+    BitInBittree(BittreeNode *parent, Name name, BitInBittreeType _bit_type);
 
-    BitInBittree(BittreeTypeNode *parent, Name name, BitInBittreeType _bit_type);
-
-    BitInBittree(BittreeTypeNode *parent, Name name, BitInBittreeType _bit_type, BitInBittree *_copied_from);
+    BitInBittree(BittreeNode *parent, Name name, BitInBittreeType _bit_type, BitInBittree *_copied_from);
 
     string to_string();
 

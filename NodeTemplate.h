@@ -107,6 +107,7 @@ class NodeTemplate: public Visitable
 public:
     vector<NodeTemplate*> parents;
     vector<Name> names;
+
     int node_id = -1;
 
     void init(NodeTemplate* _parent, Name name)
