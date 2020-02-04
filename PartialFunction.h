@@ -64,6 +64,8 @@ public:
     bool full();
 
     bool operator < (const PartialFunction& other) const;
+
+    bool operator == (const PartialFunction& other) const;
 };
 
 class BittreeTaskTypeAsPartialFunction : public PartialFunction

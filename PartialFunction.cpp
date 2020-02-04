@@ -206,6 +206,18 @@ bool PartialFunction::operator < (const PartialFunction& other) const {
     return total_function < other.total_function;
 }
 
+bool PartialFunction::operator == (const PartialFunction& other) const {
+    if(total_function == other.total_function)
+    {
+        if(partition == other.partition)
+        {
+            return function_size == other.function_size;
+        }
+        return false;
+    }
+    return false;
+}
+
 BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(BittreeTaskType *_bittree_taks_type, int subtask_depth)
 {
     bittree_taks_type = _bittree_taks_type;

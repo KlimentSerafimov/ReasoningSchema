@@ -13,6 +13,11 @@
 
 using namespace std;
 
+class VersionSpaceNode: public NodeTemplate
+{
+
+};
+
 class TaskType: public BittreeTaskType
 {
 
@@ -39,7 +44,7 @@ class SubdomainMask
 
 class TraceOperation;
 
-class TraceNode
+class TraceNode: public VersionSpaceNode
 {
 public:
     vector<TraceOperation*> is_result_from;
@@ -65,7 +70,11 @@ public:
 
     void get_leafs(vector<TraceNode *>& ret_leafs);
 
-    string string__of__root_to_this_path();
+    string string__of__path_from_root_to_this();
+
+    TraceNode* find_origin(vector<TraceNode*> operands);
+
+    string string_from_origin_to_operands(vector<TraceNode*> operands);
 };
 
 enum TraceOperationType{
@@ -79,7 +88,6 @@ class TraceOperation
     //if compact_poset
     CompactPoset* compact_poset = NULL;
 
-
     void add_operand(TraceNode* operand);
 
     bool has_empty_output = false;
@@ -90,10 +98,49 @@ public:
 
     vector<TraceNode*> operands;
 
+    bool can_be_turned_into_union = false;
+    TraceOperation* union_alternative = NULL;
 
     TraceOperation(TraceOperationType type, TraceNode *operand, Bitvector subdomain_mask);
 
+    TraceOperation(TraceOperationType type, TraceNode *first_operand, TraceNode *second_operand);
+
+    ~TraceOperation();
+
     TraceNode* get_output();
+
+    string to_string();
+};
+
+class HeuristicScoreAndSolution
+{
+public:
+    int max_width;
+    int sum_width;
+    int remaining_bits;
+    TraceNode* at;
+    int next_mask_id;
+
+    HeuristicScoreAndSolution(int _max_width, int _sum_width, int _remaining_bits, TraceNode* _at, int _next_mask_id) {
+        max_width = _max_width;
+        sum_width = _sum_width;
+        remaining_bits = _remaining_bits;
+        at = _at;
+        next_mask_id = _next_mask_id;
+    }
+
+    bool operator < (const HeuristicScoreAndSolution& other ) const
+    {
+        if(max_width == other.max_width)
+        {
+            if(sum_width == other.sum_width)
+            {
+                return remaining_bits > other.remaining_bits;
+            }
+            return sum_width < other.sum_width;
+        }
+        return max_width < other.max_width;
+    }
 };
 
 class TraceVersionSpace
@@ -102,71 +149,7 @@ public:
     TraceNode* root;
     vector<TraceNode*> all_nodes;
 
-    TraceVersionSpace(vector<MetaExample> _meta_examples, vector<Bitvector> masks)
-    {
-        cout << endl;
-        cout << "meta_examples" << endl;
-        for(int i = 0;i<_meta_examples.size();i++)
-        {
-            cout << _meta_examples[i].to_string() << endl;
-        }
-        cout << endl;
-
-        root = new TraceNode(_meta_examples);
-        all_nodes.push_back(root);
-
-        priority_queue<pair<int, pair<TraceNode*, int>>, vector<pair<int, pair<TraceNode*, int>>>, greater<pair<int, pair<TraceNode*, int>> > > fronteer;
-
-        for(int i = 0;i<masks.size();i++) {
-            fronteer.push(make_pair(masks[i].count(), make_pair(root, i)));
-        }
-
-        int num_iter = 0;
-
-        int in_q_prev_max_widht = 0;
-
-        int while_loop_count = 0;
-
-        while(!fronteer.empty())
-        {
-            while_loop_count++;
-            TraceNode* at = fronteer.top().second.first;
-            int mask_id = fronteer.top().second.second;
-            int prev_max_width = fronteer.top().first;
-            fronteer.pop();
-            if(in_q_prev_max_widht != prev_max_width)
-            {
-                cout << "prev_max_width " << prev_max_width << " @ |q| = " << num_iter << " |while| = " << while_loop_count << endl;
-                in_q_prev_max_widht = prev_max_width;
-            }
-
-            TraceOperation* operation = new TraceOperation(compact_poset_operation, at, masks[mask_id]);
-            TraceNode* output = operation->get_output();
-            if(output != NULL) {
-                for (int i = 0; i < masks.size(); i++) {
-                    if (num_iter < 10000) {
-                        fronteer.push(make_pair(max(prev_max_width, (int) masks[i].count()), make_pair(output, i)));
-                        num_iter++;
-                    }
-                }
-            }
-            else {
-                delete operation;
-            }
-        }
-
-        vector<TraceNode*> leafs;
-        root->get_leafs(leafs);
-
-        assert(leafs.size() >= 1);
-
-        cout << "traces" << endl;
-        for(int i = 0;i<leafs.size(); i++)
-        {
-            cout << leafs[i]->string__of__root_to_this_path() << endl;
-        }
-
-    }
+    TraceVersionSpace(vector<MetaExample> _meta_examples, vector<Bitvector> masks);
 
 
 //    void main() {
