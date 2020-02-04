@@ -85,10 +85,45 @@ public:
 
     void set_range(int begin, int end)
     {
+        if(size_defined)
+        {
+            size = max(size, end+1);
+        }
+        else
+        {
+            size = end+1;
+        }
         for(int i = begin; i<=end;i++)
         {
             set(i);
         }
+    }
+
+    void set(int idx)
+    {
+        if(size_defined)
+        {
+            size = max(size, idx+1);
+        }
+        else
+        {
+            size = idx+1;
+        }
+
+        bitset<BITVECTOR_SIZE>::set(idx);
+    }
+
+    void set(int idx, int val)
+    {
+        if(size_defined)
+        {
+            size = max(size, idx+1);
+        }
+        else
+        {
+            size = idx+1;
+        }
+        bitset<BITVECTOR_SIZE>::set(idx, val);
     }
 
 

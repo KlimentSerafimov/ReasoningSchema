@@ -4,23 +4,37 @@
 
 #include "NodeTemplate.h"
 
-int global_vis_ids[NUM_VISITED_ARRAYS] = {0, 0, 0, 0, 0, 0, 0};
+map<int, int> global_vis_ids;
 
-int* get_global_vis_ids()
+map<int, int>* get_global_vis_ids()
 {
-    return global_vis_ids;
+    return &global_vis_ids;
 }
 
 void memset_visited(VisitedType type)
 {
     assert(type == vis_bits);
-    global_vis_ids[type]++;
+    if(global_vis_ids.find(type) == global_vis_ids.end())
+    {
+        global_vis_ids[type] = 0;
+    }
+    else
+    {
+        global_vis_ids[type]++;
+    }
 }
 
 void memset_visited(VisitedType type, int num_subtree_markers)
 {
-    assert(type == vis_type);
-    global_vis_ids[type+num_subtree_markers]++;
+    assert(type == vis_type || type == origin_type);
+    if(global_vis_ids.find(type) == global_vis_ids.end())
+    {
+        global_vis_ids[type+num_subtree_markers] = 0;
+    }
+    else
+    {
+        global_vis_ids[type+num_subtree_markers]++;
+    }
 }
 string NodeTemplate::root_to_node_path__to__string()
 {

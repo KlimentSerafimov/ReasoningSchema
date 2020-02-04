@@ -46,6 +46,10 @@ class TraceOperation;
 
 class TraceNode: public VersionSpaceNode
 {
+    TraceNode* find_origin(vector<TraceNode*> operands, int depth);
+
+    int num_markers = 0;
+
 public:
     vector<TraceOperation*> is_result_from;
     TraceState trace_state;
@@ -67,14 +71,26 @@ public:
     {
         trace_state = TraceState(meta_examples);
     }
+    TraceNode* init_find_origin(vector<TraceNode*> operands, int depth);
 
     void get_leafs(vector<TraceNode *>& ret_leafs);
 
     string string__of__path_from_root_to_this();
 
-    TraceNode* find_origin(vector<TraceNode*> operands);
+    string string_from_origin_to_operands(vector<TraceNode*> operands, int depth);
 
-    string string_from_origin_to_operands(vector<TraceNode*> operands);
+    void mark(int depth)
+    {
+        if(visited(origin_type, depth))
+        {
+            num_markers++;
+        }
+        else
+        {
+            visit(origin_type, depth);
+            num_markers = 1;
+        }
+    }
 };
 
 enum TraceOperationType{

@@ -241,7 +241,7 @@ vector<vector<Bitvector> > BitvectorTasks::masks_generator(
 {
     int num_iter = init_num_iter;
 
-    if(false)
+    if(true)
     {
         int max_masks_size = 3;
 //        vector<Bitvector> masks =

@@ -122,7 +122,7 @@ vector<Bitvector> MetaExample::get_masks(int max_mask_size)
     cout << "MASKS: " << endl;
     for(int i = 1;i<=max_mask_size;i++)
     {
-        Bitvector local_mask;
+        Bitvector local_mask(all_zeroes, get_function_size());
         for(int j = 0;j<i;j++)
         {
             local_mask.set(j);

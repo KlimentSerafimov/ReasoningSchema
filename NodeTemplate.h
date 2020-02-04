@@ -7,14 +7,15 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 using namespace std;
 
-enum VisitedType {vis_bits, vis_type};
+enum VisitedType {vis_bits, vis_type, origin_type};
 
 //int global_vis_ids[2];
 
-int* get_global_vis_ids();
+map<int, int>* get_global_vis_ids();
 
 void memset_visited(VisitedType type, int num_subtree_markers);
 
@@ -59,44 +60,48 @@ public:
     }
 };
 
-#define NUM_VISITED_ARRAYS 7
+//#define NUM_VISITED_ARRAYS 7
 
 class Visitable
 {
 public:
-    int vis_id[NUM_VISITED_ARRAYS];
+    map<int, int> vis_id;
 
     Visitable()
     {
-        for(int i = 0;i<NUM_VISITED_ARRAYS;i++)
-        {
-            vis_id[i] = -1;
-        }
     }
 
     void visit(VisitedType type)
     {
         assert(type == vis_bits);
-        vis_id[type] = get_global_vis_ids()[type];
+        vis_id[type] = get_global_vis_ids()->at(type);
     }
 
     void visit(VisitedType type, int num_subtree_markers)
     {
-        assert(type == vis_type);
-        vis_id[type] = get_global_vis_ids()[type+num_subtree_markers];
+//        assert(type == vis_type);
+        vis_id[type+num_subtree_markers] = get_global_vis_ids()->at(type+num_subtree_markers);
     }
 
     bool visited(VisitedType type)
     {
         assert(type == vis_bits);
 //        cout << "visited("<<std::to_string(type) << ")=" << (vis_id[type])<<  " ==  " << local_global_vis_ids[type] << endl;
-        return vis_id[type] == get_global_vis_ids()[type];
+        if(vis_id.find(type) == vis_id.end())
+        {
+            return false;
+        }
+        return vis_id[type] == get_global_vis_ids()->at(type);
     }
 
     bool visited(VisitedType type, int num_subtree_markers)
     {
 //        cout << "visited("<<std::to_string(type) << ")=" << (vis_id[type])<<  " ==  " << local_global_vis_ids[type] << endl;
-        return vis_id[type] == get_global_vis_ids()[type+num_subtree_markers];
+        if(vis_id.find(type+num_subtree_markers) == vis_id.end())
+        {
+            return false;
+        }
+        return vis_id[type+num_subtree_markers] == get_global_vis_ids()->at(type+num_subtree_markers);
     }
 };
 

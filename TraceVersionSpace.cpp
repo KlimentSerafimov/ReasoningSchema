@@ -29,48 +29,91 @@ TraceOperation::TraceOperation(TraceOperationType type, TraceNode *operand, Bitv
     }
 
     add_operand(operand);
+    if (get_output() != NULL) {
+        bool found_union;
+        TraceOperation* best_union_alternative = NULL;
+        TraceNode *at_operand = operand;
+        int count = 0;
+        do {
+            found_union = false;
+            if (at_operand->is_result_from.size() == 1) {
+                if (at_operand->is_result_from[0] != NULL) {
 
-    if(operand->is_result_from.size() == 1)
-    {
-        if(operand->is_result_from[0] != NULL)
-        {
-            if(get_output() != NULL) {
-                TraceNode *operand_pre_operand;
-                if(operand->is_result_from[0]->operands.size() == 1)
-                {
-                    operand_pre_operand = operand->is_result_from[0]->operands[0];
-                }
-                else
-                {
-                    operand_pre_operand = operand->find_origin(operand->is_result_from[0]->operands);
-                }
-                TraceOperation *skip_operation_pre_operand =
-                        new TraceOperation(type, operand_pre_operand, subdomain_mask);
-                if(skip_operation_pre_operand->get_output() != NULL) {
-                    union_alternative =
-                            new TraceOperation(
-                                    trace_union_operation, operand, skip_operation_pre_operand->get_output());
-                    TraceNode *union_output = union_alternative->get_output();
-                    if (union_output->trace_state.num_missing_bits == get_output()->trace_state.num_missing_bits) {
-                        can_be_turned_into_union = true;
-                        cout << endl;
-                        cout << get_output()->string__of__path_from_root_to_this() << endl;
-                        cout << skip_operation_pre_operand->get_output()->string__of__path_from_root_to_this() << endl;
-                        cout << union_output->string__of__path_from_root_to_this() << endl;
-                        cout << endl;
-//                assert(false);
+                    TraceNode *operand_pre_operand = at_operand->init_find_origin(
+                            at_operand->is_result_from[0]->operands, 0);
+                    TraceOperation *skip_operation_pre_operand =
+                            new TraceOperation(type, operand_pre_operand, subdomain_mask);
+                    if (skip_operation_pre_operand->get_output() != NULL) {
+                        TraceOperation *local_union_alternative =
+                                new TraceOperation(
+                                        trace_union_operation, operand,
+                                        skip_operation_pre_operand->get_output());
+                        TraceNode *union_output = local_union_alternative->get_output();
+                        if (union_output->trace_state.num_missing_bits ==
+                            get_output()->trace_state.num_missing_bits) {
+                            count += 1;
+//                            if (count >= 2) {
+//                                cout << "HERE count = " << count << endl;
+//                                cout << best_union_alternative->get_output()->string__of__path_from_root_to_this() << endl;
+//                                cout << union_output->string__of__path_from_root_to_this() << endl;
+//                            }
+                            found_union = true;
+                            delete best_union_alternative;
+                            best_union_alternative = local_union_alternative;
+                            at_operand = operand_pre_operand;
+
+
+//                            can_be_turned_into_union = true;
+//                            cout << endl;
+//                            cout << get_output()->string__of__path_from_root_to_this() << endl;
+//                            cout << skip_operation_pre_operand->get_output()->string__of__path_from_root_to_this() << endl;
+//                            cout << union_output->string__of__path_from_root_to_this() << endl;
+//                            cout << endl;
+
+                        } else {
+                            delete local_union_alternative;
+                            delete skip_operation_pre_operand;
+                        }
                     } else {
-                        delete union_alternative;
                         delete skip_operation_pre_operand;
                     }
                 }
+            } else {
+                assert(false);
             }
+        } while (found_union);
+
+        if (best_union_alternative != NULL) {
+            can_be_turned_into_union = true;
+            union_alternative = best_union_alternative;
         }
     }
-    else
-    {
-        assert(false);
-    }
+
+//    TraceNode *operand_pre_operand = operand->find_origin(operand->is_result_from[0]->operands);
+//    TraceOperation *skip_operation_pre_operand =
+//            new TraceOperation(type, operand_pre_operand, subdomain_mask);
+//    if(skip_operation_pre_operand->get_output() != NULL) {
+//        union_alternative =
+//                new TraceOperation(
+//                        trace_union_operation, operand, skip_operation_pre_operand->get_output());
+//        TraceNode *union_output = union_alternative->get_output();
+//        if (union_output->trace_state.num_missing_bits == get_output()->trace_state.num_missing_bits) {
+//            can_be_turned_into_union = true;
+//            cout << endl;
+//            cout << get_output()->string__of__path_from_root_to_this() << endl;
+//            cout << skip_operation_pre_operand->get_output()->string__of__path_from_root_to_this() << endl;
+//            cout << union_output->string__of__path_from_root_to_this() << endl;
+//            cout << endl;
+////                assert(false);
+//        } else {
+//            delete union_alternative;
+//            delete skip_operation_pre_operand;
+//        }
+//    }
+//    else
+//    {
+//        delete skip_operation_pre_operand;
+//    }
 
 //    compact_poset->soft_delete_redundant_edges();
 }
@@ -180,67 +223,97 @@ void TraceNode::get_leafs(vector<TraceNode *>& ret_leafs) {
     }
 }
 
-TraceNode* TraceNode::find_origin(vector<TraceNode*> operands)
+TraceNode* TraceNode::init_find_origin(vector<TraceNode*> operands, int depth)
 {
+    memset_visited(origin_type, depth);
+    return find_origin(operands, depth);
+}
+
+TraceNode* TraceNode::find_origin(vector<TraceNode*> operands, int depth)
+{
+    if(operands.size() == 1)
+    {
+        return operands[0];
+    }
     TraceNode* origin = NULL;
     for(int i = 0;i<operands.size();i++)
     {
-        assert(operands[i]->is_result_from.size() == 1);
-        assert(operands[i]->is_result_from[0]->get_output() == operands[i]);
-        TraceNode* local_origin;
-        if(operands[i]->is_result_from[0]->operands.size() == 1)
+        TraceNode* at = operands[i];
+        while(at != NULL)
         {
-            local_origin = operands[i]->is_result_from[0]->operands[0];
-        }
-        else
-        {
-            local_origin = find_origin(operands[i]->is_result_from[0]->operands);
-        }
-        if(origin != NULL)
-        {
-            assert(origin == local_origin);
-        }
-        else
-        {
-            origin = local_origin;
+            at->mark(depth);
+            assert(at->num_markers <= operands.size());
+            if(at->num_markers == operands.size())
+            {
+                return at;
+            }
+            assert(at->is_result_from.size() == 1);
+            if(at->is_result_from[0] != NULL) {
+                assert(at->is_result_from[0]->get_output() == at);
+                if (at->is_result_from[0]->operands.size() == 1) {
+//                where_enter = "First";
+//                cout << "A " << i << endl;
+                    at = at->is_result_from[0]->operands[0];
+                } else {
+//                where_enter = "Second";
+//                cout << "B " << i << endl;
+                    at = init_find_origin(at->is_result_from[0]->operands, depth + 1);
+                }
+            }
+            else
+            {
+                at = NULL;
+            }
         }
     }
+    assert(false);
     return origin;
 }
 
-string TraceNode::string_from_origin_to_operands(vector<TraceNode*> operands)
+string TraceNode::string_from_origin_to_operands(vector<TraceNode*> operands, int depth)
 {
+    TraceNode* origin = init_find_origin(operands, depth);
     string ret = "{";
-    TraceNode* origin = NULL;
+
     for(int i = 0;i<operands.size();i++)
     {
         if(i >= 1)
         {
             ret += " | ";
         }
-        assert(operands[i]->is_result_from.size() == 1);
-        TraceOperation* operation = operands[i]->is_result_from[0];
-        assert(operation->get_output() == operands[i]);
-        TraceNode* local_origin;
-        if(operation->operands.size() == 1)
+        TraceNode* at = operands[i];
+        string local_string;
+        while(at != origin)
         {
-            local_origin = operation->operands[0];
-            ret += operation->to_string();
+            assert(at->is_result_from.size() == 1);
+            TraceOperation* operation = at->is_result_from[0];
+            assert(operation->get_output() == at);
+            TraceNode* local_origin;
+            string base;
+            if(operation->operands.size() == 1)
+            {
+                base = operation->to_string();
+
+                at = at->is_result_from[0]->operands[0];
+            }
+            else
+            {
+                base =
+                        string_from_origin_to_operands(operation->operands, depth+1) + " -> " + operation->to_string();
+                at = init_find_origin(at->is_result_from[0]->operands, depth+1);
+            }
+            if(local_string == "")
+            {
+                local_string = base;
+            }
+            else
+            {
+                local_string = base + " -> " + local_string;
+            }
         }
-        else
-        {
-            local_origin = find_origin(operation->operands);
-            ret += string_from_origin_to_operands(operation->operands);
-        }
-        if(origin != NULL)
-        {
-            assert(origin == local_origin);
-        }
-        else
-        {
-            origin = local_origin;
-        }
+        ret += local_string;
     }
+
     ret += "}";
     return ret;
 }
@@ -262,9 +335,9 @@ string TraceNode::string__of__path_from_root_to_this()
         else if(operation->operands.size() == 2)
         {
 //            at = find_origin(operation->operands);
-            TraceNode* origin = find_origin(operation->operands);
+            TraceNode* origin = init_find_origin(operation->operands, 0);
             ret += origin->string__of__path_from_root_to_this() + " -> ";
-            ret += string_from_origin_to_operands(operation->operands);
+            ret += string_from_origin_to_operands(operation->operands, 0);
         }
         else
         {
@@ -279,52 +352,7 @@ string TraceNode::string__of__path_from_root_to_this()
     }
 
     return ret;
-//
-//
-//    vector<TraceOperation*> parents;
-//    TraceNode* at = this;
-//    TraceNode* root = NULL;
-//    while(at != NULL)
-//    {
-//        root = at;
-//        assert(at->is_result_from.size() == 1);
-//        TraceOperation* operation = at->is_result_from[0];
-//        if(operation != NULL) {
-//            parents.push_back(operation);
-//            assert(operation->get_output() == at);
-//            if(operation->operands.size() == 1)
-//            {
-//                at = operation->operands[0];
-//            }
-//            else if(operation->operands.size() == 2)
-//            {
-//                at = find_origin(operation->operands);
-//            }
-//            else
-//            {
-//                assert(false);
-//            }
-//        }
-//        else
-//        {
-//            break;
-//        }
-//    }
-//    assert(root != NULL);
-//
-//    reverse(parents.begin(), parents.end());
-//    string ret = std::to_string(root->trace_state.num_missing_bits) + " ";
-//    for(int i = 0; i<parents.size();i++)
-//    {
-//        if(i >= 1)
-//        {
-//            ret += " -> ";
-//        }
-//
-//        ret += parents[i]->subdomain_mask.to_string() + " " + std::to_string(parents[i]->get_output()->trace_state.num_missing_bits);
-//    }
-//
-//    return ret;
+
 }
 
 
