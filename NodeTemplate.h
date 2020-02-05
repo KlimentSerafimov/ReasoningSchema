@@ -11,11 +11,11 @@
 
 using namespace std;
 
-enum VisitedType {vis_bits, vis_type, origin_type};
+enum VisitedType {vis_bits, vis_type, vis_origin, vis_print, vis_leafs};
 
 //int global_vis_ids[2];
 
-map<int, int>* get_global_vis_ids();
+map<pair<VisitedType, int>, int>* get_global_vis_ids();
 
 void memset_visited(VisitedType type, int num_subtree_markers);
 
@@ -65,7 +65,7 @@ public:
 class Visitable
 {
 public:
-    map<int, int> vis_id;
+    map<pair<VisitedType, int>, int> vis_id;
 
     Visitable()
     {
@@ -73,35 +73,29 @@ public:
 
     void visit(VisitedType type)
     {
-        assert(type == vis_bits);
-        vis_id[type] = get_global_vis_ids()->at(type);
+        visit(type, 0);
     }
 
     void visit(VisitedType type, int num_subtree_markers)
     {
-//        assert(type == vis_type);
-        vis_id[type+num_subtree_markers] = get_global_vis_ids()->at(type+num_subtree_markers);
+        pair<VisitedType, int> idx = make_pair(type, num_subtree_markers);
+        vis_id[idx] = get_global_vis_ids()->at(idx);
     }
 
     bool visited(VisitedType type)
     {
-        assert(type == vis_bits);
-//        cout << "visited("<<std::to_string(type) << ")=" << (vis_id[type])<<  " ==  " << local_global_vis_ids[type] << endl;
-        if(vis_id.find(type) == vis_id.end())
-        {
-            return false;
-        }
-        return vis_id[type] == get_global_vis_ids()->at(type);
+        return visited(type, 0);
     }
 
     bool visited(VisitedType type, int num_subtree_markers)
     {
+        pair<VisitedType, int> idx = make_pair(type, num_subtree_markers);
 //        cout << "visited("<<std::to_string(type) << ")=" << (vis_id[type])<<  " ==  " << local_global_vis_ids[type] << endl;
-        if(vis_id.find(type+num_subtree_markers) == vis_id.end())
+        if(vis_id.find(idx) == vis_id.end())
         {
             return false;
         }
-        return vis_id[type+num_subtree_markers] == get_global_vis_ids()->at(type+num_subtree_markers);
+        return vis_id[idx] == get_global_vis_ids()->at(idx);
     }
 };
 

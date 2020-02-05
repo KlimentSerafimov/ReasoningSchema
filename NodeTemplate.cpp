@@ -4,36 +4,28 @@
 
 #include "NodeTemplate.h"
 
-map<int, int> global_vis_ids;
+map<pair<VisitedType, int>, int> global_vis_ids;
 
-map<int, int>* get_global_vis_ids()
+map<pair<VisitedType, int>, int>* get_global_vis_ids()
 {
     return &global_vis_ids;
 }
 
 void memset_visited(VisitedType type)
 {
-    assert(type == vis_bits);
-    if(global_vis_ids.find(type) == global_vis_ids.end())
-    {
-        global_vis_ids[type] = 0;
-    }
-    else
-    {
-        global_vis_ids[type]++;
-    }
+    memset_visited(type, 0);
 }
 
-void memset_visited(VisitedType type, int num_subtree_markers)
+void memset_visited(VisitedType type, int int_idx)
 {
-    assert(type == vis_type || type == origin_type);
-    if(global_vis_ids.find(type) == global_vis_ids.end())
+    pair<VisitedType, int> idx = make_pair(type, int_idx);
+    if(global_vis_ids.find(idx) == global_vis_ids.end())
     {
-        global_vis_ids[type+num_subtree_markers] = 0;
+        global_vis_ids[idx] = 0;
     }
     else
     {
-        global_vis_ids[type+num_subtree_markers]++;
+        global_vis_ids[idx]++;
     }
 }
 string NodeTemplate::root_to_node_path__to__string()

@@ -241,7 +241,7 @@ vector<vector<Bitvector> > BitvectorTasks::masks_generator(
 {
     int num_iter = init_num_iter;
 
-    if(true)
+    if(false)
     {
         int max_masks_size = 3;
 //        vector<Bitvector> masks =
@@ -381,7 +381,7 @@ BitvectorTasks::BitvectorTasks()
         BittreeTypeExpression type_expression_for_masks = BittreeTypeExpression(task_name);
 
         //parameter
-        int num_iter = 2;
+        int num_iter = 4;
 
         if(task_name.num_iter_defined)
         {
@@ -398,9 +398,6 @@ BitvectorTasks::BitvectorTasks()
         assert(meta_examples.size() == masks.size());
 
         for(int i = 0;i<meta_examples.size();i++) {
-
-            //parameter
-            int max_mask_size = 3;
 
             string language_name =
                     task_name.get_task_name() +

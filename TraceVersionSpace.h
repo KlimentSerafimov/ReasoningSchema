@@ -48,7 +48,7 @@ class TraceNode: public VersionSpaceNode
 {
     TraceNode* find_origin(vector<TraceNode*> operands, int depth);
 
-    int num_markers = 0;
+    map<int, int> num_markers;
 
 public:
     vector<TraceOperation*> is_result_from;
@@ -71,7 +71,7 @@ public:
     {
         trace_state = TraceState(meta_examples);
     }
-    TraceNode* init_find_origin(vector<TraceNode*> operands, int depth);
+    TraceNode* init_find_origin(vector<TraceNode*> operands, VisitedType type, int depth);
 
     void get_leafs(vector<TraceNode *>& ret_leafs);
 
@@ -81,14 +81,14 @@ public:
 
     void mark(int depth)
     {
-        if(visited(origin_type, depth))
+        if(visited(vis_origin, depth))
         {
-            num_markers++;
+            num_markers[depth]++;
         }
         else
         {
-            visit(origin_type, depth);
-            num_markers = 1;
+            visit(vis_origin, depth);
+            num_markers[depth] = 1;
         }
     }
 };
@@ -147,15 +147,37 @@ public:
 
     bool operator < (const HeuristicScoreAndSolution& other ) const
     {
-        if(max_width == other.max_width)
+        if(remaining_bits == other.remaining_bits)
         {
-            if(sum_width == other.sum_width)
+            if(max_width == other.max_width)
             {
-                return remaining_bits > other.remaining_bits;
+                if(remaining_bits == other.remaining_bits)
+                {
+                    return sum_width < other.sum_width;
+                }
+//            if(sum_width == other.sum_width)
+//            {
+//                return remaining_bits > other.remaining_bits;
+//            }
+//            return sum_width < other.sum_width;
             }
-            return sum_width < other.sum_width;
+            return max_width < other.max_width;
         }
-        return max_width < other.max_width;
+        return remaining_bits < other.remaining_bits;
+//        if(max_width == other.max_width)
+//        {
+////            if(remaining_bits == other.remaining_bits)
+////            {
+////                return sum_width < other.sum_width;
+////            }
+////            return remaining_bits < other.remaining_bits;
+//            if(sum_width == other.sum_width)
+//            {
+//                return remaining_bits < other.remaining_bits;
+//            }
+//            return sum_width < other.sum_width;
+//        }
+//        return max_width < other.max_width;
     }
 };
 
