@@ -1,0 +1,1 @@
+/usr/bin/c++  -g   CMakeFiles/CompactPoset.dir/main.cpp.o  -o CompactPoset 
