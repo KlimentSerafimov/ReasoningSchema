@@ -4,7 +4,7 @@
 
 #include "TraceVersionSpace.h"
 
-pair<TraceOperation*, bool> get_trace_operation(TraceOperationType type, TraceNode *operand, Bitvector _subdomain_mask)
+pair<TraceOperation*, bool> get_trace_operation(TraceOperationType type, TraceNode *operand, Bitvector _subdomain_mask, bool consider_union)
 {
     for(int i = 0;i<operand->is_operand_for.size();i++)
     {
@@ -14,46 +14,22 @@ pair<TraceOperation*, bool> get_trace_operation(TraceOperationType type, TraceNo
             }
         }
     }
-    return make_pair(new TraceOperation(type, operand, _subdomain_mask), true);
+    return make_pair(new TraceOperation(type, operand, _subdomain_mask, consider_union), true);
 
 }
 
-TraceOperation::TraceOperation(TraceOperationType type, TraceNode *operand, Bitvector _subdomain_mask) {
-    assert(type == compact_poset_operation);
-
-    for(int i = 0;i<operand->is_operand_for.size();i++)
+void TraceOperation::possible_refactor_into_union()
+{
+    assert(operation_type == compact_poset_operation);
+    assert(operands.size() == 1);
+    if (get_output() != NULL)
     {
-        assert(operand->is_operand_for[i]->subdomain_mask != _subdomain_mask);
-    }
-
-    operation_type = type;
-
-    subdomain_mask = _subdomain_mask;
-
-    vector<MetaExample> individually_consistent_meta_examples =
-            get_meta_examples_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(
-                    subdomain_mask, operand->trace_state.meta_examples);
-
-    compact_poset =
-            new CompactPoset(
-                    subdomain_mask.get_size(), subdomain_mask, subdomain_mask, individually_consistent_meta_examples);
-
-    prune_globally_inconsistent_meta_examples(
-            operand->trace_state.meta_examples, subdomain_mask, compact_poset);
-
-    if(individually_consistent_meta_examples.size() == 0)
-    {
-        has_empty_output = true;
-        return;
-    }
-
-    add_operand(operand);
-
-//    if(false)
-    if (get_output() != NULL) {
         bool found_union;
         TraceOperation* best_union_alternative = NULL;
-        TraceNode *at_operand = operand;
+        pair<TraceOperation*, bool> best_skip_union_pre_operand; //make_pair(NULL, false);
+        best_skip_union_pre_operand.first = NULL;
+        best_skip_union_pre_operand.second = false;
+        TraceNode *at_operand = operands[0];
         int count = 0;
         do {
             found_union = false;
@@ -61,36 +37,40 @@ TraceOperation::TraceOperation(TraceOperationType type, TraceNode *operand, Bitv
                 if (at_operand->is_result_from[0] != NULL) {
 
                     TraceNode *operand_pre_operand = at_operand->init_find_origin(
-                            at_operand->is_result_from[0]->operands, vis_origin, 0);
+                            0, 0);
                     pair<TraceOperation *, bool> skip_operation_pre_operand =
-                            get_trace_operation(type, operand_pre_operand, subdomain_mask);
+                            get_trace_operation(compact_poset_operation, operand_pre_operand, subdomain_mask, false);
 //                            new TraceOperation(type, operand_pre_operand, subdomain_mask);
                     if (skip_operation_pre_operand.first->get_output() != NULL) {
                         TraceOperation *local_union_alternative =
                                 new TraceOperation(
-                                        trace_union_operation, operand,
+                                        trace_union_operation, operands[0],
                                         skip_operation_pre_operand.first->get_output());
                         TraceNode *union_output = local_union_alternative->get_output();
                         if (union_output->trace_state.num_missing_bits ==
-                            get_output()->trace_state.num_missing_bits) {
+                            get_output()->trace_state.num_missing_bits){
                             count += 1;
-//                            if (count >= 2) {
-//                                cout << "HERE count = " << count << endl;
-//                                cout << best_union_alternative->get_output()->string__of__path_from_root_to_this() << endl;
-//                                cout << union_output->string__of__path_from_root_to_this() << endl;
-//                            }
                             found_union = true;
                             delete best_union_alternative;
                             best_union_alternative = local_union_alternative;
+                            if(
+                                    union_output->trace_state.num_missing_bits ==
+                                    skip_operation_pre_operand.first->get_output()->trace_state.num_missing_bits)
+                            {
+//                                cout << "ONLY HEAD" << endl;
+//
+//                                cout << get_output()->string__of__path_from_root_to_this() << endl;
+//                                cout << union_output->string__of__path_from_root_to_this() << endl;
+//                                cout << skip_operation_pre_operand.first->get_output()->string__of__path_from_root_to_this() << endl;
+//
+//                                cout << endl;
+                                if(best_skip_union_pre_operand.second)
+                                {
+                                    delete best_skip_union_pre_operand.first;
+                                }
+                                best_skip_union_pre_operand = skip_operation_pre_operand;
+                            }
                             at_operand = operand_pre_operand;
-
-//                            can_be_turned_into_union = true;
-//                            cout << endl;
-//                            cout << get_output()->string__of__path_from_root_to_this() << endl;
-//                            cout << skip_operation_pre_operand->get_output()->string__of__path_from_root_to_this() << endl;
-//                            cout << union_output->string__of__path_from_root_to_this() << endl;
-//                            cout << endl;
-
                         } else {
                             delete local_union_alternative;
                             if(skip_operation_pre_operand.second) {
@@ -112,34 +92,54 @@ TraceOperation::TraceOperation(TraceOperationType type, TraceNode *operand, Bitv
         if (best_union_alternative != NULL) {
             can_be_turned_into_union = true;
             union_alternative = best_union_alternative;
+
+            if(best_skip_union_pre_operand.first != NULL)
+            {
+                can_replace_with_head_only = true;
+                head_only_alternative = best_skip_union_pre_operand;
+            }
+        } else
+        {
+            assert(best_skip_union_pre_operand.first == NULL);
         }
     }
+}
 
-//    TraceNode *operand_pre_operand = operand->find_origin(operand->is_result_from[0]->operands);
-//    TraceOperation *skip_operation_pre_operand =
-//            new TraceOperation(type, operand_pre_operand, subdomain_mask);
-//    if(skip_operation_pre_operand->get_output() != NULL) {
-//        union_alternative =
-//                new TraceOperation(
-//                        trace_union_operation, operand, skip_operation_pre_operand->get_output());
-//        TraceNode *union_output = union_alternative->get_output();
-//        if (union_output->trace_state.num_missing_bits == get_output()->trace_state.num_missing_bits) {
-//            can_be_turned_into_union = true;
-//            cout << endl;
-//            cout << get_output()->string__of__path_from_root_to_this() << endl;
-//            cout << skip_operation_pre_operand->get_output()->string__of__path_from_root_to_this() << endl;
-//            cout << union_output->string__of__path_from_root_to_this() << endl;
-//            cout << endl;
-////                assert(false);
-//        } else {
-//            delete union_alternative;
-//            delete skip_operation_pre_operand;
-//        }
-//    }
-//    else
-//    {
-//        delete skip_operation_pre_operand;
-//    }
+TraceOperation::TraceOperation(TraceOperationType type, TraceNode *operand, Bitvector _subdomain_mask, bool consider_union) {
+    assert(type == compact_poset_operation);
+
+    for(int i = 0;i<operand->is_operand_for.size();i++)
+    {
+        assert(operand->is_operand_for[i]->subdomain_mask != _subdomain_mask);
+    }
+
+    operation_type = type;
+
+    subdomain_mask = _subdomain_mask;
+
+    vector<MetaExample> individually_consistent_meta_examples =
+            get_meta_examples_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(
+                    subdomain_mask, operand->trace_state.meta_examples);
+
+    compact_poset =
+            new CompactPoset(
+                    subdomain_mask.get_size(), subdomain_mask, subdomain_mask, individually_consistent_meta_examples);
+
+//    prune_globally_inconsistent_meta_examples(
+//            operand->trace_state.meta_examples, subdomain_mask, compact_poset);
+
+    if(individually_consistent_meta_examples.size() == 0)
+    {
+        has_empty_output = true;
+        return;
+    }
+
+    add_operand(operand);
+
+
+    if(consider_union)
+        possible_refactor_into_union();
+
 
 //    compact_poset->soft_delete_redundant_edges();
 }
@@ -220,10 +220,11 @@ TraceOperation::~TraceOperation() {
         {
             if(operands[i]->is_operand_for[j] == this)
             {
-                assert(j >= (int)operands[i]->is_operand_for.size() - 2);
+//                assert(j >= (int)operands[i]->is_operand_for.size() - 2);
+                assert(!enter);
                 enter = true;
                 operands[i]->is_operand_for.erase(operands[i]->is_operand_for.begin()+j);
-                break;
+//                break;
             }
         }
         assert(enter);
@@ -258,10 +259,18 @@ void TraceNode::get_leafs(vector<TraceNode *>& ret_leafs) {
     }
 }
 
-TraceNode* TraceNode::init_find_origin(vector<TraceNode*> operands, VisitedType type, int depth)
+TraceNode * TraceNode::init_find_origin(int parent_id, int depth)
 {
-    memset_visited(type, depth);
-    return find_origin(operands, depth);
+    if(origin_per_is_result_from[parent_id] == NULL) {
+        vector<TraceNode *> operands = is_result_from[parent_id]->operands;
+        memset_visited(vis_origin, depth);
+        origin_per_is_result_from[parent_id] = find_origin(operands, depth);
+        return origin_per_is_result_from[parent_id];
+    }
+    else
+    {
+        return origin_per_is_result_from[parent_id];
+    }
 }
 
 TraceNode* TraceNode::find_origin(vector<TraceNode*> operands, int depth)
@@ -292,7 +301,7 @@ TraceNode* TraceNode::find_origin(vector<TraceNode*> operands, int depth)
                 } else {
 //                where_enter = "Second";
 //                cout << "B " << i << endl;
-                    at = init_find_origin(at->is_result_from[0]->operands, vis_origin, depth + 1);
+                    at = at->init_find_origin(0, depth + 1);
                 }
             }
             else
@@ -305,9 +314,10 @@ TraceNode* TraceNode::find_origin(vector<TraceNode*> operands, int depth)
     return origin;
 }
 
-string TraceNode::string_from_origin_to_operands(vector<TraceNode*> operands, int depth)
+string TraceNode::string_from_origin_to_operands(int parent_id, int depth)
 {
-    TraceNode* origin = init_find_origin(operands, vis_origin, depth);
+    vector<TraceNode*> operands = is_result_from[parent_id]->operands;
+    TraceNode* origin = init_find_origin(parent_id, depth);
     string ret = "{";
 
     for(int i = 0;i<operands.size();i++)
@@ -333,9 +343,9 @@ string TraceNode::string_from_origin_to_operands(vector<TraceNode*> operands, in
             else
             {
                 base =
-                        string_from_origin_to_operands(operation->operands, depth+1) + " -> " +
+                        at->string_from_origin_to_operands(0, depth+1) + " -> " +
                         operation->to_string();
-                at = init_find_origin(operation->operands, vis_origin, depth+1);
+                at = at->init_find_origin(0, depth + 1);
             }
             if(local_string == "")
             {
@@ -370,9 +380,9 @@ string TraceNode::string__of__path_from_root_to_this()
         else if(operation->operands.size() == 2)
         {
 //            at = find_origin(operation->operands);
-            TraceNode* origin = init_find_origin(operation->operands, vis_origin, 0);
+            TraceNode* origin = at->init_find_origin(0, 0);
             ret += origin->string__of__path_from_root_to_this() + " -> ";
-            ret += string_from_origin_to_operands(operation->operands, 0);
+            ret += at->string_from_origin_to_operands(0, 0);
         }
         else
         {
@@ -390,6 +400,14 @@ string TraceNode::string__of__path_from_root_to_this()
 
 }
 
+TraceNode::TraceNode(TraceOperation *parent, vector<MetaExample> meta_examples)
+{
+    is_result_from.push_back(parent);
+    origin_per_is_result_from.push_back(NULL);
+//    origin_per_is_result_from[origin_per_is_result_from.size()-1] = init_find_origin(0, 0);
+    init(meta_examples);
+}
+
 
 TraceVersionSpace::TraceVersionSpace(vector<MetaExample> _meta_examples, vector<Bitvector> masks)
 {
@@ -402,8 +420,7 @@ TraceVersionSpace::TraceVersionSpace(vector<MetaExample> _meta_examples, vector<
     cout << endl;
 
     root = new TraceNode(_meta_examples);
-    all_nodes.push_back(root);
-//
+
 //        priority_queue<
 //                pair<int, pair<TraceNode*, int>>, vector<pair<int, pair<TraceNode*, int>>>, greater<pair<int, pair<TraceNode*, int>> >
 //                        > fronteer;
@@ -418,10 +435,11 @@ TraceVersionSpace::TraceVersionSpace(vector<MetaExample> _meta_examples, vector<
 
     int in_q_prev_max_widht = 0;
     int in_q_prev_sum_widths = 0;
+    int in_q_prev_remaining_bits = 0;
 
     int while_loop_count = 0;
-    int remaining_while_loop_count = 300000;
-    int beam_size = 50000;
+    int remaining_while_loop_count = 15000;
+    int beam_size = 2500;
 
     map<pair<TraceNode*, TraceNode*>, TraceOperation*> unions;
 
@@ -434,25 +452,44 @@ TraceVersionSpace::TraceVersionSpace(vector<MetaExample> _meta_examples, vector<
         HeuristicScoreAndSolution at = (*at_pointer);
         fronteer.erase(at_pointer);
 
-        if(in_q_prev_max_widht != at.max_width || in_q_prev_sum_widths != at.sum_width)
+        if(
+                while_loop_count % 1000 == 0
+//              in_q_prev_remaining_bits != at.remaining_bits
+//              in_q_prev_max_widht != at.max_width
+//              || in_q_prev_sum_widths != at.sum_width
+        )
         {
             cout << "max_width " << at.max_width << " sum_width " << at.sum_width << " remaining_bits " << at.remaining_bits <<  " @ |num_inserts| = " << num_inserts << " |while| = " << while_loop_count << " |size| = " << fronteer.size() << endl;
             in_q_prev_max_widht = at.max_width;
             in_q_prev_sum_widths =  at.sum_width;
+            in_q_prev_remaining_bits = at.remaining_bits;
         }
 
         pair<TraceOperation*, bool> operation_with_bool =
-                get_trace_operation(compact_poset_operation, at.at, masks[at.next_mask_id]);
+                get_trace_operation(compact_poset_operation, at.at, masks[at.next_mask_id], true);
         TraceOperation* operation = operation_with_bool.first;
         bool is_new = operation_with_bool.second;
         bool skip = false;
-        if(operation->can_be_turned_into_union)
+        if(operation->can_replace_with_head_only)
         {
+            assert(is_new);
+            pair<TraceOperation*, bool> new_operation = operation->head_only_alternative;
+            delete operation->union_alternative;
             if(is_new)
             {
                 delete operation;
             }
+            operation = new_operation.first;
+            skip = !new_operation.second;
+        }
+        else if(operation->can_be_turned_into_union)
+        {
+            assert(is_new);
             TraceOperation* new_operation = operation->union_alternative;
+            if(is_new)
+            {
+                delete operation;
+            }
             assert(new_operation->operands.size() == 2);
             pair<TraceNode*, TraceNode*> operands = make_pair(
                     new_operation->operands[0], new_operation->operands[1]);
@@ -478,7 +515,22 @@ TraceVersionSpace::TraceVersionSpace(vector<MetaExample> _meta_examples, vector<
                 unions[reverse_operands] = operation;
             }
         }
-        if(true || !skip) {
+        if(!skip)
+        {
+            TraceNode *output = operation->get_output();
+            if(output == NULL)
+            {
+                skip = true;
+            }
+            else
+            {
+                if(output->trace_state.num_missing_bits == 0)
+                {
+                    skip = true;
+                }
+            }
+        }
+        if(!skip) {
             TraceNode *output = operation->get_output();
             if (output != NULL) {
                 for (int i = 0; i < masks.size(); i++) {
@@ -501,7 +553,6 @@ TraceVersionSpace::TraceVersionSpace(vector<MetaExample> _meta_examples, vector<
                 }
             }
         }
-
     }
 
     vector<TraceNode*> leafs;

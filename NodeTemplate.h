@@ -11,7 +11,7 @@
 
 using namespace std;
 
-enum VisitedType {vis_bits, vis_type, vis_origin, vis_print, vis_leafs};
+enum VisitedType {vis_bits, vis_type, vis_origin, vis_leafs};
 
 //int global_vis_ids[2];
 

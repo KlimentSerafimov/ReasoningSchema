@@ -182,6 +182,8 @@ public:
 
     void append_bits(vector<BitInBittree*>& bits);
 
+    void append_bits_of_prefix_subtree(vector<BitInBittree*>& bits, int num_subtasks);
+
     string to_string(int num_tabs);
 
     string bits_to_string(int num_tabs);
@@ -207,6 +209,8 @@ public:
     void solve(TaskName task_name);
 
     void append_bits(vector<BitInBittree*>& bits);
+
+    void append_bits_of_prefix_subtree(vector<BitInBittree*>& bits, int num_subtasks);
 
     void append_IO_bits(vector<BitInBittree*>& bits);
 

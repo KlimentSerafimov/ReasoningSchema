@@ -50,6 +50,8 @@ class TraceNode: public VersionSpaceNode
 
     map<int, int> num_markers;
 
+    vector<TraceNode*> origin_per_is_result_from;
+
 public:
     vector<TraceOperation*> is_result_from;
     TraceState trace_state;
@@ -58,26 +60,23 @@ public:
     TraceNode(vector<MetaExample> meta_examples)
     {
         is_result_from.push_back(NULL);
+        origin_per_is_result_from.push_back(NULL);
         init(meta_examples);
     }
 
-    TraceNode(TraceOperation* parent, vector<MetaExample> meta_examples)
-    {
-        is_result_from.push_back(parent);
-        init(meta_examples);
-    }
+    TraceNode(TraceOperation* parent, vector<MetaExample> meta_examples);
 
     void init(vector<MetaExample> meta_examples)
     {
         trace_state = TraceState(meta_examples);
     }
-    TraceNode* init_find_origin(vector<TraceNode*> operands, VisitedType type, int depth);
+    TraceNode *init_find_origin(int parent_id, int depth);
 
     void get_leafs(vector<TraceNode *>& ret_leafs);
 
     string string__of__path_from_root_to_this();
 
-    string string_from_origin_to_operands(vector<TraceNode*> operands, int depth);
+    string string_from_origin_to_operands(int parent_id, int depth);
 
     void mark(int depth)
     {
@@ -117,11 +116,16 @@ public:
     bool can_be_turned_into_union = false;
     TraceOperation* union_alternative = NULL;
 
-    TraceOperation(TraceOperationType type, TraceNode *operand, Bitvector subdomain_mask);
+    bool can_replace_with_head_only = false;
+    pair<TraceOperation*, bool> head_only_alternative;
+
+    TraceOperation(TraceOperationType type, TraceNode *operand, Bitvector subdomain_mask, bool consider_union);
 
     TraceOperation(TraceOperationType type, TraceNode *first_operand, TraceNode *second_operand);
 
     ~TraceOperation();
+
+    void possible_refactor_into_union();
 
     TraceNode* get_output();
 
@@ -147,37 +151,37 @@ public:
 
     bool operator < (const HeuristicScoreAndSolution& other ) const
     {
-        if(remaining_bits == other.remaining_bits)
-        {
-            if(max_width == other.max_width)
-            {
-                if(remaining_bits == other.remaining_bits)
-                {
-                    return sum_width < other.sum_width;
-                }
-//            if(sum_width == other.sum_width)
-//            {
-//                return remaining_bits > other.remaining_bits;
-//            }
-//            return sum_width < other.sum_width;
-            }
-            return max_width < other.max_width;
-        }
-        return remaining_bits < other.remaining_bits;
-//        if(max_width == other.max_width)
+//        if(remaining_bits == other.remaining_bits)
 //        {
-////            if(remaining_bits == other.remaining_bits)
+//            if(max_width == other.max_width)
+//            {
+//                if(remaining_bits == other.remaining_bits)
+//                {
+//                    return sum_width < other.sum_width;
+//                }
+////            if(sum_width == other.sum_width)
 ////            {
-////                return sum_width < other.sum_width;
+////                return remaining_bits > other.remaining_bits;
 ////            }
-////            return remaining_bits < other.remaining_bits;
+////            return sum_width < other.sum_width;
+//            }
+//            return max_width < other.max_width;
+//        }
+//        return remaining_bits < other.remaining_bits;
+        if(max_width == other.max_width)
+        {
+            if(remaining_bits == other.remaining_bits)
+            {
+                return sum_width < other.sum_width;
+            }
+            return remaining_bits < other.remaining_bits;
 //            if(sum_width == other.sum_width)
 //            {
 //                return remaining_bits < other.remaining_bits;
 //            }
 //            return sum_width < other.sum_width;
-//        }
-//        return max_width < other.max_width;
+        }
+        return max_width < other.max_width;
     }
 };
 
@@ -185,7 +189,6 @@ class TraceVersionSpace
 {
 public:
     TraceNode* root;
-    vector<TraceNode*> all_nodes;
 
     TraceVersionSpace(vector<MetaExample> _meta_examples, vector<Bitvector> masks);
 

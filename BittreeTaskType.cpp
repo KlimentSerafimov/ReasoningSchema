@@ -446,6 +446,19 @@ void BittreeTaskType::append_bits(vector<BitInBittree*>& bits)
     }
 }
 
+void BittreeTaskType::append_bits_of_prefix_subtree(vector<BitInBittree*>& bits, int num_subtasks)
+{
+    append_IO_bits(bits);
+    if(solution!=NULL)
+    {
+        solution->append_bits(bits);
+    }
+    if(decomposition!=NULL && num_subtasks-1 >= 0)
+    {
+        decomposition->append_bits_of_prefix_subtree(bits, num_subtasks-1);
+    }
+}
+
 void BittreeTaskType::append_IO_bits(vector<BitInBittree*>& bits)
 {
     io->append_bits(bits);
@@ -942,7 +955,7 @@ void BittreeInputOutputType::solve__sum()
 PartialFunction BittreeTaskType::to_partial_function() {
     vector<BitInBittree*> partial_bits;
     memset_visited(vis_bits);
-    append_bits(partial_bits);
+    append_bits_of_prefix_subtree(partial_bits, 1);
     return PartialFunction(partial_bits);
 }
 
@@ -1230,6 +1243,20 @@ void BittreeTaskDecomposition::append_bits(vector<BitInBittree *>& bits)
         delta->append_bits(bits);
     }
 }
+
+void BittreeTaskDecomposition::append_bits_of_prefix_subtree(vector<BitInBittree *>& bits, int num_subtasks)
+{
+    assert(num_subtasks>=0);
+    if(subtask!=NULL)
+    {
+        subtask->append_bits_of_prefix_subtree(bits, num_subtasks);
+    }
+    if(delta!=NULL)
+    {
+        delta->append_bits(bits);
+    }
+}
+
 
 string BittreeTaskDecomposition::to_string(int num_tabs)
 {
