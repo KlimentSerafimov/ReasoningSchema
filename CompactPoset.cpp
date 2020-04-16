@@ -1704,7 +1704,6 @@ void prune_globally_inconsistent_meta_examples(
             if (!compact_poset->insert(local_test_meta_example)) {
                 int soft_delete_count = 0;
                 do {
-                    assert(false);
                     int meta_edge_id_to_remove =
                             get_meta_edge_id_to_remove(compact_poset, subdomain_mask, test_meta_example_id, &local_meta_examples);
 
@@ -1794,8 +1793,8 @@ get_meta_examples_after_query(Bitvector subdomain_mask, CompactPoset *compact_po
         assert((intermediate_result.partition & local_query_meta_example.partial_function.partition) ==
                local_query_meta_example.partial_function.partition);
 
-        int local_new_bits = (
-                intermediate_result.partition ^ local_query_meta_example.partial_function.partition).count();
+        Bitvector local_xor = (intermediate_result.partition ^ local_query_meta_example.partial_function.partition);
+        int local_new_bits = local_xor.count();
         expanded_meta_example += (local_new_bits >= 1);
         new_bits += local_new_bits;
 

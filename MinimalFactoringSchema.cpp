@@ -250,11 +250,17 @@ HeuristicScore MinimalFactoringSchema::calculate_heuristic(Module* module) {
     if(num_necessary_meta_examples == 0)
     {
         return HeuristicScore();
+    } else
+    {
+        assert(num_necessary_meta_examples >= 1);
     }
 
     if(module->num_missing_bits == init_num_missing_bits)
     {
         return HeuristicScore();
+    } else
+    {
+        assert(module->num_missing_bits < init_num_missing_bits);
     }
 
     int prev_necessary_meta_examples_delta = 0;
@@ -268,6 +274,7 @@ HeuristicScore MinimalFactoringSchema::calculate_heuristic(Module* module) {
 //    cout << "num_necessary_meta_examples = " << num_necessary_meta_examples << " delta_num_necessary_meta_examples = "<< delta_num_necessary_meta_examples << endl;
 
     int current_delta = init_num_missing_bits - module->num_missing_bits;
+
     double delta_ratio;
     if(delta_num_necessary_meta_examples == 0)
     {
@@ -295,7 +302,7 @@ static int minimal_factoring_schema_depth_counter = 0;
 
 static string best_subdomains[1000] = {};
 
-void MinimalFactoringSchema::calc_masks(int set_init_mask_size)
+void MinimalFactoringSchema::calc_masks(int set_init_mask_size, int set_end_mask_size)
 {
     if(masks.size() >= 1)
     {
@@ -327,53 +334,17 @@ void MinimalFactoringSchema::calc_masks(int set_init_mask_size)
 
         for (int i = 0; i < masks_by_size.size(); i++) {
             vector<int> reduced;
-            if (i >= set_init_mask_size) {
+            if (i >= set_init_mask_size && i <= set_end_mask_size) {
                 for (int j = 0; j < masks_by_size[i].size(); j++) {
                     reduced.push_back(masks_by_size[i][j]);
-                    masks.push_back(masks_by_size[i][j]);
+                    masks.push_back(Bitvector(masks_by_size[i][j], function_size));
                 }
             }
             masks_by_size[i] = reduced;
         }
     }
     else {
-        string custom_masks[100] =
-                {
-                        "0000010000100001",
-                        "0000110000100001",
-                        "0000110000100011",
-                        "0000110000100010",
-                        "0000110001100001",
-                        "0000110001000001",
-                        "0000110001100011",
-                        "0000110001000011",
-                        "0000110001100010",
-                        "0000110001000010",
-                        "0001110001100011",
-                        "0001110001100010",
-                        "0001110001000011",
-                        "0001110001000010",
-                        "0001110001100111",
-                        "0001110011100011",
-                        "0001110011100111",
-                        "0001110011000110",
-                        "0011110011100111",
-                        "0011110011101111",
-                        "0011110111100111",
-                        "0011110111101111",
-                        "0111110111101111",
-                        "0111110111111111",
-                        "0111111111101111",
-                        "0111111111111111",
-                        "1111111111111111",
-                        "",
-                };
-        int i = 0;
-        while(custom_masks[i] != "")
-        {
-            masks.push_back(string_to_bitvector(custom_masks[i]));
-            i++;
-        }
+        assert(false);
     }
 }
 
@@ -381,6 +352,7 @@ static ofstream fout;
 
 static int set_init_mask_size = 1;
 static int skip_after_mask_size_if_not_necessary = 1;
+static int set_end_mask_size = 4;
 //static string fout_name = "fast_subdomain_masks_3_4_5_6_7_with_repeats_traced_corrected_only_active_eval_delta_heuristic.out";
 //static string fout_name = "using_UnionOfPartialFunctions__using_delta_heuristic__subdomain_size_3_4_if_necessary_5_6_7.out";
 static string fout_name = "max_pure_delta.out";
@@ -568,7 +540,7 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(vector<MetaExample> 
         module_id = parent_pointer->module_id + 1;
     }
 
-    calc_masks(set_init_mask_size);
+    calc_masks(set_init_mask_size, set_end_mask_size);
 
     init_num_missing_bits = get_num_missing_bits(meta_examples);
 
@@ -583,11 +555,14 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(vector<MetaExample> 
             cout << "working on mask = " << bitvector_to_str(masks[mask_id], function_size) << " time: "
                  << (double) time(nullptr) - local_time << " ";
 
-            if(skip_mask(masks[mask_id]))
+            if(skip_mask(masks[mask_id]) && parent_pointer->heuristic_score_by_mask_id.size() > mask_id)
             {
                 cout << "skip" << endl;
                 assert(parent_pointer != nullptr);
                 heuristic = parent_pointer->heuristic_score_by_mask_id[mask_id];
+                mask_ids_by_heuristic.push_back(make_pair(heuristic, mask_id));
+                heuristic_score_by_mask_id.push_back(heuristic);
+
             }
             else
             {
@@ -599,14 +574,18 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(vector<MetaExample> 
                 local_module.compact_poset->clear();
 
                 heuristic = local_module.heuristic_score = calculate_heuristic(&local_module);
+
+                mask_ids_by_heuristic.push_back(make_pair(heuristic, mask_id));
+                heuristic_score_by_mask_id.push_back(heuristic);
+
+                if (heuristic.defined) {
+                    assert(heuristic.num_input_bits >= 1);
+                    possible_candidate_found = true;
+                    break;
+                }
+
             }
 
-            if (heuristic.defined) {
-                possible_candidate_found = true;
-            }
-
-            mask_ids_by_heuristic.push_back(make_pair(heuristic, mask_id));
-            heuristic_score_by_mask_id.push_back(heuristic);
 
 //            cout << "heuristic = " << fixed << setprecision(4) << heuristic.to_string() << endl;
         }
@@ -616,13 +595,17 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(vector<MetaExample> 
         cout << "PRINT mask_ids_by_heuristic" << endl;
         for (int local_id = 0; local_id < mask_ids_by_heuristic.size(); local_id++) {
             int mask_id = mask_ids_by_heuristic[local_id].second;
-            assert(masks[mask_id].get_size() == function_size);
+            //assert(masks[mask_id].get_size() == function_size);
             cout << bitvector_to_str(masks[mask_id], function_size) << fixed << setprecision(6)
                  << " heuristic_measure = " << mask_ids_by_heuristic[local_id].first.to_string() << endl;
             if(!mask_ids_by_heuristic[local_id].first.defined)
             {
                 cout << "..." << endl;
                 break;
+            }
+            else
+            {
+                assert(mask_ids_by_heuristic[local_id].first.num_input_bits >= 1);
             }
         }
 

@@ -19,6 +19,8 @@ public:
 
     void build_input_type(int num_input_operands);
 
+    //void build_input_type(int num_input_operands, const int init_input_operands[], int delta_input_operands[]);
+
     void build_output_type(int num_outputs, int* init_output_sizes, int* delta_output_sizes);
 
     void build_type(int num_input_operands, int init_output_size, int delta_output_size);

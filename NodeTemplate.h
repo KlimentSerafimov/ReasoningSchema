@@ -27,12 +27,15 @@ enum NameType {id_name, str_name};
 class Name
 {
     NameType name_type;
-    int id;
     string name;
 
 public:
+    int id;
+    bool is_child = false;
+
     Name(string _name, int _id)
     {
+        is_child = _name == "children";
         name_type = id_name;
         name = _name;
         id = _id;
@@ -56,6 +59,7 @@ public:
 
     Name(string _name)
     {
+        assert(_name != "children");
         name_type = str_name;
         name = _name;
     }
@@ -109,6 +113,8 @@ public:
     vector<Name> names;
 
     int node_id = -1;
+
+
 
     void init(NodeTemplate* _parent, Name name)
     {

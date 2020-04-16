@@ -28,6 +28,8 @@ public:
     Bitvector total_function;
     Bitvector partition;
 
+    vector<BitInBittree*> bits;
+
     PartialFunction();
     PartialFunction(vector<BitInBittree*> bits);
     PartialFunction(int _function_size, Bitvector _total_function);

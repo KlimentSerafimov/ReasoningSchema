@@ -120,7 +120,7 @@ void InstanceTree::prepare_for_deepening()
 
     num_superinstances = (1 << num_input_bits);
 
-    assert(num_superinstances <= max_instance_tree_degree);
+    //assert(num_superinstances <= max_instance_tree_degree);
 
     for(int i = 0; i < num_superinstances; i++)
     {
@@ -237,13 +237,12 @@ BittreeTaskInstance::BittreeTaskInstance(BittreeTaskType* _bittree_task_type)
 }
 
 vector<vector<Bitvector> > BitvectorTasks::masks_generator(
-        BittreeTypeExpression* type_expression, int init_num_iter)
+        BittreeTypeExpression* type_expression, int init_num_iter, int num_subtasks, int max_masks_size, int min_mask_size)
 {
     int num_iter = init_num_iter;
 
     if(true)
     {
-        int max_masks_size = 3;
 //        vector<Bitvector> masks =
 //                meta_examples[i][0].get_masks(max_mask_size);
 
@@ -256,7 +255,7 @@ vector<vector<Bitvector> > BitvectorTasks::masks_generator(
         for (int i = 0; i < num_iter; i++) {
             curriculum.push_back(curriculum[i]->get_supertask_type(type_expression->delta_task_type));
             cout << curriculum[i + 1]->to_string() << endl;
-            masks.push_back(curriculum[i+1]->to_meta_example(-1).get_masks(max_masks_size));
+            masks.push_back(curriculum[i + 1]->to_meta_example(-1, num_subtasks).get_masks(min_mask_size, max_masks_size));
         }
 
         return masks;
@@ -266,7 +265,7 @@ vector<vector<Bitvector> > BitvectorTasks::masks_generator(
         vector<vector<Bitvector> > masks;
 
         vector<BittreeTaskType *> curriculum;
-        int num_subtree_markers = 100;
+        int num_subtree_markers = 1;
         int max_mask_type_depth = 100;
         curriculum.push_back(type_expression->base_task_type);
 
@@ -278,7 +277,7 @@ vector<vector<Bitvector> > BitvectorTasks::masks_generator(
             curriculum.push_back(curriculum[i]->get_supertask_type(type_expression->delta_task_type));
 //            cout << curriculum[i + 1]->to_string() << endl;
             memset_visited(vis_type, num_subtree_markers);
-            BittreeProgram program = BittreeProgram(curriculum[i + 1], NULL, num_subtree_markers, max_mask_type_depth);
+            BittreeProgram program = BittreeProgram(curriculum[i + 1], NULL, num_subtree_markers, max_mask_type_depth, num_subtasks);
             masks.push_back(program.all_bittree_masks_as_bitvectors);
         }
 
@@ -333,8 +332,7 @@ BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, TaskNa
 BitvectorTasks::BitvectorTasks()
 {
     string str_task_name;
-
-    str_task_name = str_task_name__sum;
+//    str_task_name = str_task_name__sum;
 //    str_task_name = str_task_name__greater;
 //    str_task_name = str_task_name__cumulative_binary_operator;
 //    str_task_name = str_task_name__bitwise_binary_operator;
@@ -342,7 +340,11 @@ BitvectorTasks::BitvectorTasks()
 //    str_task_name = str_task_name__count_unary; // requires double_node
 //    str_task_name = str_task_name__unary_sum; // requires double_node
 //    str_task_name = str_task_name__least_set_bit;
-//    str_task_name = str_task_name__max_window_between_bits;
+    str_task_name = str_task_name__max_window_between_bits;
+//    str_task_name = str_task_name__max_window_between_bits_with_state;
+//    str_task_name = str_task_name__linear_and_or_expression;
+//    str_task_name = str_task_name__linear_and_or_nand_nor_expression;
+
     TaskName task_name = TaskName(str_task_name);
 
 //    str_task_name = str_task_name__multiply_by;
@@ -356,6 +358,7 @@ BitvectorTasks::BitvectorTasks()
 
     if(false)
     {
+        int num_subtasks = 1;
         BittreeTypeExpression type_expression_for_masks = BittreeTypeExpression(task_name);
         vector<BittreeTaskType*> curriculum;
         int num_iter = 4;
@@ -364,12 +367,12 @@ BitvectorTasks::BitvectorTasks()
         curriculum.push_back(type_expression_for_masks.base_task_type);
 
         memset_visited(vis_type, num_subtree_markers);
-        BittreeProgram program = BittreeProgram(curriculum[0], NULL, num_subtree_markers, max_mask_type_depth);
+        BittreeProgram program = BittreeProgram(curriculum[0], NULL, num_subtree_markers, max_mask_type_depth, num_subtasks);
         for (int i = 0; i < num_iter; i++) {
             curriculum.push_back(curriculum[i]->get_supertask_type(type_expression_for_masks.delta_task_type));
             cout << curriculum[i + 1]->to_string() << endl;
             memset_visited(vis_type, num_subtree_markers);
-            BittreeProgram program = BittreeProgram(curriculum[i + 1], NULL, num_subtree_markers, max_mask_type_depth);
+            BittreeProgram program = BittreeProgram(curriculum[i + 1], NULL, num_subtree_markers, max_mask_type_depth, num_subtasks);
         }
 
 //      BittreeTaskInstance instances = BittreeTaskInstance(curriculum[4]);
@@ -381,7 +384,8 @@ BitvectorTasks::BitvectorTasks()
         BittreeTypeExpression type_expression_for_masks = BittreeTypeExpression(task_name);
 
         //parameter
-        int num_iter = 4;
+        int init_iter = 0;
+        int num_iter = 8;
 
         if(task_name.num_iter_defined)
         {
@@ -389,22 +393,24 @@ BitvectorTasks::BitvectorTasks()
         }
 
         int num_prev_subtasks = 1;
+        int min_mask_size = 2;
+        int max_mask_size = 3;
 
-        vector<vector<Bitvector> > masks = masks_generator(&type_expression_for_masks, num_iter);
+        vector<vector<Bitvector> > masks = masks_generator(&type_expression_for_masks, num_iter, num_prev_subtasks, max_mask_size, min_mask_size);
 
         vector<vector<MetaExample> > meta_examples = get_meta_examples(
                 &type_expression_for_meta_examples, task_name, num_iter, num_prev_subtasks);
 
         assert(meta_examples.size() == masks.size());
 
-        for(int i = 0;i<meta_examples.size();i++) {
+        for(int i = init_iter;i<meta_examples.size();i++) {
 
             string language_name =
                     task_name.get_task_name() +
-                    "[third_gen][" +
+                    "[six_gen][" +
                     "num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
 //                    ",max_wire_width="+ std::to_string(max_mask_size) +
-                    ",size="+std::to_string(i+1) + "]";
+                    ",size="+std::to_string(i+1) + ",min_mask_size=" +std::to_string(min_mask_size) + ",max_mask_size=" +std::to_string(max_mask_size) + "]";
 
             assert(meta_examples[i].size() >= 0);
             assert(masks[i].size() >= 0);
@@ -432,7 +438,40 @@ BitvectorTasks::BitvectorTasks()
 
             //project the ordering of the subdomain masks onto the language of f(n) = ordering over the subdomain masks that solves the problem. 
 
-            if(false) {
+            if(true)
+            {
+                vector<MetaExample> local_meta_examples = meta_examples[i];
+                int prev_meta_examples_size = -1;
+                int now_meta_examples_size = (int) local_meta_examples.size();
+                int rec_id = 0;
+                do{
+                    prev_meta_examples_size = now_meta_examples_size;
+
+                    language_name = language_name + "[rec="+std::to_string(rec_id)+"]";
+
+                    MinimalFactoringSchema my_schema =
+                            MinimalFactoringSchema(
+                                    local_meta_examples, language_name, masks[i]);
+
+
+                    for(int i = 0;i<local_meta_examples.size();i++)
+                    {
+                        PartialFunction generalization = my_schema.query(local_meta_examples[i].partial_function);
+                        cout << "query  " << local_meta_examples[i].to_string() << endl;
+                        cout << "result " << generalization.to_string() << endl;
+                        cout << endl;
+                        assert(generalization.is_contained_in(local_meta_examples[i].generalization));
+                    }
+                    cout << "TESTING DONE. ALL CORRECT" << endl;
+
+                    local_meta_examples = my_schema.get_necessary_meta_examples(false);
+
+                    now_meta_examples_size = (int) local_meta_examples.size();
+                    rec_id++;
+
+                }while(now_meta_examples_size != prev_meta_examples_size);
+            }
+            else if(true) {
                 MinimalFactoringSchema my_schema =
                         MinimalFactoringSchema(
                                 meta_examples[i], language_name, masks[i]);

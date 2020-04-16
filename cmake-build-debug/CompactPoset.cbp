@@ -84,7 +84,133 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/BitInBittree.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/BitInBittree.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/BittreeTaskType.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/BittreeTaskType.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/BittreeTypeExpression.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/BittreeTypeExpression.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/Bitvector.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/Bitvector.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/BitvectorTasks.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/BitvectorTasks.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/CompactPoset.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/CompactPoset.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/DecisionTree.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/DecisionTree.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/DeltaBittreeType.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/DeltaBittreeType.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/LanguagesOverBooleanFunctions.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/LanguagesOverBooleanFunctions.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/MetaExample.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/MetaExample.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/MinimalFactoringSchema.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/MinimalFactoringSchema.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/Module.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/Module.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/Node.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/Node.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/NodeTemplate.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/NodeTemplate.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/PartialFunction.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/PartialFunction.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/RemainderAndTwoFactorsSchema.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/RemainderAndTwoFactorsSchema.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/TaskName.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/TaskName.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/TraceVersionSpace.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/TraceVersionSpace.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/UnionOfPartialFunctions.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/UnionOfPartialFunctions.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/enumerate_meta_training_sets.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/enumerate_meta_training_sets.h">
+			<Option target="CompactPoset"/>
+		</Unit>
 		<Unit filename="/home/kliment/CLionProjects/CompactPoset/main.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/util.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/util.h">
 			<Option target="CompactPoset"/>
 		</Unit>
 		<Unit filename="/home/kliment/CLionProjects/CompactPoset/CMakeLists.txt">

@@ -619,9 +619,106 @@ void BittreeInputOutputType::solve(TaskName task_name)
     {
         solve__max_window_between_bits();
     }
+
+    if(task_name.do__max_window_between_bits_with_state)
+    {
+        solve__max_window_between_bits_with_state();
+    }
+
+    if(task_name.do__linear_and_or_expression)
+    {
+        solve__linear_and_or_expresson();
+    }
+
+    if(task_name.do__linear_and_or_nand_nor_expression)
+    {
+        solve__linear_and_or_nand_nor__expression();
+    }
 }
 
-void BittreeInputOutputType::solve__max_window_between_bits()
+void BittreeInputOutputType::solve__linear_and_or_nand_nor__expression()
+{
+    const int num_operands = 3;
+    assert(input->children.size() == num_operands);
+    int operands[num_operands] = {0, 0, 0};
+    for(int i = 0;i<num_operands;i++)
+    {
+        int pow = 1;
+        for(int j = 0;j<input->children.at(i)->children.size();j++)
+        {
+            assert(input->children.at(i)->children.at(j)->bit->is_bit_set == true);
+            operands[i]+=pow*input->children.at(i)->children.at(j)->bit->bit_val;
+            pow*=2;
+        }
+    }
+
+    int rez = get_bit(operands[0], 0);
+    int len = input->children.at(0)->children.size();
+    for(int i = 1;i<len;i++)
+    {
+        if(get_bit(operands[2], i-1)) {
+            if (get_bit(operands[1], i - 1)) {
+                rez &= get_bit(operands[0], i);
+            } else {
+                rez |= get_bit(operands[0], i);
+            }
+        }
+        else {
+            if (get_bit(operands[1], i - 1)) {
+                rez = !get_bit((rez & get_bit(operands[0], i)), 0);
+            } else {
+                rez = !get_bit((rez | get_bit(operands[0], i)), 0);
+            }
+        }
+    }
+
+    for(int i = 0;i<output->children.at(0)->children.size();i++)
+    {
+        assert(output->children.at(0)->children.at(i)->bit->is_bit_set == false);
+        output->children.at(0)->children.at(i)->bit->is_bit_set = true;
+        output->children.at(0)->children.at(i)->bit->bit_val = get_bit(rez, i);
+    }
+}
+
+void BittreeInputOutputType::solve__linear_and_or_expresson()
+{
+    const int num_operands = 2;
+    assert(input->children.size() == num_operands);
+    int operands[num_operands] = {0, 0};
+    for(int i = 0;i<num_operands;i++)
+    {
+        int pow = 1;
+        for(int j = 0;j<input->children.at(i)->children.size();j++)
+        {
+            assert(input->children.at(i)->children.at(j)->bit->is_bit_set == true);
+            operands[i]+=pow*input->children.at(i)->children.at(j)->bit->bit_val;
+            pow*=2;
+        }
+    }
+
+    int rez = get_bit(operands[0], 0);
+    int len = input->children.at(0)->children.size();
+    for(int i = 1;i<len;i++)
+    {
+        if(get_bit(operands[1], i-1))
+        {
+            rez &= get_bit(operands[0], i);
+        } else
+        {
+            rez |= get_bit(operands[0], i);
+        }
+    }
+
+    for(int i = 0;i<output->children.at(0)->children.size();i++)
+    {
+        assert(output->children.at(0)->children.at(i)->bit->is_bit_set == false);
+        output->children.at(0)->children.at(i)->bit->is_bit_set = true;
+        output->children.at(0)->children.at(i)->bit->bit_val = get_bit(rez, i);
+    }
+}
+
+
+void BittreeInputOutputType::solve__max_window_between_bits_with_state()
 {
     const int num_operands = 1;
     assert(input->children.size() == num_operands);
@@ -639,14 +736,79 @@ void BittreeInputOutputType::solve__max_window_between_bits()
 
     int prev_set_bit = -1;
     pair<int, pair<int, int> > max_window = make_pair(-1, make_pair(-1, -1));
-    for(int i = 0; i<input->children.at(0)->children.size();i++)
+    int len = input->children.at(0)->children.size();
+    for(int i = 0; i<len;i++)
     {
         if(get_bit(operands[0], i))
         {
             if(prev_set_bit == -1)
             {
                 prev_set_bit = i;
-            } else
+            }
+            else
+            {
+                max_window = max(make_pair(i-prev_set_bit+1, make_pair(prev_set_bit, i)), max_window);
+                prev_set_bit = i;
+            }
+        }
+    }
+
+    Bitvector sum_result = 0;
+    Bitvector sum_counting = 0;
+
+    if(max_window.first != -1)
+    {
+        sum_result.set_range(0, max_window.second.second-max_window.second.first+1-1);
+    }
+    if(prev_set_bit != -1)
+    {
+        sum_counting.set_range(0, len-1-prev_set_bit+1-1);
+    }
+
+    for(int i = 0;i<output->children.at(0)->children.size();i++)
+    {
+        assert(output->children.at(0)->children.at(i)->bit->is_bit_set == false);
+        output->children.at(0)->children.at(i)->bit->is_bit_set = true;
+        output->children.at(0)->children.at(i)->bit->bit_val = get_bit(sum_result, i);
+    }
+    for(int i = 0;i<output->children.at(1)->children.size();i++)
+    {
+        assert(output->children.at(1)->children.at(i)->bit->is_bit_set == false);
+        output->children.at(1)->children.at(i)->bit->is_bit_set = true;
+        output->children.at(1)->children.at(i)->bit->bit_val = get_bit(sum_counting, i);
+    }
+}
+
+
+void BittreeInputOutputType::solve__max_window_between_bits()
+{
+    const int num_operands = 1;
+    assert(input->children.size() == num_operands);
+    int operands[num_operands] = {0};
+    int len_operands[num_operands];
+    for(int i = 0;i<num_operands;i++)
+    {
+        int pow = 1;
+        len_operands[i] = input->children.at(i)->children.size();
+        for(int j = 0;j<input->children.at(i)->children.size();j++)
+        {
+            assert(input->children.at(i)->children.at(j)->bit->is_bit_set == true);
+            operands[i]+=pow*input->children.at(i)->children.at(j)->bit->bit_val;
+            pow*=2;
+        }
+    }
+
+    int prev_set_bit = -1;
+    pair<int, pair<int, int> > max_window = make_pair(-1, make_pair(-1, -1));
+    for(int i = 0; i<input->children.at(0)->children.size();i++)
+    {
+        if(get_bit(Bitvector(operands[0], len_operands[0]) , i))
+        {
+            if(prev_set_bit == -1)
+            {
+                prev_set_bit = i;
+            }
+            else
             {
                 max_window = max(make_pair(i-prev_set_bit+1, make_pair(prev_set_bit, i)), max_window);
                 prev_set_bit = i;
@@ -658,7 +820,7 @@ void BittreeInputOutputType::solve__max_window_between_bits()
 
     if(max_window.first != -1)
     {
-        sum.set_range(max_window.second.first, max_window.second.second);
+        sum.set_range(0, max_window.second.second-max_window.second.first+1-1);
     }
 
     for(int i = 0;i<output->children.size();i++)
@@ -952,21 +1114,21 @@ void BittreeInputOutputType::solve__sum()
     }
 }
 
-PartialFunction BittreeTaskType::to_partial_function() {
+PartialFunction BittreeTaskType::to_partial_function(int num_subtasks) {
     vector<BitInBittree*> partial_bits;
     memset_visited(vis_bits);
-    append_bits_of_prefix_subtree(partial_bits, 1);
+    append_bits_of_prefix_subtree(partial_bits, num_subtasks);
     return PartialFunction(partial_bits);
 }
 
-MetaExample BittreeTaskType::to_meta_example(int id) {
+MetaExample BittreeTaskType::to_meta_example(int id, int num_subtasks) {
     if(solution != NULL) {
-        return MetaExample(to_partial_function(), solution->to_partial_function(), id);
+        return MetaExample(to_partial_function(num_subtasks), solution->to_partial_function(num_subtasks), id);
     }
     else
     {
-        PartialFunction partial_function = to_partial_function();
-        return MetaExample(to_partial_function(), partial_function, id);
+        PartialFunction partial_function = to_partial_function(num_subtasks);
+        return MetaExample(to_partial_function(num_subtasks), partial_function, id);
     }
 }
 
@@ -996,14 +1158,14 @@ BittreeNode* BittreeInputOutputType::add_output_child(NodeType child_type, BitIn
     assert(output != NULL);
     BittreeNode* new_child =
             new BittreeNode(
-                    output, Name("children", input->children.size()), child_type, bit_in_bittree_type);
+                    output, Name("children", output->children.size()), child_type, bit_in_bittree_type);
     output->children.push_back(new_child);
     return new_child;
 }
 
 BittreeProgram* BittreeProgram::get_child_bittree_program(TreeNode* child)
 {
-    return new BittreeProgram(child, root, num_subtree_markers, max_mask_type_depth-1);
+    return new BittreeProgram(child, root, num_subtree_markers, max_mask_type_depth-1, num_subtasks);
 }
 
 void BittreeProgram::populate_bittree_programs()
@@ -1094,7 +1256,7 @@ void BittreeProgram::populate_bittree_programs()
 //
 
 
-void BittreeProgram::recurse_on_bittree_programs()
+void BittreeProgram::recurse_on_bittree_programs(int num_subtasks)
 {
     for (int i = 0; i < bittree_programs.size(); i++) {
         if (bittree_programs[i]->node != NULL) {
@@ -1109,17 +1271,17 @@ void BittreeProgram::recurse_on_bittree_programs()
             }
             cout << bittree_programs[i]->node->root_to_node_path__to__string() << " :: " << endl;
 
-            PartialFunction local_partial_function = root->to_partial_function();
+            PartialFunction local_partial_function = root->to_partial_function(num_subtasks);
             assert(local_partial_function.full());
             bittree_masks_as_bitvectors.push_back(local_partial_function.total_function);
-            cout << root->to_partial_function().to_string() << " num_subtree_markers " << num_subtree_markers << " :" << endl;
+            cout << root->to_partial_function(num_subtasks).to_string() << " num_subtree_markers " << num_subtree_markers << " :" << endl;
 
             if(num_subtree_markers>=2)
             {
                 memset_visited(vis_type, num_subtree_markers - 1);
                 next_rec_programs.push_back(
                         new BittreeProgram(
-                                bittree_programs[i]->node, root, num_subtree_markers - 1, max_mask_type_depth));
+                                bittree_programs[i]->node, root, num_subtree_markers - 1, max_mask_type_depth, num_subtasks));
 //                cout << endl;
             }
             else
@@ -1163,8 +1325,9 @@ void BittreeProgram::extract_partial_functions(vector<Bitvector> &ret)
     }
 }
 
-BittreeProgram::BittreeProgram(TreeNode *_node, BittreeTaskType *_root, int _num_subtree_markers, int _max_mask_type_depth)
+BittreeProgram::BittreeProgram(TreeNode *_node, BittreeTaskType *_root, int _num_subtree_markers, int _max_mask_type_depth, int _num_subtasks)
 {
+    num_subtasks = _num_subtasks;
     max_mask_type_depth = _max_mask_type_depth;
     num_subtree_markers = _num_subtree_markers;
     if(num_subtree_markers == 0)
@@ -1208,7 +1371,7 @@ BittreeProgram::BittreeProgram(TreeNode *_node, BittreeTaskType *_root, int _num
 
     populate_bittree_programs();
 
-    recurse_on_bittree_programs();
+    recurse_on_bittree_programs(num_subtasks);
 
     if(is_root)
     {

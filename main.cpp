@@ -83,7 +83,7 @@ vector<MetaExample> get_meta_examples_of_language_over_boolean_functions(int lan
 //                local_meta_example.print();
                 local_total_num_meta_examples++;
                 if(add) {
-                    assert(local_meta_example.generalization.partition != local_meta_example.partial_function.partition);
+                    assert(!(local_meta_example.generalization.partition == local_meta_example.partial_function.partition));
                     local_total_without_trivial++;
 //                            local_meta_example.print();
                     local_meta_example.idx = (int) meta_examples.size();
@@ -313,6 +313,48 @@ void modeling_of_bitvector_functions()
 }
 
 int main() {
+
+    bool test_bitvector = false;
+    if(test_bitvector)
+    {
+
+        int size = 25;
+
+        Bitvector init_a = Bitvector(1, size);
+        Bitvector a = Bitvector(1, size);
+
+        Bitvector flip_a = a.get_flipped();
+        assert(flip_a.count() == size-1);
+
+        assert(init_a == a);
+
+        a |= Bitvector(15-1,size);
+        assert(a == Bitvector(15, size));
+
+        Bitvector second_init_a = a;
+        Bitvector d = a ^ Bitvector(3, size);
+        Bitvector init_d = d;
+        assert(second_init_a == a);
+        assert(d == Bitvector(15^3, size));
+
+
+        Bitvector e = d & Bitvector(30000000, size);
+
+        assert(second_init_a == a);
+        assert(init_d == d);
+        assert(e == Bitvector((15^3)&30000000, size));
+
+        d &= Bitvector(12356789, size);
+        assert(d == Bitvector((15^3)&12356789, size));
+
+        d.set(12);
+        assert(d.get_bit(12));
+
+        Bitvector f = d.get_flipped();
+        assert(f.get_bit(12) == 0);
+
+        return 0;
+    }
 
     bool do__enumerate_sets_of_meta_examples = false;
     if(do__enumerate_sets_of_meta_examples)

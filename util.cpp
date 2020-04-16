@@ -23,7 +23,7 @@ string bitvector_to_str(int bitvector, int n)
     string ret = "";
     for(int i = n-1;i>=0;i--)
     {
-        if(get_bit(bitvector, i))
+        if(get_bit(Bitvector(bitvector, n), i))
         {
             ret+="1";
         }
@@ -37,7 +37,7 @@ string bitvector_to_str(int bitvector, int n)
 
 string bitvector_to_str(Bitvector bitvector, int n)
 {
-    assert(bitvector.get_size() == n);
+    assert(bitvector.get_size() >= n);
     return bitvector.to_string();
 //    string to_remove_0s = bitvector.to_string();
 //    string ret;
@@ -53,37 +53,90 @@ int get_bit_of_int(int bitvector, int idx) {
     return (bitvector & (1<<idx)) != 0;
 }
 
+int get_bit_of_int(unsigned long long bitvector, int idx) {
+    unsigned long long one = 1;
+    return (bitvector & (one<<idx)) != 0;
+}
+
 int get_bit(Bitvector bitvector, int idx) {
-    return bitvector.test(idx);
+    int ret = bitvector.get_bit(idx);
+    return ret;
 }
 
 Bitvector::Bitvector(BitvectorConstructorType type, int _size)
 {
-    size_defined = true;
-    size = _size;
+    set_size(_size);
+
     if(type == all_ones)
     {
+        set_range(0, size-1);
+    }
+
+    if(CONTROL) {
         for(int i = 0;i<size;i++)
         {
-            set(i);
+            get_bit(i);
         }
     }
 }
 
-Bitvector::Bitvector(bitset<BITVECTOR_SIZE> _bitset): bitset<BITVECTOR_SIZE>(_bitset)
+Bitvector::Bitvector(bitset<MAX_BITVECTOR_SIZE> _bitset)//: bitset<MAX_BITVECTOR_SIZE>(_bitset)
 {
+    set_size(MAX_BITVECTOR_SIZE);
+
+    for(int i = 0;i<MAX_BITVECTOR_SIZE;i++)
+    {
+        set(i, _bitset[i]);
+    }
+
+    control = _bitset;
+
+    if(CONTROL) {
+        for(int i = 0;i<size;i++)
+        {
+            get_bit(i);
+        }
+    }
 }
 
-Bitvector::Bitvector(long long num): bitset<BITVECTOR_SIZE>(num)
+Bitvector::Bitvector(unsigned long long num)//: bitset<MAX_BITVECTOR_SIZE>(num)
 {
-    assert(num >= 0);
+    set_size(MAX_BITVECTOR_SIZE);
+
+    int begin = 0;
+    int end = get_size()-1;
+
+    int init_block = 0 / MAX_BLOCK_SIZE;
+    int end_block = end / MAX_BLOCK_SIZE;
+
+    for(int i = init_block; i<=end_block;i++) {
+        int first_idx = block_ranges[i].first;
+        int second_idx = block_ranges[i].second;
+        if (i == init_block) {
+            first_idx = begin;
+        }
+        if (i == end_block) {
+            second_idx = end;
+        }
+        unsigned long long slice = int_get_subint(num, first_idx, second_idx);
+
+        blocks[i] = (slice >> first_idx);
+    }
+
+    if(CONTROL) {
+        control = bitset<MAX_BITVECTOR_SIZE>(num);
+        for(int i = 0;i<size;i++)
+        {
+            get_bit(i);
+        }
+    }
 }
 
 unsigned int Bitvector::num_trailing_zeroes() {
     int ret = 0;
-    for(int i = 0;i<BITVECTOR_SIZE; i++)
+    for(int i = 0;i<size; i++)
     {
-        if(test(i) == false)
+        if(get_bit(i) == false)
         {
             ret++;
         } else {
@@ -95,15 +148,107 @@ unsigned int Bitvector::num_trailing_zeroes() {
 
 void Bitvector::set_size(int _size)
 {
-    assert(!size_defined);
-    for(int i = _size; i<BITVECTOR_SIZE; i++)
+   // assert(!size_defined || _size == size);
+//    for(int i = _size; i<MAX_BITVECTOR_SIZE; i++)
+//    {
+//        assert(!test(i));
+//    }
+
+    if(!defined)
     {
-        assert(!test(i));
+        defined = true;
+        for(int i = 0;i<MAX_NUM_BLOCKS;i++)
+        {
+            block_defined[i] = false;
+        }
     }
-    size_defined = true;
-    size = _size;
+
+    assert(_size <= MAX_BITVECTOR_SIZE);
+
+    if(!size_defined || size != _size) {
+        size_defined = true;
+        size = _size;
+        num_blocks = _size / MAX_BLOCK_SIZE + (_size % MAX_BLOCK_SIZE != 0);
+        int at_bit_idx = 0;
+        for (int i = 0; i < num_blocks; i++) {
+            int next_at_bit_id = min(_size, at_bit_idx + MAX_BLOCK_SIZE);
+            block_ranges[i] = make_pair(at_bit_idx, next_at_bit_id-1);
+            if(!block_defined[i]) {
+                blocks[i] = 0;
+                block_defined[i] = true;
+            }
+            at_bit_idx = next_at_bit_id;
+        }
+        assert(at_bit_idx == _size);
+    }
 }
 
+Bitvector::Bitvector(unsigned long long bits, int _size)// : bitset<MAX_BITVECTOR_SIZE>(bits)
+{
+    set_size(_size);
+
+    int begin = 0;
+    int end = get_size()-1;
+
+    int init_block = 0 / MAX_BLOCK_SIZE;
+    int end_block = end / MAX_BLOCK_SIZE;
+
+    for(int i = init_block; i<=end_block;i++) {
+        int first_idx = block_ranges[i].first;
+        int second_idx = block_ranges[i].second;
+        if (i == init_block) {
+            first_idx = begin;
+        }
+        if (i == end_block) {
+            second_idx = end;
+        }
+
+        unsigned long long slice = int_get_subint(bits, first_idx, second_idx);
+
+        blocks[i] = (slice >> first_idx);
+    }
+
+    if(CONTROL) {
+        control = bitset<MAX_BITVECTOR_SIZE>(bits);
+        for(int i = 0;i<size;i++)
+        {
+            get_bit(i);
+        }
+    }
+}
+
+int Bitvector::get_bit(int idx) const {
+    assert(idx < get_size());
+    int block_idx = idx/MAX_BLOCK_SIZE;
+    int offset = block_idx*MAX_BLOCK_SIZE;
+    int int_idx = idx-offset;
+
+    int ret = get_bit_of_int(blocks[block_idx], int_idx);
+    if(CONTROL) {
+        int second_ret = control.test(idx);
+        if(ret != second_ret)
+        {
+            cout << control.to_string() << endl;
+            for(int i = 0;i<num_blocks;i++)
+            {
+                cout << blocks[i] <<" ";
+            }
+            cout << endl;
+        }
+        assert(ret == second_ret);
+    }
+    return ret;
+
+}
+
+unsigned long long Bitvector::to_ullong() const {
+    bitset<MAX_BITVECTOR_SIZE> local_bitset;
+    for(int i = 0;i<get_size();i++)
+    {
+        local_bitset.set(i, get_bit(i));
+    }
+    return local_bitset.to_ullong();
+}
 
 string vector_of_vector_of_int_to_string(vector<vector<int> > to_print, string title)
 {

@@ -161,6 +161,12 @@ public:
 
     void solve__max_window_between_bits();
 
+    void solve__max_window_between_bits_with_state();
+
+    void solve__linear_and_or_expresson();
+
+    void solve__linear_and_or_nand_nor__expression();
+
     void solve__one_shift_idx__reverse_subtask(int init_size);
 
     void solve__count_unary__reverse_subtask(int init_size);
@@ -224,9 +230,9 @@ public:
 
     BittreeTaskType* get_supertask_type(BittreeInputOutputType* type);
 
-    PartialFunction to_partial_function();
+    PartialFunction to_partial_function(int num_subtasks);
 
-    MetaExample to_meta_example(int id);
+    MetaExample to_meta_example(int id, int num_subtasks);
 
     MetaExample to_meta_example_of_subtask_decomposition(int id, int subtask_depth);
 
@@ -254,7 +260,8 @@ public:
     BittreeTaskType *root;
     int num_subtree_markers;
     int max_mask_type_depth;
-    
+    int num_subtasks;
+
     TreeNode* node = NULL;
     vector<Bitvector> bittree_masks_as_bitvectors;
     vector<BittreeProgram*> bittree_programs;
@@ -267,11 +274,11 @@ public:
 
     BittreeProgram* get_child_bittree_program(TreeNode* child);
 
-    BittreeProgram(TreeNode *_node, BittreeTaskType *root, int num_subtree_markers, int max_mask_type_depth);
+    BittreeProgram(TreeNode *_node, BittreeTaskType *root, int num_subtree_markers, int max_mask_type_depth, int num_subtasks);
     
     void populate_bittree_programs();
     
-    void recurse_on_bittree_programs();
+    void recurse_on_bittree_programs(int num_subtasks);
     
     void extract_partial_functions(vector<Bitvector>& ret);
 

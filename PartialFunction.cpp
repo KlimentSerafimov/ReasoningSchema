@@ -19,11 +19,6 @@ PartialFunction::PartialFunction(int _function_size, Bitvector _total_function) 
 PartialFunction::PartialFunction(int _function_size, Bitvector _total_function, Bitvector _partition) {
     function_size = _function_size;
     total_function = _total_function;
-    if(_partition == -1)
-    {
-        assert(false);
-        _partition.set_range(0, function_size-1);
-    }
     partition = _partition;
 }
 
@@ -31,7 +26,7 @@ string PartialFunction::to_string() {
     string ret;
     for(int i = function_size-1;i>=0;i--)
     {
-        if(get_bit(partition, i))
+        if(partition.get_bit(i))
         {
             ret+='0'+get_bit(total_function, i);
         }
@@ -47,8 +42,9 @@ bool PartialFunction::is_contained_in(PartialFunction other_partial_function) {
     assert(function_size == other_partial_function.function_size);
     if((partition & other_partial_function.partition) == other_partial_function.partition) {
 //    assert(partition == (1<<(1<<function_size))-1);
-        bool ret = ((total_function & other_partial_function.partition) ==
-                    (other_partial_function.total_function & other_partial_function.partition));
+        Bitvector left = (total_function & other_partial_function.partition);
+        Bitvector right = (other_partial_function.total_function & other_partial_function.partition);
+        bool ret = (left == right);
         return ret;
     } else
     {
@@ -71,19 +67,32 @@ PartialFunction PartialFunction::get_composition(PartialFunction other) {
 }
 
 int PartialFunction::has_output(int idx) {
-    return partition.test(idx);
+    return partition.get_bit(idx);
 }
 
 int PartialFunction::get_output(int idx) {
-    return total_function.test(idx);
+    return total_function.get_bit(idx);
 }
 
 void PartialFunction::apply_common_partition(PartialFunction other) {
 
-    partition &= other.partition;
-    partition &= ((total_function & partition) ^ (other.total_function & partition)).flip();
+    Bitvector init_partition = partition;
+    Bitvector init_other_partition = other.partition;
+    Bitvector init_total_function = total_function;
+    Bitvector init_other_total_function = other.total_function;
 
-    assert((partition & total_function) == (partition & other.total_function));
+    partition &= other.partition;
+    Bitvector intermediate_partition = partition;
+    Bitvector left = (partition & total_function);
+    Bitvector right = (partition & other.total_function );
+    Bitvector the_xor = left ^ right;
+    Bitvector the_xor_flipped = the_xor.get_flipped();
+    partition &= the_xor_flipped;
+
+    Bitvector masked_this = (partition & total_function);
+    Bitvector masked_other = (partition & other.total_function);
+
+    assert(masked_this == masked_other);
 }
 
 int PartialFunction::partition_size() {
@@ -111,7 +120,7 @@ bool PartialFunction::empty() {
 bool PartialFunction::has_empty_intersection_with(PartialFunction other) {
     Bitvector common_partition = partition & other.partition;
     Bitvector difference_mask = ((total_function & common_partition) ^ (other.total_function & common_partition));
-    return difference_mask != 0;
+    return !(difference_mask == Bitvector(0, difference_mask.get_size()));
 }
 
 void PartialFunction::append_difference_with(PartialFunction other, vector<PartialFunction> &to_append_to) {
@@ -122,7 +131,7 @@ void PartialFunction::append_difference_with(PartialFunction other, vector<Parti
 
         Bitvector other_contains_but_this_doesnt = other.partition ^ (other.partition & partition);
 
-        while(other_contains_but_this_doesnt != 0)
+        while(!(other_contains_but_this_doesnt == 0))
         {
             int idx_of_first_one = num_trailing_zeroes(other_contains_but_this_doesnt);
 
@@ -168,13 +177,14 @@ bool PartialFunction::full()
     return partition.test_range(0, function_size - 1);
 }
 
-PartialFunction::PartialFunction(vector<BitInBittree*> bits)
+PartialFunction::PartialFunction(vector<BitInBittree*> _bits)
 {
-    init_via_bits(bits);
+    init_via_bits(_bits);
 }
 
-void PartialFunction::init_via_bits(vector<BitInBittree*> bits)
+void PartialFunction::init_via_bits(vector<BitInBittree*> _bits)
 {
+    bits = _bits;
     function_size = 0;
     total_function = 0;
     partition = 0;
@@ -227,10 +237,16 @@ BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(BittreeTaskTy
     int num_prev_subtasks = 0;
     while(local_subtask != NULL)
     {
-        if(num_prev_subtasks < subtask_depth || subtask_depth == -1 || local_subtask->solution == NULL)
+        if(num_prev_subtasks < subtask_depth || subtask_depth == -1 || subtask_depth == 0 || local_subtask->solution == NULL)
         {
             memset_visited(vis_bits);
             local_subtask->append_IO_bits(partial_bits);
+
+            if(subtask_depth == 0)
+            {
+                break;
+            }
+
             if(local_subtask->decomposition != NULL)
             {
                 local_subtask = local_subtask->decomposition->subtask;

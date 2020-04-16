@@ -33,7 +33,7 @@ class MinimalFactoringSchema
 
     void repeat_apply_parents(Module *module);
 
-    void calc_masks(int set_init_masks_size);
+    void calc_masks(int set_init_masks_size, int set_end_masks_size);
 
     void calc_module(Bitvector subdomain_mask, Module *module);
 

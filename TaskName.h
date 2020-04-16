@@ -21,7 +21,10 @@ static const string str_task_name__count_unary = "count_unary";
 static const string str_task_name__count_unary__reverse_subtask = "count_unary__reverse_subtask";
 static const string str_task_name__unary_sum = "unary_sum";
 static const string str_task_name__least_set_bit = "least_set_bit";
-static const string str_task_name__max_window_between_bits = "max_window_between_bits";
+static const string str_task_name__max_window_between_bits = "max_window_between_bits_normal_form";
+static const string str_task_name__max_window_between_bits_with_state = "max_window_between_bits_normal_form_with_state";
+static const string str_task_name__linear_and_or_expression = "linear_and_or_expression";
+static const string str_task_name__linear_and_or_nand_nor_expression = "linear_and_or_nand_nor_expression";
 
 class TaskName
 {
@@ -37,6 +40,9 @@ public:
     bool do__unary_sum = false;
     bool do__least_set_bit = false;
     bool do__max_window_between_bits = false;
+    bool do__max_window_between_bits_with_state = false;
+    bool do__linear_and_or_expression = false;
+    bool do__linear_and_or_nand_nor_expression = false;
 
     bool do__multiply_by = false;
     int param__multiply_by = -1;
@@ -68,6 +74,9 @@ public:
         do__unary_sum = task_name == str_task_name__unary_sum;
         do__least_set_bit = task_name == str_task_name__least_set_bit;
         do__max_window_between_bits = task_name == str_task_name__max_window_between_bits;
+        do__max_window_between_bits_with_state = task_name == str_task_name__max_window_between_bits_with_state;
+        do__linear_and_or_expression = task_name == str_task_name__linear_and_or_expression;
+        do__linear_and_or_nand_nor_expression = task_name == str_task_name__linear_and_or_nand_nor_expression;
     }
 
     TaskName(string _task_name, int _param) {

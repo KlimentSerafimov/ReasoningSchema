@@ -24,8 +24,8 @@ void enumerate_meta_training_sets()
             }
             else if(max_num_examples == 2)
             {
-                DEPTH_TREEE_PRINT = 6;
-                FREQUENCY_DONE_PRINT = 10000;
+                DEPTH_TREEE_PRINT = 20;
+                FREQUENCY_DONE_PRINT = 100;
             }
             else if(max_num_examples == 1)
             {
@@ -140,7 +140,7 @@ void recursively_enumerate_meta_training_sets(
             {
                 num_dones += 1;
 //                poset.record();
-                poset.print();
+                //poset.print();
                 CompactPoset poset_copy = CompactPoset(&poset);
 
                 if(num_dones%FREQUENCY_DONE_PRINT == 0)

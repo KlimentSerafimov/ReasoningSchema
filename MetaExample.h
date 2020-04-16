@@ -66,13 +66,15 @@ public:
         return partial_function.function_size;
     }
 
+    float cost(Bitvector mask);
+
     bool next_mask(Bitvector &v, int num_bits)// current permutation of bits
     {
         int count = 0;
         int function_size = get_function_size();
         for(int i = 0;i<function_size;i++)
         {
-            if(v.test(i))
+            if(v.get_bit(i))
             {
                 if(i == function_size - 1)
                 {
@@ -81,7 +83,7 @@ public:
                 else
                 {
                     v.set(i, 0);
-                    if(!v.test(i+1))
+                    if(!v.get_bit(i+1))
                     {
                         v.set(i+1);
                         for(int j = 0;j<count;j++)
@@ -100,7 +102,7 @@ public:
         return true;
     }
 
-    vector<Bitvector> get_masks(int max_mask_size);
+    vector<Bitvector> get_masks(int min_mask_size, int max_mask_size);
 
 };
 

@@ -88,7 +88,7 @@ void SubdomainSwitchPosetsFactors::insert(MetaExample meta_example)
                 generalization.total_function,
                 training_mask, generalization_mask, meta_example.idx);
 
-        if(generalization_mask != training_mask) {
+        if(!(generalization_mask == training_mask)) {
             if (!factors[i].subdomain_posets[factors[i].compusorty_mask_to_id[compulsory_training_mask]].insert(subdomain_meta_example)) {
                 for (int j = 0; j <= i; j++) {
                     Bitvector compulsory_training_mask_prev = factors[j].all_subsets_compulsory_mask & partial_function.partition;

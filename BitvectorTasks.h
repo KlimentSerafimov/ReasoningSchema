@@ -10,7 +10,7 @@
 
 class MetaExample;
 
-static const int max_instance_tree_degree = 4;
+static const int max_instance_tree_degree = 8;
 
 class InstanceTree
 {
@@ -65,7 +65,7 @@ class BitvectorTasks {
     void populate_ordering_over_boolean_functions_with_bitwise_and();
 
     vector<vector<Bitvector> > masks_generator(
-            BittreeTypeExpression* type_expression, int num_iter);
+            BittreeTypeExpression* type_expression, int num_iter, int num_subtasks, int max_mask_size, int min_mask_size);
 
     vector<vector<MetaExample> >
     get_meta_examples(BittreeTypeExpression *type_expression, TaskName task_name, int num_iter,

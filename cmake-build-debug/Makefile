@@ -123,6 +123,546 @@ CompactPoset/fast:
 	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/build
 .PHONY : CompactPoset/fast
 
+BitInBittree.o: BitInBittree.cpp.o
+
+.PHONY : BitInBittree.o
+
+# target to build an object file
+BitInBittree.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/BitInBittree.cpp.o
+.PHONY : BitInBittree.cpp.o
+
+BitInBittree.i: BitInBittree.cpp.i
+
+.PHONY : BitInBittree.i
+
+# target to preprocess a source file
+BitInBittree.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/BitInBittree.cpp.i
+.PHONY : BitInBittree.cpp.i
+
+BitInBittree.s: BitInBittree.cpp.s
+
+.PHONY : BitInBittree.s
+
+# target to generate assembly for a file
+BitInBittree.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/BitInBittree.cpp.s
+.PHONY : BitInBittree.cpp.s
+
+BittreeTaskType.o: BittreeTaskType.cpp.o
+
+.PHONY : BittreeTaskType.o
+
+# target to build an object file
+BittreeTaskType.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/BittreeTaskType.cpp.o
+.PHONY : BittreeTaskType.cpp.o
+
+BittreeTaskType.i: BittreeTaskType.cpp.i
+
+.PHONY : BittreeTaskType.i
+
+# target to preprocess a source file
+BittreeTaskType.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/BittreeTaskType.cpp.i
+.PHONY : BittreeTaskType.cpp.i
+
+BittreeTaskType.s: BittreeTaskType.cpp.s
+
+.PHONY : BittreeTaskType.s
+
+# target to generate assembly for a file
+BittreeTaskType.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/BittreeTaskType.cpp.s
+.PHONY : BittreeTaskType.cpp.s
+
+BittreeTypeExpression.o: BittreeTypeExpression.cpp.o
+
+.PHONY : BittreeTypeExpression.o
+
+# target to build an object file
+BittreeTypeExpression.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/BittreeTypeExpression.cpp.o
+.PHONY : BittreeTypeExpression.cpp.o
+
+BittreeTypeExpression.i: BittreeTypeExpression.cpp.i
+
+.PHONY : BittreeTypeExpression.i
+
+# target to preprocess a source file
+BittreeTypeExpression.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/BittreeTypeExpression.cpp.i
+.PHONY : BittreeTypeExpression.cpp.i
+
+BittreeTypeExpression.s: BittreeTypeExpression.cpp.s
+
+.PHONY : BittreeTypeExpression.s
+
+# target to generate assembly for a file
+BittreeTypeExpression.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/BittreeTypeExpression.cpp.s
+.PHONY : BittreeTypeExpression.cpp.s
+
+Bitvector.o: Bitvector.cpp.o
+
+.PHONY : Bitvector.o
+
+# target to build an object file
+Bitvector.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/Bitvector.cpp.o
+.PHONY : Bitvector.cpp.o
+
+Bitvector.i: Bitvector.cpp.i
+
+.PHONY : Bitvector.i
+
+# target to preprocess a source file
+Bitvector.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/Bitvector.cpp.i
+.PHONY : Bitvector.cpp.i
+
+Bitvector.s: Bitvector.cpp.s
+
+.PHONY : Bitvector.s
+
+# target to generate assembly for a file
+Bitvector.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/Bitvector.cpp.s
+.PHONY : Bitvector.cpp.s
+
+BitvectorTasks.o: BitvectorTasks.cpp.o
+
+.PHONY : BitvectorTasks.o
+
+# target to build an object file
+BitvectorTasks.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/BitvectorTasks.cpp.o
+.PHONY : BitvectorTasks.cpp.o
+
+BitvectorTasks.i: BitvectorTasks.cpp.i
+
+.PHONY : BitvectorTasks.i
+
+# target to preprocess a source file
+BitvectorTasks.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/BitvectorTasks.cpp.i
+.PHONY : BitvectorTasks.cpp.i
+
+BitvectorTasks.s: BitvectorTasks.cpp.s
+
+.PHONY : BitvectorTasks.s
+
+# target to generate assembly for a file
+BitvectorTasks.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/BitvectorTasks.cpp.s
+.PHONY : BitvectorTasks.cpp.s
+
+CompactPoset.o: CompactPoset.cpp.o
+
+.PHONY : CompactPoset.o
+
+# target to build an object file
+CompactPoset.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/CompactPoset.cpp.o
+.PHONY : CompactPoset.cpp.o
+
+CompactPoset.i: CompactPoset.cpp.i
+
+.PHONY : CompactPoset.i
+
+# target to preprocess a source file
+CompactPoset.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/CompactPoset.cpp.i
+.PHONY : CompactPoset.cpp.i
+
+CompactPoset.s: CompactPoset.cpp.s
+
+.PHONY : CompactPoset.s
+
+# target to generate assembly for a file
+CompactPoset.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/CompactPoset.cpp.s
+.PHONY : CompactPoset.cpp.s
+
+DecisionTree.o: DecisionTree.cpp.o
+
+.PHONY : DecisionTree.o
+
+# target to build an object file
+DecisionTree.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/DecisionTree.cpp.o
+.PHONY : DecisionTree.cpp.o
+
+DecisionTree.i: DecisionTree.cpp.i
+
+.PHONY : DecisionTree.i
+
+# target to preprocess a source file
+DecisionTree.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/DecisionTree.cpp.i
+.PHONY : DecisionTree.cpp.i
+
+DecisionTree.s: DecisionTree.cpp.s
+
+.PHONY : DecisionTree.s
+
+# target to generate assembly for a file
+DecisionTree.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/DecisionTree.cpp.s
+.PHONY : DecisionTree.cpp.s
+
+DeltaBittreeType.o: DeltaBittreeType.cpp.o
+
+.PHONY : DeltaBittreeType.o
+
+# target to build an object file
+DeltaBittreeType.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/DeltaBittreeType.cpp.o
+.PHONY : DeltaBittreeType.cpp.o
+
+DeltaBittreeType.i: DeltaBittreeType.cpp.i
+
+.PHONY : DeltaBittreeType.i
+
+# target to preprocess a source file
+DeltaBittreeType.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/DeltaBittreeType.cpp.i
+.PHONY : DeltaBittreeType.cpp.i
+
+DeltaBittreeType.s: DeltaBittreeType.cpp.s
+
+.PHONY : DeltaBittreeType.s
+
+# target to generate assembly for a file
+DeltaBittreeType.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/DeltaBittreeType.cpp.s
+.PHONY : DeltaBittreeType.cpp.s
+
+LanguagesOverBooleanFunctions.o: LanguagesOverBooleanFunctions.cpp.o
+
+.PHONY : LanguagesOverBooleanFunctions.o
+
+# target to build an object file
+LanguagesOverBooleanFunctions.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/LanguagesOverBooleanFunctions.cpp.o
+.PHONY : LanguagesOverBooleanFunctions.cpp.o
+
+LanguagesOverBooleanFunctions.i: LanguagesOverBooleanFunctions.cpp.i
+
+.PHONY : LanguagesOverBooleanFunctions.i
+
+# target to preprocess a source file
+LanguagesOverBooleanFunctions.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/LanguagesOverBooleanFunctions.cpp.i
+.PHONY : LanguagesOverBooleanFunctions.cpp.i
+
+LanguagesOverBooleanFunctions.s: LanguagesOverBooleanFunctions.cpp.s
+
+.PHONY : LanguagesOverBooleanFunctions.s
+
+# target to generate assembly for a file
+LanguagesOverBooleanFunctions.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/LanguagesOverBooleanFunctions.cpp.s
+.PHONY : LanguagesOverBooleanFunctions.cpp.s
+
+MetaExample.o: MetaExample.cpp.o
+
+.PHONY : MetaExample.o
+
+# target to build an object file
+MetaExample.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/MetaExample.cpp.o
+.PHONY : MetaExample.cpp.o
+
+MetaExample.i: MetaExample.cpp.i
+
+.PHONY : MetaExample.i
+
+# target to preprocess a source file
+MetaExample.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/MetaExample.cpp.i
+.PHONY : MetaExample.cpp.i
+
+MetaExample.s: MetaExample.cpp.s
+
+.PHONY : MetaExample.s
+
+# target to generate assembly for a file
+MetaExample.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/MetaExample.cpp.s
+.PHONY : MetaExample.cpp.s
+
+MinimalFactoringSchema.o: MinimalFactoringSchema.cpp.o
+
+.PHONY : MinimalFactoringSchema.o
+
+# target to build an object file
+MinimalFactoringSchema.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/MinimalFactoringSchema.cpp.o
+.PHONY : MinimalFactoringSchema.cpp.o
+
+MinimalFactoringSchema.i: MinimalFactoringSchema.cpp.i
+
+.PHONY : MinimalFactoringSchema.i
+
+# target to preprocess a source file
+MinimalFactoringSchema.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/MinimalFactoringSchema.cpp.i
+.PHONY : MinimalFactoringSchema.cpp.i
+
+MinimalFactoringSchema.s: MinimalFactoringSchema.cpp.s
+
+.PHONY : MinimalFactoringSchema.s
+
+# target to generate assembly for a file
+MinimalFactoringSchema.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/MinimalFactoringSchema.cpp.s
+.PHONY : MinimalFactoringSchema.cpp.s
+
+Module.o: Module.cpp.o
+
+.PHONY : Module.o
+
+# target to build an object file
+Module.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/Module.cpp.o
+.PHONY : Module.cpp.o
+
+Module.i: Module.cpp.i
+
+.PHONY : Module.i
+
+# target to preprocess a source file
+Module.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/Module.cpp.i
+.PHONY : Module.cpp.i
+
+Module.s: Module.cpp.s
+
+.PHONY : Module.s
+
+# target to generate assembly for a file
+Module.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/Module.cpp.s
+.PHONY : Module.cpp.s
+
+Node.o: Node.cpp.o
+
+.PHONY : Node.o
+
+# target to build an object file
+Node.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/Node.cpp.o
+.PHONY : Node.cpp.o
+
+Node.i: Node.cpp.i
+
+.PHONY : Node.i
+
+# target to preprocess a source file
+Node.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/Node.cpp.i
+.PHONY : Node.cpp.i
+
+Node.s: Node.cpp.s
+
+.PHONY : Node.s
+
+# target to generate assembly for a file
+Node.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/Node.cpp.s
+.PHONY : Node.cpp.s
+
+NodeTemplate.o: NodeTemplate.cpp.o
+
+.PHONY : NodeTemplate.o
+
+# target to build an object file
+NodeTemplate.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/NodeTemplate.cpp.o
+.PHONY : NodeTemplate.cpp.o
+
+NodeTemplate.i: NodeTemplate.cpp.i
+
+.PHONY : NodeTemplate.i
+
+# target to preprocess a source file
+NodeTemplate.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/NodeTemplate.cpp.i
+.PHONY : NodeTemplate.cpp.i
+
+NodeTemplate.s: NodeTemplate.cpp.s
+
+.PHONY : NodeTemplate.s
+
+# target to generate assembly for a file
+NodeTemplate.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/NodeTemplate.cpp.s
+.PHONY : NodeTemplate.cpp.s
+
+PartialFunction.o: PartialFunction.cpp.o
+
+.PHONY : PartialFunction.o
+
+# target to build an object file
+PartialFunction.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/PartialFunction.cpp.o
+.PHONY : PartialFunction.cpp.o
+
+PartialFunction.i: PartialFunction.cpp.i
+
+.PHONY : PartialFunction.i
+
+# target to preprocess a source file
+PartialFunction.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/PartialFunction.cpp.i
+.PHONY : PartialFunction.cpp.i
+
+PartialFunction.s: PartialFunction.cpp.s
+
+.PHONY : PartialFunction.s
+
+# target to generate assembly for a file
+PartialFunction.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/PartialFunction.cpp.s
+.PHONY : PartialFunction.cpp.s
+
+RemainderAndTwoFactorsSchema.o: RemainderAndTwoFactorsSchema.cpp.o
+
+.PHONY : RemainderAndTwoFactorsSchema.o
+
+# target to build an object file
+RemainderAndTwoFactorsSchema.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/RemainderAndTwoFactorsSchema.cpp.o
+.PHONY : RemainderAndTwoFactorsSchema.cpp.o
+
+RemainderAndTwoFactorsSchema.i: RemainderAndTwoFactorsSchema.cpp.i
+
+.PHONY : RemainderAndTwoFactorsSchema.i
+
+# target to preprocess a source file
+RemainderAndTwoFactorsSchema.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/RemainderAndTwoFactorsSchema.cpp.i
+.PHONY : RemainderAndTwoFactorsSchema.cpp.i
+
+RemainderAndTwoFactorsSchema.s: RemainderAndTwoFactorsSchema.cpp.s
+
+.PHONY : RemainderAndTwoFactorsSchema.s
+
+# target to generate assembly for a file
+RemainderAndTwoFactorsSchema.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/RemainderAndTwoFactorsSchema.cpp.s
+.PHONY : RemainderAndTwoFactorsSchema.cpp.s
+
+TaskName.o: TaskName.cpp.o
+
+.PHONY : TaskName.o
+
+# target to build an object file
+TaskName.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/TaskName.cpp.o
+.PHONY : TaskName.cpp.o
+
+TaskName.i: TaskName.cpp.i
+
+.PHONY : TaskName.i
+
+# target to preprocess a source file
+TaskName.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/TaskName.cpp.i
+.PHONY : TaskName.cpp.i
+
+TaskName.s: TaskName.cpp.s
+
+.PHONY : TaskName.s
+
+# target to generate assembly for a file
+TaskName.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/TaskName.cpp.s
+.PHONY : TaskName.cpp.s
+
+TraceVersionSpace.o: TraceVersionSpace.cpp.o
+
+.PHONY : TraceVersionSpace.o
+
+# target to build an object file
+TraceVersionSpace.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/TraceVersionSpace.cpp.o
+.PHONY : TraceVersionSpace.cpp.o
+
+TraceVersionSpace.i: TraceVersionSpace.cpp.i
+
+.PHONY : TraceVersionSpace.i
+
+# target to preprocess a source file
+TraceVersionSpace.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/TraceVersionSpace.cpp.i
+.PHONY : TraceVersionSpace.cpp.i
+
+TraceVersionSpace.s: TraceVersionSpace.cpp.s
+
+.PHONY : TraceVersionSpace.s
+
+# target to generate assembly for a file
+TraceVersionSpace.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/TraceVersionSpace.cpp.s
+.PHONY : TraceVersionSpace.cpp.s
+
+UnionOfPartialFunctions.o: UnionOfPartialFunctions.cpp.o
+
+.PHONY : UnionOfPartialFunctions.o
+
+# target to build an object file
+UnionOfPartialFunctions.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/UnionOfPartialFunctions.cpp.o
+.PHONY : UnionOfPartialFunctions.cpp.o
+
+UnionOfPartialFunctions.i: UnionOfPartialFunctions.cpp.i
+
+.PHONY : UnionOfPartialFunctions.i
+
+# target to preprocess a source file
+UnionOfPartialFunctions.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/UnionOfPartialFunctions.cpp.i
+.PHONY : UnionOfPartialFunctions.cpp.i
+
+UnionOfPartialFunctions.s: UnionOfPartialFunctions.cpp.s
+
+.PHONY : UnionOfPartialFunctions.s
+
+# target to generate assembly for a file
+UnionOfPartialFunctions.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/UnionOfPartialFunctions.cpp.s
+.PHONY : UnionOfPartialFunctions.cpp.s
+
+enumerate_meta_training_sets.o: enumerate_meta_training_sets.cpp.o
+
+.PHONY : enumerate_meta_training_sets.o
+
+# target to build an object file
+enumerate_meta_training_sets.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/enumerate_meta_training_sets.cpp.o
+.PHONY : enumerate_meta_training_sets.cpp.o
+
+enumerate_meta_training_sets.i: enumerate_meta_training_sets.cpp.i
+
+.PHONY : enumerate_meta_training_sets.i
+
+# target to preprocess a source file
+enumerate_meta_training_sets.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/enumerate_meta_training_sets.cpp.i
+.PHONY : enumerate_meta_training_sets.cpp.i
+
+enumerate_meta_training_sets.s: enumerate_meta_training_sets.cpp.s
+
+.PHONY : enumerate_meta_training_sets.s
+
+# target to generate assembly for a file
+enumerate_meta_training_sets.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/enumerate_meta_training_sets.cpp.s
+.PHONY : enumerate_meta_training_sets.cpp.s
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -150,6 +690,33 @@ main.cpp.s:
 	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+util.o: util.cpp.o
+
+.PHONY : util.o
+
+# target to build an object file
+util.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/util.cpp.o
+.PHONY : util.cpp.o
+
+util.i: util.cpp.i
+
+.PHONY : util.i
+
+# target to preprocess a source file
+util.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/util.cpp.i
+.PHONY : util.cpp.i
+
+util.s: util.cpp.s
+
+.PHONY : util.s
+
+# target to generate assembly for a file
+util.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/util.cpp.s
+.PHONY : util.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -159,9 +726,72 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... CompactPoset"
 	@echo "... edit_cache"
+	@echo "... BitInBittree.o"
+	@echo "... BitInBittree.i"
+	@echo "... BitInBittree.s"
+	@echo "... BittreeTaskType.o"
+	@echo "... BittreeTaskType.i"
+	@echo "... BittreeTaskType.s"
+	@echo "... BittreeTypeExpression.o"
+	@echo "... BittreeTypeExpression.i"
+	@echo "... BittreeTypeExpression.s"
+	@echo "... Bitvector.o"
+	@echo "... Bitvector.i"
+	@echo "... Bitvector.s"
+	@echo "... BitvectorTasks.o"
+	@echo "... BitvectorTasks.i"
+	@echo "... BitvectorTasks.s"
+	@echo "... CompactPoset.o"
+	@echo "... CompactPoset.i"
+	@echo "... CompactPoset.s"
+	@echo "... DecisionTree.o"
+	@echo "... DecisionTree.i"
+	@echo "... DecisionTree.s"
+	@echo "... DeltaBittreeType.o"
+	@echo "... DeltaBittreeType.i"
+	@echo "... DeltaBittreeType.s"
+	@echo "... LanguagesOverBooleanFunctions.o"
+	@echo "... LanguagesOverBooleanFunctions.i"
+	@echo "... LanguagesOverBooleanFunctions.s"
+	@echo "... MetaExample.o"
+	@echo "... MetaExample.i"
+	@echo "... MetaExample.s"
+	@echo "... MinimalFactoringSchema.o"
+	@echo "... MinimalFactoringSchema.i"
+	@echo "... MinimalFactoringSchema.s"
+	@echo "... Module.o"
+	@echo "... Module.i"
+	@echo "... Module.s"
+	@echo "... Node.o"
+	@echo "... Node.i"
+	@echo "... Node.s"
+	@echo "... NodeTemplate.o"
+	@echo "... NodeTemplate.i"
+	@echo "... NodeTemplate.s"
+	@echo "... PartialFunction.o"
+	@echo "... PartialFunction.i"
+	@echo "... PartialFunction.s"
+	@echo "... RemainderAndTwoFactorsSchema.o"
+	@echo "... RemainderAndTwoFactorsSchema.i"
+	@echo "... RemainderAndTwoFactorsSchema.s"
+	@echo "... TaskName.o"
+	@echo "... TaskName.i"
+	@echo "... TaskName.s"
+	@echo "... TraceVersionSpace.o"
+	@echo "... TraceVersionSpace.i"
+	@echo "... TraceVersionSpace.s"
+	@echo "... UnionOfPartialFunctions.o"
+	@echo "... UnionOfPartialFunctions.i"
+	@echo "... UnionOfPartialFunctions.s"
+	@echo "... enumerate_meta_training_sets.o"
+	@echo "... enumerate_meta_training_sets.i"
+	@echo "... enumerate_meta_training_sets.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... util.o"
+	@echo "... util.i"
+	@echo "... util.s"
 .PHONY : help
 
 
