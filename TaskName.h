@@ -25,6 +25,7 @@ static const string str_task_name__max_window_between_bits = "max_window_between
 static const string str_task_name__max_window_between_bits_with_state = "max_window_between_bits_normal_form_with_state";
 static const string str_task_name__linear_and_or_expression = "linear_and_or_expression";
 static const string str_task_name__linear_and_or_nand_nor_expression = "linear_and_or_nand_nor_expression";
+static const string str_task_name__sort_bits = "sort_bits";
 
 class TaskName
 {
@@ -43,6 +44,7 @@ public:
     bool do__max_window_between_bits_with_state = false;
     bool do__linear_and_or_expression = false;
     bool do__linear_and_or_nand_nor_expression = false;
+    bool do__sort_bits = false;
 
     bool do__multiply_by = false;
     int param__multiply_by = -1;
@@ -77,6 +79,7 @@ public:
         do__max_window_between_bits_with_state = task_name == str_task_name__max_window_between_bits_with_state;
         do__linear_and_or_expression = task_name == str_task_name__linear_and_or_expression;
         do__linear_and_or_nand_nor_expression = task_name == str_task_name__linear_and_or_nand_nor_expression;
+        do__sort_bits = task_name == str_task_name__sort_bits;
     }
 
     TaskName(string _task_name, int _param) {

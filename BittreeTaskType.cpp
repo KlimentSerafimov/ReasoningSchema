@@ -675,6 +675,44 @@ void BittreeInputOutputType::solve(TaskName task_name)
     {
         solve__linear_and_or_nand_nor__expression();
     }
+
+    if(task_name.do__sort_bits)
+    {
+        solve__sort_bits();
+    }
+}
+
+void BittreeInputOutputType::solve__sort_bits()
+{
+    const int num_operands = 1;
+    assert(input->children.size() == num_operands);
+    int operands[num_operands] = {0};
+    int len_operands[num_operands];
+    for(int i = 0;i<num_operands;i++) {
+        int pow = 1;
+        len_operands[i] = input->children.at(i)->children.size();
+        for (int j = 0; j < input->children.at(i)->children.size(); j++) {
+            assert(input->children.at(i)->children.at(j)->bit->is_bit_set == true);
+            operands[i] += pow * input->children.at(i)->children.at(j)->bit->bit_val;
+            pow *= 2;
+        }
+    }
+
+    Bitvector sorted_bits = 0;
+
+    int num_ones = __builtin_popcount(operands[0]);
+
+    if(num_ones >= 1)
+    {
+        sorted_bits.set_range(len_operands[0]-1-num_ones+1, len_operands[0]-1);
+    }
+
+    for(int i = 0;i<output->children.size();i++)
+    {
+        assert(output->children.at(i)->bit->is_bit_set == false);
+        output->children.at(i)->bit->is_bit_set = true;
+        output->children.at(i)->bit->bit_val = get_bit(sorted_bits, i);
+    }
 }
 
 void BittreeInputOutputType::solve__linear_and_or_nand_nor__expression()

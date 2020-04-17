@@ -203,7 +203,7 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
 
     }
 
-    if(task_name.do__max_window_between_bits)
+    if(task_name.do__max_window_between_bits || task_name.do__sort_bits)
     {
 
         assert(!enter);

@@ -1,3 +1,0 @@
-/home/kliment/CLionProjects/CompactPoset/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/kliment/CLionProjects/CompactPoset/cmake-build-debug/CMakeFiles/CompactPoset.dir
-/home/kliment/CLionProjects/CompactPoset/cmake-build-debug/CMakeFiles/edit_cache.dir

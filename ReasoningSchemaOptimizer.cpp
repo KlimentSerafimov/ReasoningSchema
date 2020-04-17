@@ -168,15 +168,12 @@ void ReasoningSchemaOptimizer::repeat_apply_parents(Module *module) {
 
 HeuristicScore ReasoningSchemaOptimizer::calculate_heuristic(Module* module) {
 
-    if(parent_pointer == nullptr)
-    {
+    if (parent_pointer == nullptr) {
         module->count_occurences =
                 vector<vector<pair<int, pair<int, int> > > >
                         (meta_examples.size(), vector<pair<int, pair<int, int> > >());
         module->covering = vector<vector<vector<int> > >();
-    }
-    else
-    {
+    } else {
         module->count_occurences = parent_pointer->best_module.count_occurences;
         module->covering = vector<vector<vector<int> > >(
                 parent_pointer->best_module.covering.size(), vector<vector<int> >());
@@ -185,19 +182,17 @@ HeuristicScore ReasoningSchemaOptimizer::calculate_heuristic(Module* module) {
     int module_id = (int) module->covering.size();
     module->covering.push_back(vector<vector<int> >(module->equivalent_ids.size(), vector<int>()));
 
-    for(int i = 0;i<module->equivalent_ids.size(); i++)
-    {
+    for (int i = 0; i < module->equivalent_ids.size(); i++) {
         for (int j = 0; j < module->equivalent_ids[i].size(); j++) {
             module->count_occurences[module->equivalent_ids[i][j]].push_back(
                     make_pair(module_id, make_pair(i, j)));
         }
     }
 
-    ReasoningSchemaOptimizer* at_parent = this;
+    ReasoningSchemaOptimizer *at_parent = this;
     at_parent = at_parent->parent_pointer;
 
-    while(at_parent != nullptr)
-    {
+    while (at_parent != nullptr) {
         module_id--;
         module->covering[module_id] = vector<vector<int> >(
                 at_parent->best_module.equivalent_ids.size(), vector<int>());
@@ -206,38 +201,32 @@ HeuristicScore ReasoningSchemaOptimizer::calculate_heuristic(Module* module) {
 
     vector<pair<int, int> > meta_examples_id_by_occurences;
 
-    for(int i = 0;i<module->count_occurences.size();i++)
-    {
+    for (int i = 0; i < module->count_occurences.size(); i++) {
         meta_examples_id_by_occurences.push_back(make_pair(module->count_occurences[i].size(), i));
     }
 
     sort(meta_examples_id_by_occurences.begin(), meta_examples_id_by_occurences.end());
     reverse(meta_examples_id_by_occurences.begin(), meta_examples_id_by_occurences.end());
 
-    for(int i = 0;i<meta_examples_id_by_occurences.size();i++)
-    {
+    for (int i = 0; i < meta_examples_id_by_occurences.size(); i++) {
         int id = meta_examples_id_by_occurences[i].second;
 //        cout << "id = " << id << endl;
         bool necessary = false;
-        for(int j = 0;j<module->count_occurences[id].size();j++)
-        {
+        for (int j = 0; j < module->count_occurences[id].size(); j++) {
             int parent_id = module->count_occurences[id][j].first;
             int sub_meta_example_id = module->count_occurences[id][j].second.first;
 //            cout << parent_id <<" "<< sub_meta_example_id << " | ";
-            if(module->covering[parent_id][sub_meta_example_id].size() == 0)
-            {
+            if (module->covering[parent_id][sub_meta_example_id].size() == 0) {
                 necessary = true;
                 break;
             }
         }
 //        cout << endl;
 
-        if(necessary)
-        {
+        if (necessary) {
             module->necessary_meta_example_ids.push_back(id);
 
-            for(int j = 0;j<module->count_occurences[id].size();j++)
-            {
+            for (int j = 0; j < module->count_occurences[id].size(); j++) {
                 int parent_id = module->count_occurences[id][j].first;
                 int sub_meta_example_id = module->count_occurences[id][j].second.first;
                 module->covering[parent_id][sub_meta_example_id].push_back(id);
@@ -249,25 +238,20 @@ HeuristicScore ReasoningSchemaOptimizer::calculate_heuristic(Module* module) {
 
 //    cout << "HERE: init_num_missing_bits" << init_num_missing_bits <<" module->num_missing_bits = "<< module->num_missing_bits << endl;
 
-    if(num_necessary_meta_examples == 0)
-    {
+    if (num_necessary_meta_examples == 0) {
         return HeuristicScore();
-    } else
-    {
+    } else {
         assert(num_necessary_meta_examples >= 1);
     }
 
-    if(module->num_missing_bits == init_num_missing_bits)
-    {
+    if (module->num_missing_bits == init_num_missing_bits) {
         return HeuristicScore();
-    } else
-    {
+    } else {
         assert(module->num_missing_bits < init_num_missing_bits);
     }
 
     int prev_necessary_meta_examples_delta = 0;
-    if(parent_pointer != nullptr)
-    {
+    if (parent_pointer != nullptr) {
         prev_necessary_meta_examples_delta = (int) parent_pointer->best_module.necessary_meta_example_ids.size();
     }
 
@@ -278,12 +262,9 @@ HeuristicScore ReasoningSchemaOptimizer::calculate_heuristic(Module* module) {
     int current_delta = init_num_missing_bits - module->num_missing_bits;
 
     double delta_ratio;
-    if(delta_num_necessary_meta_examples == 0)
-    {
+    if (delta_num_necessary_meta_examples == 0) {
         delta_ratio = 1000000 + current_delta;
-    }
-    else
-    {
+    } else {
         delta_ratio = (double) current_delta / (double) delta_num_necessary_meta_examples;
     }
 
@@ -294,9 +275,15 @@ HeuristicScore ReasoningSchemaOptimizer::calculate_heuristic(Module* module) {
 
 //    delta_ratio = current_delta;
 
-    return HeuristicScore(
-            module->subdomain_mask.count(),
-            delta_ratio);
+    bool minimize_num_necessary_meta_examples = false;
+    if (minimize_num_necessary_meta_examples) {
+        return HeuristicScore(
+                module->subdomain_mask.count(),
+                delta_ratio);
+
+    } else{
+        return HeuristicScore(module->subdomain_mask.count(), current_delta);
+    }
 }
 
 static int maximal_factoring_schema_depth_counter = 0;
@@ -357,7 +344,7 @@ static int skip_after_mask_size_if_not_necessary = 1;
 static int set_end_mask_size = 4;
 //static string fout_name = "fast_subdomain_masks_3_4_5_6_7_with_repeats_traced_corrected_only_active_eval_delta_heuristic.out";
 //static string fout_name = "using_UnionOfPartialFunctions__using_delta_heuristic__subdomain_size_3_4_if_necessary_5_6_7.out";
-static string fout_name = "max_pure_delta.out";
+static string fout_name = "most_bits_resolved.out";
 
 ReasoningSchemaOptimizer::ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name, bool skip) {
     parent_pointer = nullptr;
@@ -586,7 +573,7 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
                 if (heuristic.defined) {
                     assert(heuristic.num_input_bits >= 1);
                     possible_candidate_found = true;
-                    break;
+                    //break;
                 }
 
             }

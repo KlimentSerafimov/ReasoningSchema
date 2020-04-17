@@ -332,7 +332,7 @@ BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, TaskNa
 BitvectorTasks::BitvectorTasks()
 {
     string str_task_name;
-    str_task_name = str_task_name__sum;
+//    str_task_name = str_task_name__sum;
 //    str_task_name = str_task_name__greater;
 //    str_task_name = str_task_name__cumulative_binary_operator;
 //    str_task_name = str_task_name__bitwise_binary_operator;
@@ -344,6 +344,7 @@ BitvectorTasks::BitvectorTasks()
 //    str_task_name = str_task_name__max_window_between_bits_with_state;
 //    str_task_name = str_task_name__linear_and_or_expression;
 //    str_task_name = str_task_name__linear_and_or_nand_nor_expression;
+    str_task_name = str_task_name__sort_bits;
 
     TaskName task_name = TaskName(str_task_name);
 
@@ -385,7 +386,7 @@ BitvectorTasks::BitvectorTasks()
 
         //parameter
         int init_iter = 0;
-        int num_iter = 6;
+        int num_iter = 14;
 
         if(task_name.num_iter_defined)
         {
@@ -467,7 +468,6 @@ BitvectorTasks::BitvectorTasks()
 
                     now_meta_examples_size = (int) local_meta_examples.size();
                     rec_id++;
-                    break;
                 }while(now_meta_examples_size != prev_meta_examples_size);
             }
             else if(true) {

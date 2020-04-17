@@ -169,6 +169,8 @@ public:
 
     void solve__linear_and_or_nand_nor__expression();
 
+    void solve__sort_bits();
+
     void solve__one_shift_idx__reverse_subtask(int init_size);
 
     void solve__count_unary__reverse_subtask(int init_size);
