@@ -369,6 +369,32 @@ BittreeNode* BittreeNode::add_child(NodeType node_type, BitInBittreeType bit_in_
     return new_child;
 }
 
+string BittreeNode::to_string__one_line() {
+    string ret = "";
+    if(node_type == leaf_node)
+    {
+        assert(leaf_node_type == bit_node);
+        ret += bit->to_string__one_line();
+    }
+    else if(node_type == internal_node)
+    {
+        assert(leaf_node_type == not_leaf_node);
+        for(int i = 0;i<children.size();i++)
+        {
+            string local = children[i]->to_string__one_line();
+            ret += local;
+            if(children[i]->node_type == internal_node)
+            {
+                ret += " ";
+            }
+        }
+    } else{
+        assert(false);
+    }
+//    cout << "ret = " <<ret << endl;
+    return ret;
+}
+
 //BittreeInputOutputType::BittreeInputOutputType(): TreeNode(NULL, Name("NULL"), this)
 //{
 //}
@@ -432,6 +458,21 @@ BittreeTaskType::BittreeTaskType(TreeNode *_parent, Name name, BittreeTaskType *
 //    output = new BittreeNode(this, Name("output"), to_copy->output, all_new_bits);
 }
 
+BittreeTaskType::BittreeTaskType(TreeNode *_parent, Name name, BittreeTaskType *to_copy, bool all_new_bits,
+                                 bool copy_all): TreeNode(_parent, name, this) {
+    copied_from = to_copy;
+    assert(to_copy->io != NULL);
+    io = new BittreeInputOutputType(this, Name("io"), to_copy->io, all_new_bits);
+    if (decomposition != NULL) {
+        decomposition =
+                new BittreeTaskDecomposition(this, Name("decomposition"), to_copy->decomposition, all_new_bits, copy_all);
+    }
+    if(solution != NULL)
+    {
+        solution =
+                new BittreeTaskType(this, Name("decomposition"), to_copy->solution, all_new_bits, copy_all);
+    }
+}
 
 void BittreeTaskType::append_bits(vector<BitInBittree*>& bits)
 {
@@ -1135,8 +1176,37 @@ MetaExample BittreeTaskType::to_meta_example(int id, int num_subtasks) {
 MetaExample BittreeTaskType::to_meta_example_of_subtask_decomposition(int id, int subtask_depth) {
     auto partial_function = BittreeTaskTypeAsPartialFunction(this, subtask_depth);
     auto total_function = BittreeTaskTypeAsPartialFunction(solution, subtask_depth);
-    return MetaExample(partial_function, total_function, id);
+    auto ret = MetaExample(partial_function, total_function, id);
+    return ret;
 }
+
+string BittreeTaskType::to_string__one_line__first_part(int subtask_depth) {
+    string ret = io->input->to_string__one_line();
+    ret += io->output->to_string__one_line();
+    int init_subtask_depth = subtask_depth;
+    if(subtask_depth > 0) {
+        BittreeTaskType* at_subtask = decomposition->subtask->solution;
+        if(at_subtask == NULL)
+        {
+            at_subtask = decomposition->subtask;
+        }
+        while(subtask_depth>0)
+        {
+            ret += " ";
+            ret += at_subtask->io->output->to_string__one_line();
+
+            if(at_subtask->decomposition != NULL)
+            {
+                assert(at_subtask->decomposition->subtask != NULL);
+                at_subtask = at_subtask->decomposition->subtask;
+            }
+            subtask_depth-=1;
+        }
+    }
+
+    return ret;
+}
+
 
 BittreeNode* BittreeInputOutputType::add_input_child(NodeType child_type) {
     assert(input != NULL);
@@ -1491,5 +1561,16 @@ BittreeTaskDecomposition::BittreeTaskDecomposition(
         copied_from = to_copy;
         delta = new BittreeInputOutputType(this, Name("delta"), to_copy->delta, all_new_bits);
         subtask = new BittreeTaskType(this, Name("subtask"), to_copy->subtask, all_new_bits);
+    }
+}
+
+BittreeTaskDecomposition::BittreeTaskDecomposition(TreeNode *parent, Name name, BittreeTaskDecomposition *to_copy,
+                                                   bool all_new_bits, bool copy_all) : TreeNode(parent, name, this){
+
+    if(to_copy != NULL)
+    {
+        copied_from = to_copy;
+        delta = new BittreeInputOutputType(this, Name("delta"), to_copy->delta, all_new_bits);
+        subtask = new BittreeTaskType(this, Name("subtask"), to_copy->subtask, all_new_bits, copy_all);
     }
 }

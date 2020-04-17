@@ -2,14 +2,14 @@
 // Created by Kliment Serafimov on 2019-12-18.
 //
 
-#ifndef COMPACTPOSET_MINIMALFACTORINGSCHEMA_H
-#define COMPACTPOSET_MINIMALFACTORINGSCHEMA_H
+#ifndef COMPACTPOSET_REASONINGSCHEMAOPTIMIZER_H
+#define COMPACTPOSET_REASONINGSCHEMAOPTIMIZER_H
 
 #include "Module.h"
 
-class MinimalFactoringSchema
+class ReasoningSchemaOptimizer
 {
-    MinimalFactoringSchema* parent_pointer = NULL;
+    ReasoningSchemaOptimizer* parent_pointer = NULL;
     int function_size;
 
     time_t init_time;
@@ -23,7 +23,7 @@ class MinimalFactoringSchema
     vector<pair<HeuristicScore, int> > mask_ids_by_heuristic;
     vector<HeuristicScore> heuristic_score_by_mask_id;
 
-    MinimalFactoringSchema* next = nullptr;
+    ReasoningSchemaOptimizer* next = nullptr;
 
     void calc_function_size();
 
@@ -45,13 +45,13 @@ public:
 
     Module best_module;
 
-    MinimalFactoringSchema* root_pointer;
+    ReasoningSchemaOptimizer* root_pointer;
 
-    MinimalFactoringSchema(vector<MetaExample> _meta_examples, MinimalFactoringSchema *_parent_pointer);
+    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, ReasoningSchemaOptimizer *_parent_pointer);
 
-    MinimalFactoringSchema(vector<MetaExample> _meta_examples, string ordering_name, bool skip);
+    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name, bool skip);
 
-    MinimalFactoringSchema(vector<MetaExample> _meta_examples, string ordering_name, vector<Bitvector> mask);
+    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name, vector<Bitvector> mask);
 
     vector<MetaExample> get_necessary_meta_examples(bool print);
 
@@ -65,6 +65,9 @@ public:
                                    vector<PartialFunction> &trace, vector<int> &active_operators,
                                    vector<PartialFunction> &active_trace);
 
+    BittreeTaskTypeAsPartialFunction *get_copy_of_bottree_task_type();
+
+    string bitvector_to_string__one_line(Bitvector bitvector);
 };
 
-#endif //COMPACTPOSET_MINIMALFACTORINGSCHEMA_H
+#endif //COMPACTPOSET_REASONINGSCHEMAOPTIMIZER_H

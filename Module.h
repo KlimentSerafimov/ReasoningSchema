@@ -60,7 +60,7 @@ public:
 };
 
 
-class MinimalFactoringSchema;
+class ReasoningSchemaOptimizer;
 
 class Module
 {
@@ -71,7 +71,7 @@ public:
 
     Module* parent_module;
 
-    MinimalFactoringSchema* parent_minimal_factoring_schema;
+    ReasoningSchemaOptimizer* parent_minimal_factoring_schema;
 
     vector<MetaExample> module_meta_examples;
     vector<vector<int> > equivalent_ids;
@@ -97,7 +97,7 @@ public:
 
     Module() = default;
 
-    Module(MinimalFactoringSchema* _minimal_factoring_schema)
+    Module(ReasoningSchemaOptimizer* _minimal_factoring_schema)
     {
         parent_minimal_factoring_schema = _minimal_factoring_schema;
     }

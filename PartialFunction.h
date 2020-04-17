@@ -28,6 +28,7 @@ public:
     Bitvector total_function;
     Bitvector partition;
 
+
     vector<BitInBittree*> bits;
 
     PartialFunction();
@@ -73,9 +74,17 @@ public:
 class BittreeTaskTypeAsPartialFunction : public PartialFunction
 {
 public:
-    BittreeTaskType* bittree_taks_type;
+    BittreeTaskType* bittree_task_type;
+    int subtask_depth;
     BittreeTaskTypeAsPartialFunction(BittreeTaskType *_bittree_taks_type,
                                      int subtask_depth);
+
+    BittreeTaskTypeAsPartialFunction(PartialFunction partial_function);
+
+
+    BittreeTaskTypeAsPartialFunction() = default;
+
+    string to_string__one_line();
 };
 
 #endif //COMPACTPOSET_PARTIALFUNCTION_H

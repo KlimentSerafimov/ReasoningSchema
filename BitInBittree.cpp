@@ -65,6 +65,17 @@ void BitInBittree::append_bits(vector<BitInBittree *>& bits) {
     }
 }
 
+string BitInBittree::to_string__one_line() {
+    if(is_bit_set)
+    {
+        return std::to_string(bit_val);
+    }
+    else
+    {
+        return "_";
+    }
+}
+
 void TreeNode::append_bits(vector<BitInBittree*>& bits) {
 
     bool enter = false;

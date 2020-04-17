@@ -98,6 +98,8 @@ public:
         assert(bit_val == 0 || bit_val == 1);
         bit_val = 1-bit_val;
     }
+
+    string to_string__one_line();
 };
 
 #endif //COMPACTPOSET_BITINBITTREE_H

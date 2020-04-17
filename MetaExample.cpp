@@ -112,6 +112,13 @@ MetaExample::MetaExample(PartialFunction _partial_function, PartialFunction _gen
     idx = _idx;
 }
 
+MetaExample::MetaExample(BittreeTaskTypeAsPartialFunction _partial_function, BittreeTaskTypeAsPartialFunction _generalization, int _idx) {
+    assert(_generalization.is_contained_in(_partial_function));
+    partial_function = _partial_function;
+    generalization = _generalization;
+    idx = _idx;
+}
+
 float MetaExample::cost(Bitvector mask)
 {
     vector<vector<int> > bit_coordinates;
@@ -155,6 +162,8 @@ float MetaExample::cost(Bitvector mask)
     }
 
     int greatest_dist = 0;
+    int count = 0;
+    int sum_sum = 0;
     for(int i = 0;i<bit_coordinates.size();i++)
     {
         for(int j = i+1;j<bit_coordinates.size();j++)
@@ -163,13 +172,15 @@ float MetaExample::cost(Bitvector mask)
             for(int k = 0;k<min(bit_coordinates[i].size(), bit_coordinates[j].size());k++)
             {
                 sum += abs(bit_coordinates[i][k] - bit_coordinates[j][k]);
+                count ++;
             }
+            sum_sum += sum;
             greatest_dist = max(greatest_dist, sum);
         }
     }
 
-    cout << endl;
-    cout << mask.to_string() <<" "<< greatest_dist << endl;
+    //cout << endl;
+    //cout << mask.to_string() <<" "<< greatest_dist << endl;
     return (float)greatest_dist;
 }
 
@@ -185,6 +196,8 @@ vector<Bitvector> MetaExample::get_masks(int min_mask_size, int max_mask_size)
         return ret;
     }
     cout << "MASKS: " << endl;
+    min_mask_size = min(min_mask_size, get_function_size());
+    max_mask_size = min(max_mask_size, get_function_size());
     for(int i = min_mask_size;i<=max_mask_size;i++)
     {
         Bitvector local_mask(all_zeroes, get_function_size());

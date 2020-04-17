@@ -3,13 +3,19 @@
 //
 
 #include "Module.h"
-#include "MinimalFactoringSchema.h"
+#include "ReasoningSchemaOptimizer.h"
 #include "util.h"
 #include <iostream>
 
 string Module::print_module_sketch(time_t delta_time)
 {
+
+    string one_line = parent_minimal_factoring_schema->root_pointer->bitvector_to_string__one_line(subdomain_mask);//meta_examples[0].partial_function.bittree_task_type
+
+
+
     string ret =
+            one_line + " | " +
             bitvector_to_str(subdomain_mask, function_size) + " " +
             std::to_string(necessary_meta_example_ids.size()) + " " +
             std::to_string(intermediate_num_missing_bits) + " time " + std::to_string(delta_time) + "\n";
@@ -19,13 +25,17 @@ string Module::print_module_sketch(time_t delta_time)
 
     for(int i = 0;i<repeats_module_ids.size();i++)
     {
+        string one_line_1 = parent_minimal_factoring_schema->root_pointer->bitvector_to_string__one_line(repeats_module_pointers[i]->subdomain_mask);//meta_examples[0].partial_function.bittree_task_type
+
         ret +=
+                one_line_1 + " | "+
                 bitvector_to_str(repeats_module_pointers[i]->subdomain_mask, repeats_module_pointers[i]->function_size) + " " +
                 std::to_string(necessary_meta_example_ids.size()) + " " +
                 std::to_string(num_missing_bits_per_repeat[i]) + " " +
                 "mask " + std::to_string(repeats_module_ids[i]) + " " +
                 "( " +
-                bitvector_to_str(repeats_module_pointers[i]->subdomain_mask, repeats_module_pointers[i]->function_size) + " " +
+                one_line_1 + " " +
+//                bitvector_to_str(repeats_module_pointers[i]->subdomain_mask, repeats_module_pointers[i]->function_size) + " " +
                 std::to_string(repeats_module_pointers[i]->necessary_meta_example_ids.size()) + " " +
                 std::to_string(repeats_module_pointers[i]->num_missing_bits) + " " +
                 ") time " + std::to_string(delta_time) + "\n";

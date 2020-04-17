@@ -144,12 +144,6 @@
 		<Unit filename="/home/kliment/CLionProjects/CompactPoset/MetaExample.h">
 			<Option target="CompactPoset"/>
 		</Unit>
-		<Unit filename="/home/kliment/CLionProjects/CompactPoset/MinimalFactoringSchema.cpp">
-			<Option target="CompactPoset"/>
-		</Unit>
-		<Unit filename="/home/kliment/CLionProjects/CompactPoset/MinimalFactoringSchema.h">
-			<Option target="CompactPoset"/>
-		</Unit>
 		<Unit filename="/home/kliment/CLionProjects/CompactPoset/Module.cpp">
 			<Option target="CompactPoset"/>
 		</Unit>
@@ -172,6 +166,12 @@
 			<Option target="CompactPoset"/>
 		</Unit>
 		<Unit filename="/home/kliment/CLionProjects/CompactPoset/PartialFunction.h">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/ReasoningSchemaOptimizer.cpp">
+			<Option target="CompactPoset"/>
+		</Unit>
+		<Unit filename="/home/kliment/CLionProjects/CompactPoset/ReasoningSchemaOptimizer.h">
 			<Option target="CompactPoset"/>
 		</Unit>
 		<Unit filename="/home/kliment/CLionProjects/CompactPoset/RemainderAndTwoFactorsSchema.cpp">

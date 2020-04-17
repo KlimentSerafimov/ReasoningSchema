@@ -80,6 +80,8 @@ public:
     BittreeNode *set_delta(NodeType delta_type_node, BittreeTypeLeafNodeType leaf_node_type);
 
     BittreeNode *add_child(NodeType node_type, BitInBittreeType bit_in_bittree_type);
+
+    string to_string__one_line();
 };
 
 class BittreeInputOutputType: public TreeNode
@@ -186,6 +188,8 @@ public:
 
     BittreeTaskDecomposition(TreeNode *parent, Name name, BittreeTaskDecomposition* to_copy, bool all_new_bits);
 
+    BittreeTaskDecomposition(TreeNode *parent, Name name, BittreeTaskDecomposition* to_copy, bool all_new_bits, bool copy_all);
+
     void append_bits(vector<BitInBittree*>& bits);
 
     void append_bits_of_prefix_subtree(vector<BitInBittree*>& bits, int num_subtasks);
@@ -212,6 +216,8 @@ public:
 
     BittreeTaskType(TreeNode *_parent, Name name, BittreeTaskType *to_copy, bool all_new_bits);
 
+    BittreeTaskType(TreeNode *_parent, Name name, BittreeTaskType *to_copy, bool all_new_bits, bool copy_all);
+
     void solve(TaskName task_name);
 
     void append_bits(vector<BitInBittree*>& bits);
@@ -236,6 +242,45 @@ public:
 
     MetaExample to_meta_example_of_subtask_decomposition(int id, int subtask_depth);
 
+    string to_string__one_line(int subtask_depth)
+    {
+        string ret = io->input->to_string__one_line();
+        ret += io->output->to_string__one_line();
+        int init_subtask_depth = subtask_depth;
+        if(subtask_depth > 0) {
+            BittreeTaskType* at_subtask = decomposition->subtask->solution;
+            if(at_subtask == NULL)
+            {
+                at_subtask = decomposition->subtask;
+            }
+            while(subtask_depth>0)
+            {
+                ret += " ";
+                ret += at_subtask->io->output->to_string__one_line();
+
+                if(at_subtask->decomposition != NULL)
+                {
+                    assert(at_subtask->decomposition->subtask != NULL);
+                    at_subtask = at_subtask->decomposition->subtask;
+                }
+                subtask_depth-=1;
+            }
+        }
+
+        if(solution != NULL) {
+            subtask_depth = init_subtask_depth;
+            ret += "  -->  ";
+            ret += solution->to_string__one_line(subtask_depth);
+        }
+
+//        ret += " -> ";
+//        ret += solution->io->input->to_string__one_line();
+//        ret += solution->io->output->to_string__one_line();
+
+        return ret;
+    }
+
+    string to_string__one_line__first_part(int i);
 };
 
 //class BittreeTaskTypeDecomposition: public TreeNode

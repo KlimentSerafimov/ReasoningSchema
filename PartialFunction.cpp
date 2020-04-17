@@ -186,7 +186,7 @@ void PartialFunction::init_via_bits(vector<BitInBittree*> _bits)
 {
     bits = _bits;
     function_size = 0;
-    total_function = 0;
+    total_function = Bitvector(0);
     partition = 0;
     set<int> bit_ids;
     for(int i = 0;i<bits.size();i++)
@@ -228,12 +228,13 @@ bool PartialFunction::operator == (const PartialFunction& other) const {
     return false;
 }
 
-BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(BittreeTaskType *_bittree_taks_type, int subtask_depth)
+BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(BittreeTaskType *_bittree_taks_type, int _subtask_depth)
 {
-    bittree_taks_type = _bittree_taks_type;
-
+    //bittree_task_type = new BittreeTaskType(nullptr, Name("copy_for_print"),_bittree_taks_type, true);
+    bittree_task_type = _bittree_taks_type;
+    subtask_depth = _subtask_depth;
     vector<BitInBittree*> partial_bits;
-    BittreeTaskType* local_subtask = bittree_taks_type;
+    BittreeTaskType* local_subtask = bittree_task_type;
     int num_prev_subtasks = 0;
     while(local_subtask != NULL)
     {
@@ -276,4 +277,19 @@ BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(BittreeTaskTy
     }
 
     init_via_bits(partial_bits);
+
+    //bittree_task_type = new BittreeTaskType(nullptr, Name("copy_for_print"),_bittree_taks_type, true);
+}
+
+BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(PartialFunction partial_function) {
+
+    function_size = partial_function.function_size;
+    total_function = partial_function.total_function;
+    partition = partial_function.partition;
+
+    bits = partial_function.bits;
+}
+
+string BittreeTaskTypeAsPartialFunction::to_string__one_line() {
+    return bittree_task_type->to_string__one_line(subtask_depth);
 }

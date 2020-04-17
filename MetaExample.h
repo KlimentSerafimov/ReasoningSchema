@@ -13,14 +13,15 @@ using namespace std;
 class MetaExample
 {
 public:
-    PartialFunction partial_function;
-    PartialFunction generalization;
+    BittreeTaskTypeAsPartialFunction partial_function;
+    BittreeTaskTypeAsPartialFunction generalization;
     int idx;
     bool active = true;
 
     MetaExample() = default;
 
     MetaExample(PartialFunction partial_function, PartialFunction total_function, int idx);
+    MetaExample(BittreeTaskTypeAsPartialFunction partial_function, BittreeTaskTypeAsPartialFunction total_function, int idx);
     MetaExample(int _function_size, Bitvector _total_function, Bitvector _partition);
     MetaExample(int _function_size, Bitvector _total_function, Bitvector _partition, Bitvector generalization_partition);
     MetaExample(int _function_size, Bitvector _total_function, Bitvector _partition, Bitvector generalization_partition, int _idx);

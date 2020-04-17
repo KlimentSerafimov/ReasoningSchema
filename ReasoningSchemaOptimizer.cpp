@@ -2,13 +2,15 @@
 // Created by Kliment Serafimov on 2019-12-18.
 //
 
-#include "MinimalFactoringSchema.h"
+#include "ReasoningSchemaOptimizer.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+#include "BittreeTaskType.h"
+#include "PartialFunction.h"
 
-bool MinimalFactoringSchema::test_compact_poset_for_consistency_with_all_meta_examples(
+bool ReasoningSchemaOptimizer::test_compact_poset_for_consistency_with_all_meta_examples(
         Bitvector subdomain_mask, CompactPoset *compact_poset) {
 
     bool is_consistent = true;
@@ -51,7 +53,7 @@ bool MinimalFactoringSchema::test_compact_poset_for_consistency_with_all_meta_ex
     return is_consistent;
 }
 
-void MinimalFactoringSchema::repeat_apply_parents(Module *module) {
+void ReasoningSchemaOptimizer::repeat_apply_parents(Module *module) {
 
     if(parent_pointer == nullptr)
     {
@@ -83,11 +85,11 @@ void MinimalFactoringSchema::repeat_apply_parents(Module *module) {
 
     int after_cycle_num_missig_bits = num_missing_bits_in_active;
 
-    vector<MinimalFactoringSchema*> parents;
+    vector<ReasoningSchemaOptimizer*> parents;
     vector<CompactPoset*> compact_posets;
     vector<Bitvector> best_subdomain_masks;
 
-    MinimalFactoringSchema* at_parent = this;
+    ReasoningSchemaOptimizer* at_parent = this;
 
     while(at_parent != nullptr)
     {
@@ -164,7 +166,7 @@ void MinimalFactoringSchema::repeat_apply_parents(Module *module) {
 
 }
 
-HeuristicScore MinimalFactoringSchema::calculate_heuristic(Module* module) {
+HeuristicScore ReasoningSchemaOptimizer::calculate_heuristic(Module* module) {
 
     if(parent_pointer == nullptr)
     {
@@ -191,7 +193,7 @@ HeuristicScore MinimalFactoringSchema::calculate_heuristic(Module* module) {
         }
     }
 
-    MinimalFactoringSchema* at_parent = this;
+    ReasoningSchemaOptimizer* at_parent = this;
     at_parent = at_parent->parent_pointer;
 
     while(at_parent != nullptr)
@@ -302,7 +304,7 @@ static int minimal_factoring_schema_depth_counter = 0;
 
 static string best_subdomains[1000] = {};
 
-void MinimalFactoringSchema::calc_masks(int set_init_mask_size, int set_end_mask_size)
+void ReasoningSchemaOptimizer::calc_masks(int set_init_mask_size, int set_end_mask_size)
 {
     if(masks.size() >= 1)
     {
@@ -357,7 +359,7 @@ static int set_end_mask_size = 4;
 //static string fout_name = "using_UnionOfPartialFunctions__using_delta_heuristic__subdomain_size_3_4_if_necessary_5_6_7.out";
 static string fout_name = "max_pure_delta.out";
 
-MinimalFactoringSchema::MinimalFactoringSchema(vector<MetaExample> _meta_examples, string ordering_name, bool skip) {
+ReasoningSchemaOptimizer::ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name, bool skip) {
     parent_pointer = nullptr;
 
     assert(!fout.is_open());
@@ -411,6 +413,8 @@ MinimalFactoringSchema::MinimalFactoringSchema(vector<MetaExample> _meta_example
     for(int i = 0;i<_meta_examples.size();i++)
     {
         fout << "\t"+_meta_examples[i].to_string() << endl << std::flush;
+        cout<< "print new meta_examples rep" << endl;
+        assert(false);
     }
 
     main__minimal_factoring_schema(_meta_examples);
@@ -418,15 +422,15 @@ MinimalFactoringSchema::MinimalFactoringSchema(vector<MetaExample> _meta_example
     fout.close();
 }
 
-MinimalFactoringSchema::MinimalFactoringSchema(
-        vector<MetaExample> _meta_examples, MinimalFactoringSchema *_parent_pointer)
+ReasoningSchemaOptimizer::ReasoningSchemaOptimizer(
+        vector<MetaExample> _meta_examples, ReasoningSchemaOptimizer *_parent_pointer)
 {
     parent_pointer = _parent_pointer;
     main__minimal_factoring_schema(_meta_examples);
 }
 
 
-MinimalFactoringSchema::MinimalFactoringSchema(vector<MetaExample> _meta_examples, string ordering_name, vector<Bitvector> mask)
+ReasoningSchemaOptimizer::ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name, vector<Bitvector> mask)
 {
     parent_pointer = nullptr;
     masks = mask;
@@ -434,13 +438,14 @@ MinimalFactoringSchema::MinimalFactoringSchema(vector<MetaExample> _meta_example
     fout << "meta_examples " << _meta_examples.size() << endl;
     for(int i = 0;i<_meta_examples.size();i++)
     {
-        fout << "\t"+_meta_examples[i].to_string() << endl << std::flush;
+//        fout << "\t"+_meta_examples[i].to_string() << endl << std::flush;
+        fout << "\t"+_meta_examples[i].partial_function.to_string__one_line() << endl << std::flush;
     }
     main__minimal_factoring_schema(_meta_examples);
     fout.close();
 }
 
-void MinimalFactoringSchema::calc_module(Bitvector subdomain_mask, Module *module)
+void ReasoningSchemaOptimizer::calc_module(Bitvector subdomain_mask, Module *module)
 {
 
     module->function_size = function_size;
@@ -503,7 +508,7 @@ void MinimalFactoringSchema::calc_module(Bitvector subdomain_mask, Module *modul
 }
 
 
-bool MinimalFactoringSchema::skip_mask(Bitvector subdomain_mask)
+bool ReasoningSchemaOptimizer::skip_mask(Bitvector subdomain_mask)
 {
     if(parent_pointer == nullptr)
     {
@@ -523,7 +528,7 @@ bool MinimalFactoringSchema::skip_mask(Bitvector subdomain_mask)
 }
 
 
-void MinimalFactoringSchema::main__minimal_factoring_schema(vector<MetaExample> _meta_examples) {
+void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample> _meta_examples) {
 
     meta_examples = _meta_examples;
     calc_function_size();
@@ -629,12 +634,12 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(vector<MetaExample> 
 
             fout << best_module.print_module_sketch(time(nullptr) - init_time) << std::flush;
 
-            next = new MinimalFactoringSchema(best_module.meta_examples_after_query, this);
+            next = new ReasoningSchemaOptimizer(best_module.meta_examples_after_query, this);
 
             if(parent_pointer == nullptr)
             {
 
-                MinimalFactoringSchema* last = this;
+                ReasoningSchemaOptimizer* last = this;
                 while(last->next != nullptr)
                 {
                     last = last->next;
@@ -686,30 +691,29 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(vector<MetaExample> 
                     fout << endl;
                 }
                 fout << endl;
-                for(int i = 0;i<all_traces.size();i++)
-                {
-                    pair<vector<PartialFunction>, pair<vector<int>, vector<PartialFunction> > > trace = all_traces[i];
-                    assert(trace.second.first.size()+1 == trace.second.second.size());
-                    fout << "all    ";
-                    for(int j = 0;j<trace.first.size(); j++)
-                    {
-                        fout << trace.first[j].to_string() <<" ";
-                    }
-                    fout << endl;
-                    fout << "active ";
-                    for(int j = 0;j<trace.second.second.size(); j++)
-                    {
-                        fout << trace.second.second[j].to_string() << " " ;
-                    }
-                    fout << endl;
-                    fout << "masks  ";
-                    for(int j = 0;j<trace.second.first.size(); j++)
-                    {
-                        fout << std::to_string(trace.second.first[j]) << " " ;
+                bool print_verbose = false;
+                if(print_verbose) {
+                    for (int i = 0; i < all_traces.size(); i++) {
+                        pair<vector<PartialFunction>, pair<vector<int>, vector<PartialFunction> > > trace = all_traces[i];
+                        assert(trace.second.first.size() + 1 == trace.second.second.size());
+                        fout << "all    ";
+                        for (int j = 0; j < trace.first.size(); j++) {
+                            fout << trace.first[j].to_string() << " ";
+                        }
+                        fout << endl;
+                        fout << "active ";
+                        for (int j = 0; j < trace.second.second.size(); j++) {
+                            fout << trace.second.second[j].to_string() << " ";
+                        }
+                        fout << endl;
+                        fout << "masks  ";
+                        for (int j = 0; j < trace.second.first.size(); j++) {
+                            fout << std::to_string(trace.second.first[j]) << " ";
+                        }
+                        fout << endl;
                     }
                     fout << endl;
                 }
-                fout << endl;
                 get_necessary_meta_examples(true);
             }
         } else
@@ -719,7 +723,7 @@ void MinimalFactoringSchema::main__minimal_factoring_schema(vector<MetaExample> 
     }
 }
 
-vector<MetaExample> MinimalFactoringSchema::get_necessary_meta_examples(bool print) {
+vector<MetaExample> ReasoningSchemaOptimizer::get_necessary_meta_examples(bool print) {
     if(next != nullptr)
     {
         return next->get_necessary_meta_examples(print);
@@ -734,20 +738,24 @@ vector<MetaExample> MinimalFactoringSchema::get_necessary_meta_examples(bool pri
             int id = parent_pointer->best_module.necessary_meta_example_ids[i];
                 ret_meta_example.push_back(root_pointer->meta_examples[id]);
             ret_meta_example[ret_meta_example.size()-1].idx = i;
-            if(print)
-                fout << "\t" << root_pointer->meta_examples[id].to_string() << endl;
+            if(print) {
+//                fout << "\t" << root_pointer->meta_examples[id].to_string() << endl;
+
+
+                fout << "\t" << root_pointer->meta_examples[id].partial_function.to_string__one_line() << endl;
+            }
         }
 //        cout << "ret.size() = " << ret_meta_example.size() << endl;
         return ret_meta_example;
     }
 }
 
-PartialFunction MinimalFactoringSchema::query(PartialFunction partial_function)
+PartialFunction ReasoningSchemaOptimizer::query(PartialFunction partial_function)
 {
     return query(partial_function, nullptr);
 }
 
-PartialFunction MinimalFactoringSchema::query(PartialFunction partial_function, Module *pointer_to_stop) {
+PartialFunction ReasoningSchemaOptimizer::query(PartialFunction partial_function, Module *pointer_to_stop) {
     vector<PartialFunction> ret;
     vector<int> ret_operators;
     vector<PartialFunction> active_trace;
@@ -758,7 +766,7 @@ PartialFunction MinimalFactoringSchema::query(PartialFunction partial_function, 
 }
 
 pair<vector<PartialFunction>, pair<vector<int>, vector<PartialFunction> > >
-        MinimalFactoringSchema::record_trace_of_query(PartialFunction partial_function) {
+        ReasoningSchemaOptimizer::record_trace_of_query(PartialFunction partial_function) {
     vector<PartialFunction> ret;
     vector<int> ret_operators;
     vector<PartialFunction> active_trace;
@@ -768,7 +776,7 @@ pair<vector<PartialFunction>, pair<vector<int>, vector<PartialFunction> > >
     return make_pair(ret, make_pair(ret_operators, active_trace));
 }
 
-void MinimalFactoringSchema::record_trace_of_query(
+void ReasoningSchemaOptimizer::record_trace_of_query(
         PartialFunction partial_function, Module *pointer_to_stop,
         vector<PartialFunction> &trace, vector<int> &active_operators,
         vector<PartialFunction> &active_trace)
@@ -818,7 +826,7 @@ void MinimalFactoringSchema::record_trace_of_query(
     }
 }
 
-void MinimalFactoringSchema::calc_function_size() {
+void ReasoningSchemaOptimizer::calc_function_size() {
     function_size = 0;
     if(meta_examples.size() >= 1)
     {
@@ -830,3 +838,39 @@ void MinimalFactoringSchema::calc_function_size() {
     }
 }
 
+BittreeTaskTypeAsPartialFunction *ReasoningSchemaOptimizer::get_copy_of_bottree_task_type() {
+    assert(meta_examples.size() >= 1);
+    BittreeTaskType *to_copy = meta_examples[0].partial_function.bittree_task_type;
+    auto *local_bittree_task_type = new BittreeTaskType(NULL, Name("copy_type"), to_copy, true, true);
+
+    cout << "to_copy: " << to_copy->to_string__one_line(meta_examples[0].partial_function.subtask_depth) << endl;
+    cout << "copy   : " << local_bittree_task_type->to_string__one_line(meta_examples[0].partial_function.subtask_depth) << endl;
+
+    auto* partial_function =
+            new BittreeTaskTypeAsPartialFunction(local_bittree_task_type, meta_examples[0].partial_function.subtask_depth);
+
+    return partial_function;
+}
+
+string ReasoningSchemaOptimizer::bitvector_to_string__one_line(Bitvector bitvector) {
+    assert(meta_examples.size() >= 1);
+    BittreeTaskType *to_copy = meta_examples[0].partial_function.bittree_task_type;
+    auto *local_bittree_task_type = new BittreeTaskType(NULL, Name("copy_type"), to_copy, true, true);
+
+    string temp = to_copy->to_string__one_line__first_part(meta_examples[0].partial_function.subtask_depth);// << endl;
+
+    string ret = "";
+
+    for(int i = 0, at = 0;i<temp.size();i++)
+    {
+        if(temp[i] == '0' || temp[i] == '1' || temp[i] == '_')
+        {
+            ret += std::to_string(bitvector.get_bit(at));
+            at++;
+        } else{
+            assert(temp[i] == ' ');
+            ret += " ";
+        }
+    }
+    return ret;
+}

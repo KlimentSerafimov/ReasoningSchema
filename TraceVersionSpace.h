@@ -287,12 +287,12 @@ public:
 //
 //                fout << best_module.print_module_sketch(time(nullptr) - init_time) << std::flush;
 //
-//                next = new MinimalFactoringSchema(best_module.meta_examples_after_query, this);
+//                next = new ReasoningSchemaOptimizer(best_module.meta_examples_after_query, this);
 //
 //                if(parent_pointer == nullptr)
 //                {
 //
-//                    MinimalFactoringSchema* last = this;
+//                    ReasoningSchemaOptimizer* last = this;
 //                    while(last->next != nullptr)
 //                    {
 //                        last = last->next;

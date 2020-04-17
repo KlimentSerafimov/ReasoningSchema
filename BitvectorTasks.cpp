@@ -332,7 +332,7 @@ BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, TaskNa
 BitvectorTasks::BitvectorTasks()
 {
     string str_task_name;
-//    str_task_name = str_task_name__sum;
+    str_task_name = str_task_name__sum;
 //    str_task_name = str_task_name__greater;
 //    str_task_name = str_task_name__cumulative_binary_operator;
 //    str_task_name = str_task_name__bitwise_binary_operator;
@@ -340,7 +340,7 @@ BitvectorTasks::BitvectorTasks()
 //    str_task_name = str_task_name__count_unary; // requires double_node
 //    str_task_name = str_task_name__unary_sum; // requires double_node
 //    str_task_name = str_task_name__least_set_bit;
-    str_task_name = str_task_name__max_window_between_bits;
+//    str_task_name = str_task_name__max_window_between_bits;
 //    str_task_name = str_task_name__max_window_between_bits_with_state;
 //    str_task_name = str_task_name__linear_and_or_expression;
 //    str_task_name = str_task_name__linear_and_or_nand_nor_expression;
@@ -385,7 +385,7 @@ BitvectorTasks::BitvectorTasks()
 
         //parameter
         int init_iter = 0;
-        int num_iter = 8;
+        int num_iter = 6;
 
         if(task_name.num_iter_defined)
         {
@@ -407,7 +407,7 @@ BitvectorTasks::BitvectorTasks()
 
             string language_name =
                     task_name.get_task_name() +
-                    "[six_gen][" +
+                    "[seven_gen][" +
                     "num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
 //                    ",max_wire_width="+ std::to_string(max_mask_size) +
                     ",size="+std::to_string(i+1) + ",min_mask_size=" +std::to_string(min_mask_size) + ",max_mask_size=" +std::to_string(max_mask_size) + "]";
@@ -449,10 +449,9 @@ BitvectorTasks::BitvectorTasks()
 
                     language_name = language_name + "[rec="+std::to_string(rec_id)+"]";
 
-                    MinimalFactoringSchema my_schema =
-                            MinimalFactoringSchema(
+                    ReasoningSchemaOptimizer my_schema =
+                            ReasoningSchemaOptimizer(
                                     local_meta_examples, language_name, masks[i]);
-
 
                     for(int i = 0;i<local_meta_examples.size();i++)
                     {
@@ -468,12 +467,12 @@ BitvectorTasks::BitvectorTasks()
 
                     now_meta_examples_size = (int) local_meta_examples.size();
                     rec_id++;
-
+                    break;
                 }while(now_meta_examples_size != prev_meta_examples_size);
             }
             else if(true) {
-                MinimalFactoringSchema my_schema =
-                        MinimalFactoringSchema(
+                ReasoningSchemaOptimizer my_schema =
+                        ReasoningSchemaOptimizer(
                                 meta_examples[i], language_name, masks[i]);
 
                 for (int j = 0; j < meta_examples[i].size(); j++) {

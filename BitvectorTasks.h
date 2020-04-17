@@ -5,7 +5,7 @@
 #ifndef COMPACTPOSET_BITVECTORTASKS_H
 #define COMPACTPOSET_BITVECTORTASKS_H
 
-#include "MinimalFactoringSchema.h"
+#include "ReasoningSchemaOptimizer.h"
 #include "BittreeTypeExpression.h"
 
 class MetaExample;

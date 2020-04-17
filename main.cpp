@@ -3,7 +3,7 @@
 #include "LanguagesOverBooleanFunctions.h"
 #include <queue>
 #include "RemainderAndTwoFactorsSchema.h"
-#include "MinimalFactoringSchema.h"
+#include "ReasoningSchemaOptimizer.h"
 #include "UnionOfPartialFunctions.h"
 #include "enumerate_meta_training_sets.h"
 #include "BitvectorTasks.h"
@@ -249,8 +249,8 @@ void recursive_minimal_factoring_schema(int num_inputs, int language_id, vector<
         string language_name =
                 "HERE_language(n=" + std::to_string(num_inputs) + ",id=" + std::to_string(language_id) + ")[rec="+std::to_string(rec_id)+"]";
 
-        MinimalFactoringSchema my_schema =
-                MinimalFactoringSchema(local_meta_examples, language_name, true || (rec_id != 0));
+        ReasoningSchemaOptimizer my_schema =
+                ReasoningSchemaOptimizer(local_meta_examples, language_name, true || (rec_id != 0));
 
         for(int i = 0;i<local_meta_examples.size();i++)
         {
@@ -375,6 +375,6 @@ int main() {
     }
 
     cout << "TIME: " << (double) time(nullptr) - local_time << endl;
-
+    cout << "op_counter: " << get_op_counter() << endl;
     return 0;
 }

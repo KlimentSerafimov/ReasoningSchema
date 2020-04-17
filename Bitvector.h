@@ -15,22 +15,25 @@
 using namespace std;
 
 #define NUM_BITS_IN_BLOCK_SIZE 5
-#define MAX_BLOCK_SIZE (1<<NUM_BITS_IN_BLOCK_SIZE)
-#define MAX_BITVECTOR_SIZE MAX_BLOCK_SIZE*1
+#define BLOCK_SIZE (1<<NUM_BITS_IN_BLOCK_SIZE)
+#define MAX_BITVECTOR_SIZE BLOCK_SIZE*2
 
-#define MAX_NUM_BLOCKS MAX_BITVECTOR_SIZE/MAX_BLOCK_SIZE + (MAX_BITVECTOR_SIZE % MAX_BLOCK_SIZE != 0)
+#define MAX_NUM_BLOCKS MAX_BITVECTOR_SIZE/BLOCK_SIZE + (MAX_BITVECTOR_SIZE % BLOCK_SIZE != 0)
 
 enum BitvectorConstructorType {all_zeroes, all_ones};
 
+int get_op_counter();
+
+void increment_op_counter();
+
 class Bitvector//: public bitset<MAX_BITVECTOR_SIZE>
 {
+
     int defined = false;
-    int block_defined[MAX_NUM_BLOCKS];
     int num_blocks;
     unsigned long long blocks[MAX_NUM_BLOCKS];
     pair<int, int> block_ranges[MAX_NUM_BLOCKS];
 
-    bool size_defined = false;
     int size;
 
     bitset<MAX_BITVECTOR_SIZE> control;
@@ -59,10 +62,14 @@ public:
             }
         }
         assert(do_copy && do_copy_2);
-        set_size(to_copy->get_size());
+        assert(to_copy->defined);
+        defined = true;
+        size = to_copy->get_size();
+        num_blocks = to_copy->num_blocks;
         for(int i = 0;i<num_blocks;i++)
         {
             blocks[i] = to_copy->blocks[i];
+            block_ranges[i] = to_copy->block_ranges[i];
         }
 //        for(int i = 0;i<get_size();i++)
 //        {
@@ -86,13 +93,12 @@ public:
     int idx_to_block(int idx) const
     {
         return idx >> NUM_BITS_IN_BLOCK_SIZE;
-        return idx / MAX_BLOCK_SIZE;
+        return idx / BLOCK_SIZE;
     }
     
     bool operator == (const Bitvector other) const
     {
 //        assert(get_size() == other.get_size());
-        int one= 1;
 
         int begin = 0;
         int end = min(get_size()-1, other.get_size()-1);
@@ -101,30 +107,13 @@ public:
         int end_block = idx_to_block(end);
 
         bool ret = true;
-        for(int i = init_block; i<=end_block;i++)
+        int offset = 0;
+        for(int i = init_block; i<=end_block;i++, offset+=BLOCK_SIZE)
         {
-            int offset = i*MAX_BLOCK_SIZE;
-            int first_idx = block_ranges[i].first-offset;
-            int second_idx = block_ranges[i].second-offset;
-            if(i == init_block)
+            if( blocks[i] != other.blocks[i])
             {
-                first_idx = begin-offset;
-            }
-            if(i == end_block)
-            {
-                second_idx = end-offset;
-            }
-
-            unsigned long long left = int_get_subint(blocks[i], first_idx, second_idx);
-
-            unsigned long long right = int_get_subint(other.blocks[i], first_idx, second_idx);
-
-            //cout << "left = " << left <<" "<< "right = " << right << endl;
-            if( left != right)
-            {
-                //cout << "i = " << i << endl;
-                //cout << to_string() <<" "<< other.to_string() << endl;
                 ret = false;
+                break;
             };
         }
 
@@ -157,15 +146,20 @@ public:
 
     int get_size() const
     {
-        assert(size_defined);
         return size;
     }
 
     bool operator < (const Bitvector &other) const
     {
-        assert(size_defined);
-        for (int i = min(get_size()-1, other.get_size()-1); i >= 0; i--) {
-            if (get_bit(i) ^ other.get_bit(i)) return other.get_bit(i);
+        if(num_blocks == 1)
+        {
+            return blocks[0] < other.blocks[0];
+        }
+        else {
+//            assert(false);
+            for (int i = min(get_size() - 1, other.get_size() - 1); i >= 0; i--) {
+                if (get_bit(i) ^ other.get_bit(i)) return other.get_bit(i);
+            }
         }
         return false;
     }
@@ -195,6 +189,12 @@ public:
         /* addition of rhs to *this takes place here */
 
 
+//        if(num_blocks == 1)
+//        {
+//            blocks[0] &= rhs.blocks[0];
+//            return *this;
+//        }
+
         if(CONTROL) {
             for (int i = 0; i < size; i++) {
                 get_bit(i);
@@ -204,28 +204,27 @@ public:
         int begin = 0;
         int end = min(get_size()-1, rhs.get_size()-1);
 
-        set_size(min(get_size(), rhs.get_size()));
-
         int init_block = idx_to_block(0);
         int end_block = idx_to_block(end);
 
-        for(int i = init_block; i<=end_block;i++)
-        {            int offset = i*MAX_BLOCK_SIZE;
-            int first_idx = block_ranges[i].first-offset;
-            int second_idx = block_ranges[i].second-offset;
-            if(i == init_block)
-            {
-                first_idx = begin-offset;
-            }
-            if(i == end_block)
-            {
-                second_idx = end-offset;
-            }
+        //int offset = 0;
+        for(int i = init_block; i<=end_block;i++)//, offset+=BLOCK_SIZE)
+        {
+//            int first_idx = block_ranges[i].first-offset;
+//            int second_idx = block_ranges[i].second-offset;
+//            if(i == init_block)
+//            {
+//                first_idx = begin-offset;
+//            }
+//            if(i == end_block)
+//            {
+//                second_idx = end-offset;
+//            }
 
             blocks[i] &= rhs.blocks[i];
 
-            unsigned long long one = 1;
-            blocks[i] &= (one<<(second_idx+1))-1;
+            //unsigned long long one = 1;
+            //blocks[i] &= (one<<(second_idx+1))-1;
         }
 
         if(CONTROL) {
@@ -240,12 +239,12 @@ public:
         return *this; // return the result by reference
     }
 
-   /* void rep()
-    {
-        for (int i = 0; i < size; i++) {
-            get_bit(i);
-        }
-    }*/
+//    void rep()
+//    {
+//        for (int i = 0; i < size; i++) {
+//            get_bit(i);
+//        }
+//    }
 
     Bitvector operator & (const Bitvector& other) const {
         if(CONTROL) {
@@ -284,24 +283,24 @@ public:
         int init_block = idx_to_block(0);
         int end_block = idx_to_block(end);
 
-        int offset = 0;
-        for(int i = init_block; i<=end_block;i++,offset += MAX_BLOCK_SIZE)
+//        int offset = 0;
+        for(int i = init_block; i<=end_block;i++)//,offset += BLOCK_SIZE)
         {
-            int first_idx = block_ranges[i].first-offset;
-            int second_idx = block_ranges[i].second-offset;
-            if(i == init_block)
-            {
-                first_idx = begin-offset;
-            }
-            if(i == end_block)
-            {
-                second_idx = end-offset;
-            }
+//            int first_idx = block_ranges[i].first-offset;
+//            int second_idx = block_ranges[i].second-offset;
+//            if(i == init_block)
+//            {
+//                first_idx = begin-offset;
+//            }
+//            if(i == end_block)
+//            {
+//                second_idx = end-offset;
+//            }
 
             blocks[i] |= rhs.blocks[i];
 
-            unsigned long long one = 1;
-            blocks[i] &= (one<<(second_idx+1))-1;
+//            unsigned long long one = 1;
+//            blocks[i] &= (one<<(second_idx+1))-1;
         }
 
 //        *this = bitset<MAX_BITVECTOR_SIZE>::operator|=(rhs);
@@ -349,29 +348,27 @@ public:
         int begin = 0;
         int end = min(get_size()-1, rhs.get_size()-1);
 
-        set_size(min(get_size(), rhs.get_size()));
-
         int init_block = idx_to_block(0);
         int end_block = idx_to_block(end);
 
         for(int i = init_block; i<=end_block;i++)
         {
-            int offset = i*MAX_BLOCK_SIZE;
-            int first_idx = block_ranges[i].first-offset;
-            int second_idx = block_ranges[i].second-offset;
-            if(i == init_block)
-            {
-                first_idx = begin-offset;
-            }
-            if(i == end_block)
-            {
-                second_idx = end-offset;
-            }
+//            int offset = i * BLOCK_SIZE;
+//            int first_idx = block_ranges[i].first-offset;
+//            int second_idx = block_ranges[i].second-offset;
+//            if(i == init_block)
+//            {
+//                first_idx = begin-offset;
+//            }
+//            if(i == end_block)
+//            {
+//                second_idx = end-offset;
+//            }
 
             blocks[i] ^= rhs.blocks[i];
 
-            unsigned long long one = 1;
-            blocks[i] &= (one<<(second_idx+1))-1;
+//            unsigned long long one = 1;
+//            blocks[i] &= (one<<(second_idx+1))-1;
 
         }
 
@@ -423,7 +420,7 @@ public:
 
         for(int i = init_block; i<=end_block;i++)
         {
-            int offset = i*MAX_BLOCK_SIZE;
+            int offset = i * BLOCK_SIZE;
             int first_idx = block_ranges[i].first-offset;
             int second_idx = block_ranges[i].second-offset;
             if(i == init_block)
@@ -435,7 +432,7 @@ public:
                 second_idx = end-offset;
             }
             int_flip(blocks[i]);
-            unsigned long long one = 1;
+            unsigned long long one = 1ull;
             blocks[i] &= (one<<(second_idx+1))-1;
         }
         if(CONTROL) {
@@ -491,7 +488,7 @@ public:
 
         int sum = 0;
         for(int i = init_block; i<=end_block;i++) {
-            int offset = i*MAX_BLOCK_SIZE;
+            int offset = i * BLOCK_SIZE;
             int first_idx = block_ranges[i].first-offset;
             int second_idx = block_ranges[i].second-offset;
             if(i == init_block)
@@ -536,12 +533,12 @@ public:
 
         bool ret = true;
 
-        int init_block = begin / MAX_BLOCK_SIZE;
+        int init_block = begin / BLOCK_SIZE;
         int end_block = idx_to_block(end);
 
         for(int i = init_block; i<=end_block;i++)
         {
-            int offset = i*MAX_BLOCK_SIZE;
+            int offset = i * BLOCK_SIZE;
             int first_idx = block_ranges[i].first-offset;
             int second_idx = block_ranges[i].second-offset;
             if(i == init_block)
@@ -595,7 +592,7 @@ public:
     void int_unset_bit(unsigned long long & the_int, int idx)
     {
         unsigned long long one = 1;
-        the_int &= (one<<size)-1-(one<<idx);
+        the_int &= (one<<BLOCK_SIZE)-1-(one<<idx);
     }
 
     void set_range(int begin, int end)
@@ -608,20 +605,13 @@ public:
         }
 
         assert(begin <= end);
-        if(size_defined)
-        {
-            set_size(max(get_size(), end+1));
-        }
-        else
-        {
-            set_size(end+1);
-        }
-        int init_block = begin / MAX_BLOCK_SIZE;
+
+        int init_block = begin / BLOCK_SIZE;
         int end_block = idx_to_block(end);
 
         for(int i = init_block; i<=end_block;i++)
         {
-            int offset = i*MAX_BLOCK_SIZE;
+            int offset = i * BLOCK_SIZE;
             int first_idx = block_ranges[i].first-offset;
             int second_idx = block_ranges[i].second-offset;
             if(i == init_block)
@@ -653,17 +643,9 @@ public:
                 get_bit(i);
             }
         }
-        if(size_defined)
-        {
-            set_size(max(size, idx+1));
-        }
-        else
-        {
-            set_size(idx+1);
-        }
 
-        int block_idx = idx/MAX_BLOCK_SIZE;
-        int offset = block_idx*MAX_BLOCK_SIZE;
+        int block_idx = idx / BLOCK_SIZE;
+        int offset = block_idx * BLOCK_SIZE;
         int int_idx = idx-offset;
 
         int_set_bit(blocks[block_idx], int_idx);
@@ -681,25 +663,24 @@ public:
 
     void set(int idx, int val)
     {
-        if(size_defined)
+        if(CONTROL)
         {
-            set_size(max(size, idx+1));
+            get_bit(idx);
         }
-        else
-        {
-            set_size(idx+1);
-        }
-
-        int block_idx = idx/MAX_BLOCK_SIZE;
-        int offset = block_idx*MAX_BLOCK_SIZE;
+        int block_idx = idx / BLOCK_SIZE;
+        int offset = block_idx * BLOCK_SIZE;
         int int_idx = idx-offset;
 
         if(val == 0) {
             int_unset_bit(blocks[block_idx], int_idx);
         }
-        if(val == 1)
+        else if(val == 1)
         {
             int_set_bit(blocks[block_idx], int_idx);
+        }
+        else
+        {
+            assert(false);
         }
 
         if(CONTROL) {
@@ -738,8 +719,9 @@ public:
         if(CONTROL)
         {
             string to_remove_0s = control.to_string();
-            string second_ret;
-            for(int i = to_remove_0s.size()-1; i >= to_remove_0s.size()-get_size() ;i--)
+            string second_ret = "";
+            int lb = to_remove_0s.size()-get_size();
+            for(int i = to_remove_0s.size()-1; i >= lb ;i--)
             {
                 second_ret += to_remove_0s[i];
             }

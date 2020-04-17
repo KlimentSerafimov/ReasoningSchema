@@ -393,33 +393,6 @@ MetaExample.cpp.s:
 	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/MetaExample.cpp.s
 .PHONY : MetaExample.cpp.s
 
-MinimalFactoringSchema.o: MinimalFactoringSchema.cpp.o
-
-.PHONY : MinimalFactoringSchema.o
-
-# target to build an object file
-MinimalFactoringSchema.cpp.o:
-	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/MinimalFactoringSchema.cpp.o
-.PHONY : MinimalFactoringSchema.cpp.o
-
-MinimalFactoringSchema.i: MinimalFactoringSchema.cpp.i
-
-.PHONY : MinimalFactoringSchema.i
-
-# target to preprocess a source file
-MinimalFactoringSchema.cpp.i:
-	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/MinimalFactoringSchema.cpp.i
-.PHONY : MinimalFactoringSchema.cpp.i
-
-MinimalFactoringSchema.s: MinimalFactoringSchema.cpp.s
-
-.PHONY : MinimalFactoringSchema.s
-
-# target to generate assembly for a file
-MinimalFactoringSchema.cpp.s:
-	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/MinimalFactoringSchema.cpp.s
-.PHONY : MinimalFactoringSchema.cpp.s
-
 Module.o: Module.cpp.o
 
 .PHONY : Module.o
@@ -527,6 +500,33 @@ PartialFunction.s: PartialFunction.cpp.s
 PartialFunction.cpp.s:
 	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/PartialFunction.cpp.s
 .PHONY : PartialFunction.cpp.s
+
+ReasoningSchemaOptimizer.o: ReasoningSchemaOptimizer.cpp.o
+
+.PHONY : ReasoningSchemaOptimizer.o
+
+# target to build an object file
+ReasoningSchemaOptimizer.cpp.o:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/ReasoningSchemaOptimizer.cpp.o
+.PHONY : ReasoningSchemaOptimizer.cpp.o
+
+ReasoningSchemaOptimizer.i: ReasoningSchemaOptimizer.cpp.i
+
+.PHONY : ReasoningSchemaOptimizer.i
+
+# target to preprocess a source file
+ReasoningSchemaOptimizer.cpp.i:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/ReasoningSchemaOptimizer.cpp.i
+.PHONY : ReasoningSchemaOptimizer.cpp.i
+
+ReasoningSchemaOptimizer.s: ReasoningSchemaOptimizer.cpp.s
+
+.PHONY : ReasoningSchemaOptimizer.s
+
+# target to generate assembly for a file
+ReasoningSchemaOptimizer.cpp.s:
+	$(MAKE) -f CMakeFiles/CompactPoset.dir/build.make CMakeFiles/CompactPoset.dir/ReasoningSchemaOptimizer.cpp.s
+.PHONY : ReasoningSchemaOptimizer.cpp.s
 
 RemainderAndTwoFactorsSchema.o: RemainderAndTwoFactorsSchema.cpp.o
 
@@ -756,9 +756,6 @@ help:
 	@echo "... MetaExample.o"
 	@echo "... MetaExample.i"
 	@echo "... MetaExample.s"
-	@echo "... MinimalFactoringSchema.o"
-	@echo "... MinimalFactoringSchema.i"
-	@echo "... MinimalFactoringSchema.s"
 	@echo "... Module.o"
 	@echo "... Module.i"
 	@echo "... Module.s"
@@ -771,6 +768,9 @@ help:
 	@echo "... PartialFunction.o"
 	@echo "... PartialFunction.i"
 	@echo "... PartialFunction.s"
+	@echo "... ReasoningSchemaOptimizer.o"
+	@echo "... ReasoningSchemaOptimizer.i"
+	@echo "... ReasoningSchemaOptimizer.s"
 	@echo "... RemainderAndTwoFactorsSchema.o"
 	@echo "... RemainderAndTwoFactorsSchema.i"
 	@echo "... RemainderAndTwoFactorsSchema.s"

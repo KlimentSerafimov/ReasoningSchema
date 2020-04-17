@@ -106,8 +106,8 @@ Bitvector::Bitvector(unsigned long long num)//: bitset<MAX_BITVECTOR_SIZE>(num)
     int begin = 0;
     int end = get_size()-1;
 
-    int init_block = 0 / MAX_BLOCK_SIZE;
-    int end_block = end / MAX_BLOCK_SIZE;
+    int init_block = 0 / BLOCK_SIZE;
+    int end_block = end / BLOCK_SIZE;
 
     for(int i = init_block; i<=end_block;i++) {
         int first_idx = block_ranges[i].first;
@@ -133,6 +133,7 @@ Bitvector::Bitvector(unsigned long long num)//: bitset<MAX_BITVECTOR_SIZE>(num)
 }
 
 unsigned int Bitvector::num_trailing_zeroes() {
+
     int ret = 0;
     for(int i = 0;i<size; i++)
     {
@@ -148,38 +149,25 @@ unsigned int Bitvector::num_trailing_zeroes() {
 
 void Bitvector::set_size(int _size)
 {
-   // assert(!size_defined || _size == size);
-//    for(int i = _size; i<MAX_BITVECTOR_SIZE; i++)
-//    {
-//        assert(!test(i));
-//    }
+    assert(_size <= MAX_BITVECTOR_SIZE);
 
     if(!defined)
     {
         defined = true;
-        for(int i = 0;i<MAX_NUM_BLOCKS;i++)
-        {
-            block_defined[i] = false;
-        }
-    }
-
-    assert(_size <= MAX_BITVECTOR_SIZE);
-
-    if(!size_defined || size != _size) {
-        size_defined = true;
         size = _size;
-        num_blocks = _size / MAX_BLOCK_SIZE + (_size % MAX_BLOCK_SIZE != 0);
+        num_blocks = size / BLOCK_SIZE + (size % BLOCK_SIZE != 0);
         int at_bit_idx = 0;
         for (int i = 0; i < num_blocks; i++) {
-            int next_at_bit_id = min(_size, at_bit_idx + MAX_BLOCK_SIZE);
+            int next_at_bit_id = min(size, at_bit_idx + BLOCK_SIZE);
             block_ranges[i] = make_pair(at_bit_idx, next_at_bit_id-1);
-            if(!block_defined[i]) {
-                blocks[i] = 0;
-                block_defined[i] = true;
-            }
+            blocks[i] = 0;
             at_bit_idx = next_at_bit_id;
         }
         assert(at_bit_idx == _size);
+    }
+    else
+    {
+        assert(_size <= size);
     }
 }
 
@@ -190,8 +178,8 @@ Bitvector::Bitvector(unsigned long long bits, int _size)// : bitset<MAX_BITVECTO
     int begin = 0;
     int end = get_size()-1;
 
-    int init_block = 0 / MAX_BLOCK_SIZE;
-    int end_block = end / MAX_BLOCK_SIZE;
+    int init_block = 0 / BLOCK_SIZE;
+    int end_block = end / BLOCK_SIZE;
 
     for(int i = init_block; i<=end_block;i++) {
         int first_idx = block_ranges[i].first;
@@ -219,8 +207,8 @@ Bitvector::Bitvector(unsigned long long bits, int _size)// : bitset<MAX_BITVECTO
 
 int Bitvector::get_bit(int idx) const {
     assert(idx < get_size());
-    int block_idx = idx/MAX_BLOCK_SIZE;
-    int offset = block_idx*MAX_BLOCK_SIZE;
+    int block_idx = idx / BLOCK_SIZE;
+    int offset = block_idx * BLOCK_SIZE;
     int int_idx = idx-offset;
 
     int ret = get_bit_of_int(blocks[block_idx], int_idx);
@@ -242,6 +230,7 @@ int Bitvector::get_bit(int idx) const {
 }
 
 unsigned long long Bitvector::to_ullong() const {
+    increment_op_counter();
     bitset<MAX_BITVECTOR_SIZE> local_bitset;
     for(int i = 0;i<get_size();i++)
     {
@@ -316,4 +305,14 @@ unsigned int num_trailing_zeroes(Bitvector v)
 //        c -= v & 0x1;
 //    }
 //    return c;
+}
+
+static int op_counter = 0;
+
+int get_op_counter() {
+    return op_counter;
+}
+
+void increment_op_counter() {
+    op_counter++;
 }
