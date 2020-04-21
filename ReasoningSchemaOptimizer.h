@@ -6,11 +6,14 @@
 #define COMPACTPOSET_REASONINGSCHEMAOPTIMIZER_H
 
 #include "Module.h"
+#include "BitvectorTasks.h"
+#include "MetricType.h"
 
 class ReasoningSchemaOptimizer
 {
     ReasoningSchemaOptimizer* parent_pointer = NULL;
     int function_size;
+    MetricType metric;
 
     time_t init_time;
     time_t local_time;
@@ -18,10 +21,10 @@ class ReasoningSchemaOptimizer
     vector<MetaExample> meta_examples;
     int init_num_missing_bits;
 
-    vector<Bitvector> masks;
+    vector<vector<Bitvector> > masks;
     int module_id;
-    vector<pair<HeuristicScore, int> > mask_ids_by_heuristic;
-    vector<HeuristicScore> heuristic_score_by_mask_id;
+    vector<pair<HeuristicScore, pair<int, int> > > mask_ids_by_heuristic;
+    vector<vector<HeuristicScore> > heuristic_score_by_bucket_id_by_mask_id;
 
     ReasoningSchemaOptimizer* next = nullptr;
 
@@ -49,11 +52,14 @@ public:
 
     ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, ReasoningSchemaOptimizer *_parent_pointer);
 
-    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name, bool skip);
+    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name);
 
-    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name, vector<Bitvector> mask);
+    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name, vector<vector<Bitvector> > mask,
+                             string dir_path, MetricType metric_type);
 
     vector<MetaExample> get_necessary_meta_examples(bool print);
+
+    vector<Bitvector> get_bitvectors();
 
     PartialFunction query(PartialFunction partial_function);
 
@@ -68,6 +74,10 @@ public:
     BittreeTaskTypeAsPartialFunction *get_copy_of_bottree_task_type();
 
     string bitvector_to_string__one_line(Bitvector bitvector);
+
+    string partial_function_to_string__one_line(PartialFunction partial_function);
+
+    string meta_example_to_string__one_line(MetaExample meta_example);
 };
 
 #endif //COMPACTPOSET_REASONINGSCHEMAOPTIMIZER_H

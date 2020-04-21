@@ -13,6 +13,7 @@
 
 
 class PartialFunction;
+class BittreeTaskTypeAsPartialFunction;
 class MetaExample;
 
 class BittreeNode;
@@ -153,6 +154,8 @@ public:
 
     void solve__multiply_by(int multiply_by);
 
+    void solve__add_by(int add_by);
+
     void solve__one_shift_idx();
 
     void solve__count_unary();
@@ -238,7 +241,7 @@ public:
 
     BittreeTaskType* get_supertask_type(BittreeInputOutputType* type);
 
-    PartialFunction to_partial_function(int num_subtasks);
+    BittreeTaskTypeAsPartialFunction to_partial_function(int num_subtasks);
 
     MetaExample to_meta_example(int id, int num_subtasks);
 

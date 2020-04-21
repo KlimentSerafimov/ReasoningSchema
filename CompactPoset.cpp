@@ -1329,49 +1329,61 @@ void CompactPoset::calc_dominator_unions()
 
 vector<PartialFunction> CompactPoset::query(PartialFunction partial_function)
 {
-//    cout << endl;
-//    cout << partial_function.to_string() << endl;
-    queue<int> q;
-    int local_visited_mark = ++visited_mark;
-    for(int i = 0;i<nodes.size();i++)
-    {
-        if(nodes[i].node_type != inactive_node && reverse_meta_edges[i].size() == 0 && is_contained_in[i].size() == 0)
-        {
-            nodes[i].open_visited_mark = local_visited_mark;
-            nodes[i].num_incoming_meta_edges = 0;
-            nodes[i].num_incoming_union_edges = 0;
-            assert(nodes[i].num_incoming_meta_edges == reverse_meta_edges[i].size());
-            assert(nodes[i].num_incoming_union_edges == is_contained_in[i].size());
 
-//            if (!nodes[i].dominator_union.contains(partial_function))
-            {
-                nodes[i].closed_visited_mark = local_visited_mark;
-                q.push(i);
+    int local_visited_mark = ++visited_mark;
+    int init_dominated_mark = visited_mark;
+    bool is_set = true;
+    vector<int> candidate_ids;
+    if(is_set)
+    {
+        for(int i = 0;i<nodes.size();i++)
+        {
+            if(nodes[i].node_type == base_node) {
+                if (nodes[i].contains(partial_function)) {
+                    mark_dominated_init(i);
+                    candidate_ids.push_back(i);
+                }
             }
         }
     }
-
-    int init_dominated_mark = visited_mark;
-
-    vector<int> candidate_ids;
-    while(!q.empty())
-    {
-        num_visited_nodes_during_query++;
-        int at = q.front();
-        q.pop();
-
-        if(init_dominated_mark <= nodes[at].dominated_mark && nodes[at].dominated_mark <= visited_mark)
+    else
         {
-//            assert(false);
-            continue;
+
+//    cout << endl;
+//    cout << partial_function.to_string() << endl;
+        queue<int> q;
+        for (int i = 0; i < nodes.size(); i++) {
+            if (nodes[i].node_type != inactive_node && reverse_meta_edges[i].size() == 0 &&
+                is_contained_in[i].size() == 0) {
+                nodes[i].open_visited_mark = local_visited_mark;
+                nodes[i].num_incoming_meta_edges = 0;
+                nodes[i].num_incoming_union_edges = 0;
+                assert(nodes[i].num_incoming_meta_edges == reverse_meta_edges[i].size());
+                assert(nodes[i].num_incoming_union_edges == is_contained_in[i].size());
+
+//            if (!nodes[i].dominator_union.contains(partial_function))
+                {
+                    nodes[i].closed_visited_mark = local_visited_mark;
+                    q.push(i);
+                }
+            }
         }
 
+
+        while (!q.empty()) {
+            num_visited_nodes_during_query++;
+            int at = q.front();
+            q.pop();
+
+            if (init_dominated_mark <= nodes[at].dominated_mark && nodes[at].dominated_mark <= visited_mark) {
+//            assert(false);
+                continue;
+            }
+
 //        cout <<"at " << at << endl;
-        if(nodes[at].node_type == base_node)
-        {
-            assert(is_union_of[at].size() == 0);
-            if(nodes[at].contains(partial_function))
-            {
+            if (nodes[at].node_type == base_node) {
+                assert(is_union_of[at].size() == 0);
+                if (nodes[at].contains(partial_function)) {
 //                if(nodes[at].dominator_union.contains(partial_function))
 //                {
 //                    cout << "here at" << at << endl;
@@ -1380,12 +1392,12 @@ vector<PartialFunction> CompactPoset::query(PartialFunction partial_function)
 //                    cout << "nodes[at].dominated_mark " << nodes[at].dominated_mark << endl;
 ////                    assert(false);
 //                }
-                assert(nodes[at].num_incoming_meta_edges == reverse_meta_edges[at].size());
-                assert(nodes[at].num_incoming_union_edges == is_contained_in[at].size());
+                    assert(nodes[at].num_incoming_meta_edges == reverse_meta_edges[at].size());
+                    assert(nodes[at].num_incoming_union_edges == is_contained_in[at].size());
 
-                mark_dominated_init(at);
+                    mark_dominated_init(at);
 
-                candidate_ids.push_back(at);
+                    candidate_ids.push_back(at);
 
 //                if(ret.size() >= 6)
 //                {
@@ -1398,26 +1410,75 @@ vector<PartialFunction> CompactPoset::query(PartialFunction partial_function)
 //                while(!q.empty()){
 //                    q.hard_pop();
 //                }
-            }
-            else if(meta_edges[at].size() >= 1)
-            {
+                } else if (meta_edges[at].size() >= 1) {
 //                if(nodes[at].downstream_union.contains(partial_function))
+                    {
+                        for (int i = 0; i < meta_edges[at].size(); i++) {
+                            int next = meta_edges[at][i];
+                            if (nodes[next].closed_visited_mark != local_visited_mark) {
+                                if (nodes[next].open_visited_mark != local_visited_mark) {
+                                    nodes[next].num_incoming_meta_edges = 0;
+                                    nodes[next].num_incoming_union_edges = 0;
+                                    nodes[next].open_visited_mark = local_visited_mark;
+                                }
+                                nodes[next].num_incoming_meta_edges += 1;
+                                if (nodes[next].num_incoming_meta_edges == reverse_meta_edges[next].size()
+                                    && nodes[next].num_incoming_union_edges == is_contained_in[next].size()) {
+                                    if (init_dominated_mark <= nodes[at].dominated_mark &&
+                                        nodes[at].dominated_mark <= visited_mark) {
+                                        assert(false);
+                                        continue;
+                                    }
+//                                if (!nodes[next].dominator_union.contains(partial_function))
+                                    {
+                                        nodes[next].closed_visited_mark = local_visited_mark;
+                                        q.push(next);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (nodes[at].node_type == union_node) {
+//            if(nodes[at].downstream_union.contains(partial_function))
                 {
-                    for(int i = 0;i<meta_edges[at].size();i++){
-                        int next = meta_edges[at][i];
-                        if(nodes[next].closed_visited_mark != local_visited_mark) {
-                            if(nodes[next].open_visited_mark != local_visited_mark)
-                            {
+                    for (int i = 0; i < is_union_of[at].size(); i++) {
+                        int next = is_union_of[at][i];
+                        if (nodes[next].closed_visited_mark != local_visited_mark) {
+                            if (nodes[next].open_visited_mark != local_visited_mark) {
                                 nodes[next].num_incoming_meta_edges = 0;
                                 nodes[next].num_incoming_union_edges = 0;
                                 nodes[next].open_visited_mark = local_visited_mark;
                             }
-                            nodes[next].num_incoming_meta_edges+=1;
-                            if(nodes[next].num_incoming_meta_edges == reverse_meta_edges[next].size()
-                               && nodes[next].num_incoming_union_edges == is_contained_in[next].size())
-                            {
-                                if(init_dominated_mark <= nodes[at].dominated_mark && nodes[at].dominated_mark <= visited_mark)
+                            nodes[next].num_incoming_union_edges += 1;
+                            if (nodes[next].num_incoming_meta_edges == reverse_meta_edges[next].size()
+                                && nodes[next].num_incoming_union_edges == is_contained_in[next].size()) {
+                                if (init_dominated_mark <= nodes[at].dominated_mark &&
+                                    nodes[at].dominated_mark <= visited_mark) {
+                                    assert(false);
+                                    continue;
+                                }
+//                            if (!nodes[next].dominator_union.contains(partial_function))
                                 {
+                                    nodes[next].closed_visited_mark = local_visited_mark;
+                                    q.push(next);
+                                }
+                            }
+                        }
+                    }
+                    for (int i = 0; i < meta_edges[at].size(); i++) {
+                        int next = meta_edges[at][i];
+                        if (nodes[next].closed_visited_mark != local_visited_mark) {
+                            if (nodes[next].open_visited_mark != local_visited_mark) {
+                                nodes[next].num_incoming_meta_edges = 0;
+                                nodes[next].num_incoming_union_edges = 0;
+                                nodes[next].open_visited_mark = local_visited_mark;
+                            }
+                            nodes[next].num_incoming_meta_edges += 1;
+                            if (nodes[next].num_incoming_meta_edges == reverse_meta_edges[next].size()
+                                && nodes[next].num_incoming_union_edges == is_contained_in[next].size()) {
+                                if (init_dominated_mark <= nodes[at].dominated_mark &&
+                                    nodes[at].dominated_mark <= visited_mark) {
                                     assert(false);
                                     continue;
                                 }
@@ -1430,72 +1491,39 @@ vector<PartialFunction> CompactPoset::query(PartialFunction partial_function)
                         }
                     }
                 }
+            } else {
+                assert(false);
             }
         }
-        else if(nodes[at].node_type == union_node)
-        {
-//            if(nodes[at].downstream_union.contains(partial_function))
-            {
-                for(int i = 0;i<is_union_of[at].size();i++)
-                {
-                    int next = is_union_of[at][i];
-                    if(nodes[next].closed_visited_mark != local_visited_mark) {
-                        if(nodes[next].open_visited_mark != local_visited_mark)
-                        {
-                            nodes[next].num_incoming_meta_edges = 0;
-                            nodes[next].num_incoming_union_edges = 0;
-                            nodes[next].open_visited_mark = local_visited_mark;
-                        }
-                        nodes[next].num_incoming_union_edges+=1;
-                        if(nodes[next].num_incoming_meta_edges == reverse_meta_edges[next].size()
-                            && nodes[next].num_incoming_union_edges == is_contained_in[next].size())
-                        {
-                            if(init_dominated_mark <= nodes[at].dominated_mark && nodes[at].dominated_mark <= visited_mark)
-                            {
-                                assert(false);
-                                continue;
-                            }
-//                            if (!nodes[next].dominator_union.contains(partial_function))
-                            {
-                                nodes[next].closed_visited_mark = local_visited_mark;
-                                q.push(next);
-                            }
-                        }
-                    }
-                }
-                for(int i = 0;i<meta_edges[at].size();i++){
-                    int next = meta_edges[at][i];
-                    if(nodes[next].closed_visited_mark != local_visited_mark) {
-                        if(nodes[next].open_visited_mark != local_visited_mark)
-                        {
-                            nodes[next].num_incoming_meta_edges = 0;
-                            nodes[next].num_incoming_union_edges = 0;
-                            nodes[next].open_visited_mark = local_visited_mark;
-                        }
-                        nodes[next].num_incoming_meta_edges+=1;
-                        if(nodes[next].num_incoming_meta_edges == reverse_meta_edges[next].size()
-                           && nodes[next].num_incoming_union_edges == is_contained_in[next].size())
-                        {
-                            if(init_dominated_mark <= nodes[at].dominated_mark && nodes[at].dominated_mark <= visited_mark)
-                            {
-                                assert(false);
-                                continue;
-                            }
-//                                if (!nodes[next].dominator_union.contains(partial_function))
-                            {
-                                nodes[next].closed_visited_mark = local_visited_mark;
-                                q.push(next);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        else
-        {
-            assert(false);
-        }
+
+
     }
+
+//    sort(candidate_ids.begin(), candidate_ids.end());
+//
+//    if(candidate_ids != second_candidate_ids)
+//    {
+//        for(int i = 0;i<candidate_ids.size();i++)
+//        {
+//            cout << candidate_ids[i] << " ";
+//        }
+//        cout << endl;
+//
+//        for(int i = 0;i<second_candidate_ids.size();i++)
+//        {
+//
+//            int at = second_candidate_ids[i];
+//            if(init_dominated_mark <= nodes[at].dominated_mark && nodes[at].dominated_mark <= visited_mark)
+//            {
+//                //turn this asset(false) off for true meta-learning
+//                continue;
+//            }
+//            cout << second_candidate_ids[i] << " ";
+//        }
+//        cout << endl;
+//    }
+//
+//    assert(candidate_ids == second_candidate_ids);
 
     vector<PartialFunction> ret;
 //    cout << endl;
@@ -1513,6 +1541,7 @@ vector<PartialFunction> CompactPoset::query(PartialFunction partial_function)
 
         if(init_dominated_mark <= nodes[at].dominated_mark && nodes[at].dominated_mark <= visited_mark)
         {
+            //turn this asset(false) off for true meta-learning
 //            assert(false);
             continue;
         }

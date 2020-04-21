@@ -26,6 +26,8 @@ int get_op_counter();
 
 void increment_op_counter();
 
+
+
 class Bitvector//: public bitset<MAX_BITVECTOR_SIZE>
 {
 
@@ -37,6 +39,8 @@ class Bitvector//: public bitset<MAX_BITVECTOR_SIZE>
     int size;
 
     bitset<MAX_BITVECTOR_SIZE> control;
+
+//    LabeledGraph labeled_hypergraph;
 
 public:
 
@@ -50,6 +54,9 @@ public:
             }
         }
     };
+
+//    Bitvector(LabeledGraph labeled_graph);
+
     Bitvector(BitvectorConstructorType type, int _size);
     Bitvector(unsigned long long num, int _size);
     Bitvector(bitset<MAX_BITVECTOR_SIZE> num);

@@ -16,15 +16,16 @@ public:
     bool defined = false;
     int num_input_bits;
     double ratio_delta_meta_examples_per_new_bit;
+//    int delta_bits = 0;
 
     bool operator < (const HeuristicScore& other) const
     {
         if(defined && other.defined) {
-//            if (num_input_bits == other.num_input_bits) {
+            if(ratio_delta_meta_examples_per_new_bit == other.ratio_delta_meta_examples_per_new_bit)
+            {
+                return num_input_bits < other.num_input_bits;
+            }
             return ratio_delta_meta_examples_per_new_bit > other.ratio_delta_meta_examples_per_new_bit;
-//            } else {
-//                return num_input_bits < other.num_input_bits;
-//            }
         }
         else
         {
@@ -101,6 +102,10 @@ public:
     {
         parent_minimal_factoring_schema = _minimal_factoring_schema;
     }
+
+    string subdomain_mask_to_string(Bitvector subdomain_mask);
+
+    string meta_example_to_string(MetaExample meta_example);
 };
 
 #endif //COMPACTPOSET_MODULE_H

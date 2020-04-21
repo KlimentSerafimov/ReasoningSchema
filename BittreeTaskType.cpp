@@ -323,7 +323,7 @@ void BittreeNode::append_bits(vector<BitInBittree *>& bits) {
         else
         {
             assert(leaf_node_type == double_node);
-            assert(false);
+//            assert(false);
         }
     }
     else
@@ -624,6 +624,11 @@ void BittreeInputOutputType::solve(TaskName task_name)
     if(task_name.do__multiply_by)
     {
         solve__multiply_by(task_name.param__multiply_by);
+    }
+
+    if(task_name.do__add)
+    {
+        solve__add_by(task_name.param__add_by);
     }
 
     if(task_name.do__one_shift_idx)
@@ -1040,7 +1045,9 @@ void BittreeInputOutputType::solve__count_unary()
         }
     }
     Bitvector sum = 0;
-    sum.set_range(0,operands[0]-1);
+    if(operands[0]>=1) {
+        sum.set_range(0, operands[0] - 1);
+    }
     for(int i = 0;i<output->children.size();i++)
     {
         assert(output->children.at(i)->bit->is_bit_set == false);
@@ -1066,6 +1073,31 @@ void BittreeInputOutputType::solve__one_shift_idx()
     }
     Bitvector sum = 0;
     sum.set(operands[0]);
+    for(int i = 0;i<output->children.size();i++)
+    {
+        assert(output->children.at(i)->bit->is_bit_set == false);
+        output->children.at(i)->bit->is_bit_set = true;
+        output->children.at(i)->bit->bit_val = get_bit(sum, i);
+    }
+}
+
+
+void BittreeInputOutputType::solve__add_by(int add_by)
+{
+    const int num_operands = 1;
+    assert(input->children.size() == num_operands);
+    int operands[num_operands] = {0};
+    for(int i = 0;i<num_operands;i++)
+    {
+        int pow = 1;
+        for(int j = 0;j<input->children.at(i)->children.size();j++)
+        {
+            assert(input->children.at(i)->children.at(j)->bit->is_bit_set == true);
+            operands[i]+=pow*input->children.at(i)->children.at(j)->bit->bit_val;
+            pow*=2;
+        }
+    }
+    int sum = operands[0] + add_by;
     for(int i = 0;i<output->children.size();i++)
     {
         assert(output->children.at(i)->bit->is_bit_set == false);
@@ -1193,7 +1225,7 @@ void BittreeInputOutputType::solve__sum()
     }
 }
 
-PartialFunction BittreeTaskType::to_partial_function(int num_subtasks) {
+BittreeTaskTypeAsPartialFunction BittreeTaskType::to_partial_function(int num_subtasks) {
     vector<BitInBittree*> partial_bits;
     memset_visited(vis_bits);
     append_bits_of_prefix_subtree(partial_bits, num_subtasks);
@@ -1206,7 +1238,7 @@ MetaExample BittreeTaskType::to_meta_example(int id, int num_subtasks) {
     }
     else
     {
-        PartialFunction partial_function = to_partial_function(num_subtasks);
+        BittreeTaskTypeAsPartialFunction partial_function = to_partial_function(num_subtasks);
         return MetaExample(to_partial_function(num_subtasks), partial_function, id);
     }
 }
@@ -1237,6 +1269,9 @@ string BittreeTaskType::to_string__one_line__first_part(int subtask_depth) {
             {
                 assert(at_subtask->decomposition->subtask != NULL);
                 at_subtask = at_subtask->decomposition->subtask;
+            } else
+            {
+                break;
             }
             subtask_depth-=1;
         }

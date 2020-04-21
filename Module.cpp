@@ -7,12 +7,20 @@
 #include "util.h"
 #include <iostream>
 
+string Module::subdomain_mask_to_string(Bitvector local_subdomain_mask)
+{
+    return parent_minimal_factoring_schema->root_pointer->bitvector_to_string__one_line(local_subdomain_mask);
+}
+
+string Module::meta_example_to_string(MetaExample meta_example)
+{
+    return parent_minimal_factoring_schema->root_pointer->meta_example_to_string__one_line(meta_example);
+}
+
 string Module::print_module_sketch(time_t delta_time)
 {
 
-    string one_line = parent_minimal_factoring_schema->root_pointer->bitvector_to_string__one_line(subdomain_mask);//meta_examples[0].partial_function.bittree_task_type
-
-
+    string one_line = subdomain_mask_to_string(subdomain_mask);
 
     string ret =
             one_line + " | " +
@@ -25,8 +33,7 @@ string Module::print_module_sketch(time_t delta_time)
 
     for(int i = 0;i<repeats_module_ids.size();i++)
     {
-        string one_line_1 = parent_minimal_factoring_schema->root_pointer->bitvector_to_string__one_line(repeats_module_pointers[i]->subdomain_mask);//meta_examples[0].partial_function.bittree_task_type
-
+        string one_line_1 = subdomain_mask_to_string(repeats_module_pointers[i]->subdomain_mask);
         ret +=
                 one_line_1 + " | "+
                 bitvector_to_str(repeats_module_pointers[i]->subdomain_mask, repeats_module_pointers[i]->function_size) + " " +
@@ -61,7 +68,7 @@ string Module::covered_to_string(vector<MetaExample> init_meta_examples)
 
     for(int i = (int) 0;i<covering.size();i++)
     {
-        ret += "subdomain_mask " + bitvector_to_str(parent_modules[i]->subdomain_mask, parent_modules[i]->function_size) + " id " + std::to_string(i) + "\n";
+        ret += "subdomain_mask " + subdomain_mask_to_string(parent_modules[i]->subdomain_mask) + " id " + std::to_string(i) + "\n";
         for(int j = 0;j<covering[i].size(); j++)
         {
             assert(covering[i][j].size() >= 1);
@@ -86,10 +93,14 @@ string Module::covered_to_string(vector<MetaExample> init_meta_examples)
                 }
                 ret +=
 //                        "subdomain_mask " + bitvector_to_str(parent_modules[i]->subdomain_mask, function_size) + "\t" +
-                        "masked " + intermediate_meta_example.get_application_of_subdomain(
-                                parent_modules[i]->subdomain_mask).to_string() + "\t" +
-                        "intermediate " + intermediate_meta_example.to_string() + "\t" +
-                        "original " + init_meta_examples[covering[i][j][k]].to_string() + "\t";
+                        "masked " + meta_example_to_string(intermediate_meta_example.get_application_of_subdomain(
+                                parent_modules[i]->subdomain_mask)) + "\t" +
+//                intermediate_meta_example.get_application_of_subdomain(
+//                        parent_modules[i]->subdomain_mask).to_string() + "\t" +
+                "intermediate " + meta_example_to_string(intermediate_meta_example) + "\t" +
+                //intermediate_meta_example.to_string() + "\t" +
+                        "original " +  meta_example_to_string(init_meta_examples[covering[i][j][k]]) + "\t";
+//                        init_meta_examples[covering[i][j][k]].to_string() + "\t";
 
             }
             ret+="\n";

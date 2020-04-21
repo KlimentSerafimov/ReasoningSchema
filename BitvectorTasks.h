@@ -7,6 +7,7 @@
 
 #include "ReasoningSchemaOptimizer.h"
 #include "BittreeTypeExpression.h"
+#include "MetricType.h"
 
 class MetaExample;
 
@@ -53,6 +54,10 @@ public:
     BittreeTaskInstance(BittreeTaskType* _bittree_task_type);
 };
 
+
+
+
+
 class BitvectorTasks {
 
     int num_inputs;
@@ -64,8 +69,9 @@ class BitvectorTasks {
     void populate_ordering_over_boolean_functions_with_small_sum();
     void populate_ordering_over_boolean_functions_with_bitwise_and();
 
-    vector<vector<Bitvector> > masks_generator(
-            BittreeTypeExpression* type_expression, int num_iter, int num_subtasks, int max_mask_size, int min_mask_size);
+    vector<vector<vector<Bitvector> > >
+    masks_generator(BittreeTypeExpression *type_expression, int init_num_iter, int num_subtasks,
+                    int max_masks_size, int min_mask_size, int num_first_in_prior);
 
     vector<vector<MetaExample> >
     get_meta_examples(BittreeTypeExpression *type_expression, TaskName task_name, int num_iter,
@@ -75,7 +81,9 @@ public:
 
     BitvectorTasks(int function_size, int task_id);
 
-    BitvectorTasks();
+    BitvectorTasks(TaskName task_name, int init_iter, int num_iter, int recursive_rep_set_depth,
+                   MetricType metric, int min_mask_size, int max_mask_size, int num_prev_subtasks,
+                   string dir_path, int num_first_in_prior);
 };
 
 #endif //COMPACTPOSET_BITVECTORTASKS_H

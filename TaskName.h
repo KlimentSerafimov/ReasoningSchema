@@ -26,6 +26,7 @@ static const string str_task_name__max_window_between_bits_with_state = "max_win
 static const string str_task_name__linear_and_or_expression = "linear_and_or_expression";
 static const string str_task_name__linear_and_or_nand_nor_expression = "linear_and_or_nand_nor_expression";
 static const string str_task_name__sort_bits = "sort_bits";
+static const string str_task_name__add = "add";
 
 class TaskName
 {
@@ -49,6 +50,9 @@ public:
     bool do__multiply_by = false;
     int param__multiply_by = -1;
 
+    bool do__add = false;
+    int param__add_by = -1;
+
     bool do__one_shift_idx__reverse_subtask = false;
     bool do__count_unary__reverse_subtask = false;
 
@@ -64,6 +68,7 @@ public:
         assert(_task_name != str_task_name__multiply_by);
         assert(_task_name != str_task_name__one_shift_idx__reverse_subtask);
         assert(_task_name != str_task_name__count_unary__reverse_subtask);
+        assert(_task_name != str_task_name__add);
 
         task_name = _task_name;
 
@@ -86,13 +91,15 @@ public:
         assert(
                 _task_name == str_task_name__multiply_by ||
                 _task_name == str_task_name__one_shift_idx__reverse_subtask ||
-                _task_name == str_task_name__count_unary__reverse_subtask
+                _task_name == str_task_name__count_unary__reverse_subtask ||
+                _task_name == str_task_name__add
         );
         task_name = _task_name;
 
         do__multiply_by = task_name == str_task_name__multiply_by;
         do__one_shift_idx__reverse_subtask = task_name == str_task_name__one_shift_idx__reverse_subtask;
         do__count_unary__reverse_subtask = task_name == str_task_name__count_unary__reverse_subtask;
+        do__add = task_name == str_task_name__add;
 
         if(do__multiply_by)
         {
@@ -103,6 +110,10 @@ public:
             param__init_size = _param;
             num_iter_defined = true;
             num_iter = param__init_size;
+        }
+        else if(do__add)
+        {
+            param__add_by = _param;
         }
         else
         {
@@ -120,10 +131,16 @@ public:
         {
             return task_name + "(init_size=" + std::to_string(param__init_size) + ")";
         }
+        else if(do__add)
+        {
+            return task_name + "(num=" + std::to_string(param__add_by) + ")";
+        }
         else{
             return task_name;
         }
     }
+
+
 };
 
 

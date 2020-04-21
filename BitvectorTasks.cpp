@@ -6,6 +6,9 @@
 #include "BitvectorTasks.h"
 #include "TraceVersionSpace.h"
 
+#include <bits/stdc++.h>
+#include <sys/stat.h>
+
 #include <iostream>
 
 using namespace std;
@@ -236,8 +239,9 @@ BittreeTaskInstance::BittreeTaskInstance(BittreeTaskType* _bittree_task_type)
     }
 }
 
-vector<vector<Bitvector> > BitvectorTasks::masks_generator(
-        BittreeTypeExpression* type_expression, int init_num_iter, int num_subtasks, int max_masks_size, int min_mask_size)
+vector<vector<vector<Bitvector> > >
+BitvectorTasks::masks_generator(BittreeTypeExpression *type_expression, int init_num_iter, int num_subtasks,
+                                int max_masks_size, int min_mask_size, int num_first_in_prior)
 {
     int num_iter = init_num_iter;
 
@@ -246,7 +250,7 @@ vector<vector<Bitvector> > BitvectorTasks::masks_generator(
 //        vector<Bitvector> masks =
 //                meta_examples[i][0].get_masks(max_mask_size);
 
-        vector<vector<Bitvector> > masks;
+        vector<vector<vector<Bitvector> > > masks;
 
         vector<BittreeTaskType *> curriculum;
         curriculum.push_back(type_expression->base_task_type);
@@ -255,7 +259,10 @@ vector<vector<Bitvector> > BitvectorTasks::masks_generator(
         for (int i = 0; i < num_iter; i++) {
             curriculum.push_back(curriculum[i]->get_supertask_type(type_expression->delta_task_type));
             cout << curriculum[i + 1]->to_string() << endl;
-            masks.push_back(curriculum[i + 1]->to_meta_example(-1, num_subtasks).get_masks(min_mask_size, max_masks_size));
+//            masks.push_back(curriculum[i + 1]->to_meta_example(-1, num_subtasks).get_masks(min_mask_size,
+//                                                                                           max_masks_size, num_first_in_prior));
+            masks.push_back(curriculum[i + 1]->to_meta_example(-1, num_subtasks).get_masks(min_mask_size,
+                                                                                           max_masks_size, num_first_in_prior));
         }
 
         return masks;
@@ -283,7 +290,10 @@ vector<vector<Bitvector> > BitvectorTasks::masks_generator(
 
 //      BittreeTaskInstance instances = BittreeTaskInstance(curriculum[4]);
 
-        return masks;
+        vector<vector<vector<Bitvector> > > ret;
+        ret.push_back(masks);
+
+        return ret;
     }
 
 }
@@ -329,33 +339,10 @@ BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, TaskNa
 }
 
 
-BitvectorTasks::BitvectorTasks()
+BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, int recursive_rep_set_depth,
+                               MetricType metric, int min_mask_size, int max_mask_size, int num_prev_subtasks,
+                               string dir_path, int num_first_in_prior)
 {
-    string str_task_name;
-//    str_task_name = str_task_name__sum;
-//    str_task_name = str_task_name__greater;
-//    str_task_name = str_task_name__cumulative_binary_operator;
-//    str_task_name = str_task_name__bitwise_binary_operator;
-//    str_task_name = str_task_name__one_shift_idx; // requires double_node
-//    str_task_name = str_task_name__count_unary; // requires double_node
-//    str_task_name = str_task_name__unary_sum; // requires double_node
-//    str_task_name = str_task_name__least_set_bit;
-//    str_task_name = str_task_name__max_window_between_bits;
-//    str_task_name = str_task_name__max_window_between_bits_with_state;
-//    str_task_name = str_task_name__linear_and_or_expression;
-//    str_task_name = str_task_name__linear_and_or_nand_nor_expression;
-    str_task_name = str_task_name__sort_bits;
-
-    TaskName task_name = TaskName(str_task_name);
-
-//    str_task_name = str_task_name__multiply_by;
-//    int multiply_by = 3;
-//    TaskName task_name = TaskName(str_task_name, multiply_by);
-
-//    str_task_name = str_task_name__one_shift_idx__reverse_subtask;
-//    str_task_name = str_task_name__count_unary__reverse_subtask;
-//    int init_size = 3;
-//    TaskName task_name = TaskName(str_task_name, init_size);
 
     if(false)
     {
@@ -384,46 +371,60 @@ BitvectorTasks::BitvectorTasks()
         BittreeTypeExpression type_expression_for_meta_examples = BittreeTypeExpression(task_name);
         BittreeTypeExpression type_expression_for_masks = BittreeTypeExpression(task_name);
 
-        //parameter
-        int init_iter = 0;
-        int num_iter = 14;
 
         if(task_name.num_iter_defined)
         {
             num_iter = task_name.num_iter;
         }
 
-        int num_prev_subtasks = 1;
-        int min_mask_size = 2;
-        int max_mask_size = 3;
-
-        vector<vector<Bitvector> > masks = masks_generator(&type_expression_for_masks, num_iter, num_prev_subtasks, max_mask_size, min_mask_size);
+        vector<vector<vector<Bitvector> > > masks = masks_generator(&type_expression_for_masks, num_iter, num_prev_subtasks,
+                                                           max_mask_size, min_mask_size, num_first_in_prior);
 
         vector<vector<MetaExample> > meta_examples = get_meta_examples(
                 &type_expression_for_meta_examples, task_name, num_iter, num_prev_subtasks);
 
         assert(meta_examples.size() == masks.size());
 
+        dir_path =
+//                "" + dir_path + "/" +
+                "dir__" + task_name.get_task_name() + "[17th_gen][num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
+                 + ",min_mask_size=" +std::to_string(min_mask_size) + ",max_mask_size=" +std::to_string(max_mask_size) + ",num_first_in_prior="+std::to_string(num_first_in_prior)+"]";
+
+        char _dir_path[dir_path.length()];
+
+        for (int i = 0; i < dir_path.size(); i++) {
+            _dir_path[i] = dir_path[i];
+        }
+
+
+        if (mkdir( _dir_path, 0777) == -1){
+            cerr << "Error :  " << strerror(errno) << endl;
+            assert(false);
+        }
+        else {
+            cout << "Directory created" << endl;
+//            assert(false);
+        }
+
         for(int i = init_iter;i<meta_examples.size();i++) {
 
             string language_name =
-                    task_name.get_task_name() +
-                    "[seven_gen][" +
-                    "num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
-//                    ",max_wire_width="+ std::to_string(max_mask_size) +
-                    ",size="+std::to_string(i+1) + ",min_mask_size=" +std::to_string(min_mask_size) + ",max_mask_size=" +std::to_string(max_mask_size) + "]";
+                    "[size="+std::to_string(i+1)+"]";
 
-            assert(meta_examples[i].size() >= 0);
-            assert(masks[i].size() >= 0);
+            assert(meta_examples[i].size() > 0);
+            assert(masks[i].size() > 0);
+            assert(masks[i][0].size() > 0);
 
-            assert(meta_examples[i][0].get_function_size() == masks[i][0].get_size());
+            assert(meta_examples[i][0].get_function_size() == masks[i][0][0].get_size());
 
 //            vector<Bitvector> masks =
 //                    meta_examples[i][0].get_masks(max_mask_size);
 
-            for(int j = 0;j<masks[i].size();j++)
-            {
-                cout << bitvector_to_str(masks[i][j], masks[i][j].get_size()) << endl;
+            for(int j = 0;j<masks[i].size();j++) {
+                for (int k = 0; k < masks[i][j].size(); k++) {
+                    cout << bitvector_to_str(masks[i][j][k], masks[i][j][k].get_size()) << endl;
+                }
+                cout << endl;
             }
 
 
@@ -445,6 +446,11 @@ BitvectorTasks::BitvectorTasks()
                 int prev_meta_examples_size = -1;
                 int now_meta_examples_size = (int) local_meta_examples.size();
                 int rec_id = 0;
+
+                vector<Bitvector> subdomains;
+
+                string init_language_name = language_name;
+
                 do{
                     prev_meta_examples_size = now_meta_examples_size;
 
@@ -452,7 +458,7 @@ BitvectorTasks::BitvectorTasks()
 
                     ReasoningSchemaOptimizer my_schema =
                             ReasoningSchemaOptimizer(
-                                    local_meta_examples, language_name, masks[i]);
+                                    local_meta_examples, language_name, masks[i], dir_path, metric);
 
                     for(int i = 0;i<local_meta_examples.size();i++)
                     {
@@ -467,13 +473,34 @@ BitvectorTasks::BitvectorTasks()
                     local_meta_examples = my_schema.get_necessary_meta_examples(false);
 
                     now_meta_examples_size = (int) local_meta_examples.size();
+
+                    if(rec_id == 0)
+                    {
+                        subdomains = my_schema.get_bitvectors();
+                    }
+
                     rec_id++;
+                    if(recursive_rep_set_depth != -1 && rec_id > recursive_rep_set_depth)
+                    {
+                        break;
+                    }
                 }while(now_meta_examples_size != prev_meta_examples_size);
+
+                static ofstream fout;
+
+                string fout_name = "subdomains[metric=" + metric_type_name[metric]+"]";
+                fout.open(dir_path + "/" + fout_name + init_language_name);
+                for(int i = 0;i<subdomains.size();i++)
+                {
+                    fout << subdomains[i].to_string() << endl;
+                }
+                fout.close();
+
             }
             else if(true) {
                 ReasoningSchemaOptimizer my_schema =
                         ReasoningSchemaOptimizer(
-                                meta_examples[i], language_name, masks[i]);
+                                meta_examples[i], language_name, masks[i], dir_path, metric);
 
                 for (int j = 0; j < meta_examples[i].size(); j++) {
                     PartialFunction generalization = my_schema.query(meta_examples[i][j].partial_function);
@@ -488,7 +515,9 @@ BitvectorTasks::BitvectorTasks()
             }
             else
             {
-                TraceVersionSpace trace_version_space = TraceVersionSpace(meta_examples[i], masks[i]);
+                cout << "Need to send a prior over Bitmasks as a vector of vectors of bitvectors" << endl;
+                assert(false);
+                TraceVersionSpace trace_version_space = TraceVersionSpace(meta_examples[i], masks[i][0]);
             }
         }
     }

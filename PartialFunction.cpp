@@ -26,14 +26,7 @@ string PartialFunction::to_string() {
     string ret;
     for(int i = function_size-1;i>=0;i--)
     {
-        if(partition.get_bit(i))
-        {
-            ret+='0'+get_bit(total_function, i);
-        }
-        else
-        {
-            ret+="_";
-        }
+        ret += bit_to_string(i);
     }
     return ret;
 }
@@ -228,6 +221,19 @@ bool PartialFunction::operator == (const PartialFunction& other) const {
     return false;
 }
 
+string PartialFunction::bit_to_string(int i) {
+    string ret = "";
+    if(partition.get_bit(i))
+    {
+        ret+='0'+get_bit(total_function, i);
+    }
+    else
+    {
+        ret+="_";
+    }
+    return ret;
+}
+
 BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(BittreeTaskType *_bittree_taks_type, int _subtask_depth)
 {
     //bittree_task_type = new BittreeTaskType(nullptr, Name("copy_for_print"),_bittree_taks_type, true);
@@ -281,7 +287,7 @@ BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(BittreeTaskTy
     //bittree_task_type = new BittreeTaskType(nullptr, Name("copy_for_print"),_bittree_taks_type, true);
 }
 
-BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(PartialFunction partial_function) {
+BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(const PartialFunction& partial_function) {
 
     function_size = partial_function.function_size;
     total_function = partial_function.total_function;
@@ -292,4 +298,14 @@ BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(PartialFuncti
 
 string BittreeTaskTypeAsPartialFunction::to_string__one_line() {
     return bittree_task_type->to_string__one_line(subtask_depth);
+}
+
+BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(vector<BitInBittree *> _bits,
+                                                                   BittreeTaskType *_bittree_taks_type,
+                                                                   int _subtask_depth) {
+
+    bits = std::move(_bits);
+    init_via_bits(bits);
+    bittree_task_type = _bittree_taks_type;
+    subtask_depth = _subtask_depth;
 }

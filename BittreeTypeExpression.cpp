@@ -97,6 +97,31 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
         build_type(num_input_operands, init_output_size, delta_output_size);
     }
 
+
+    if(task_name.do__add)
+    {
+        assert(!enter);
+        enter = true;
+        int num_input_operands = 1;
+//        int init_input_operand_sizes[1] = {0};
+//        int delta_input_operand_sizes[1] = {1};
+
+//        int num_output = 1;
+        int init_output_size = -1;
+        int delta_output_size = 1;
+
+        if(task_name.param__multiply_by <= 1) init_output_size = 1;
+        else if(task_name.param__multiply_by <= 2) init_output_size = 2;
+        else if(task_name.param__multiply_by <= 4) init_output_size = 3;
+        else if(task_name.param__multiply_by <= 8) init_output_size = 4;
+        else if(task_name.param__multiply_by <= 16) init_output_size = 5;
+        else assert(false);
+
+        assert(init_output_size != -1);
+
+        build_type(num_input_operands, init_output_size, delta_output_size);
+    }
+
     if(task_name.do__one_shift_idx || task_name.do__count_unary)
     {
         assert(!enter);

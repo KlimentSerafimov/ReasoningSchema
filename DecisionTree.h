@@ -12,26 +12,26 @@ using namespace std;
 
 static int contains_counter;
 
-class Node
+class DecisionTreeNode
 {
 public:
     int global_id = -1;
     NodeType node_type;
 
     //if node_type == internal_node
-    Node* branches[2] = {NULL, NULL};
+    DecisionTreeNode* branches[2] = {NULL, NULL};
     int idx;
 
     //if node_type == leaf_node
     int value;
 
-    Node();
+    DecisionTreeNode();
 
-    Node(int _global_id);
+    DecisionTreeNode(int _global_id);
 
     void my_delete();
 
-    void apply_operation(SetOperationType operation_type, Node *other, PartialFunction idx_to_branch);
+    void apply_operation(SetOperationType operation_type, DecisionTreeNode *other, PartialFunction idx_to_branch);
 
     string to_string(int num_tabs, int num_inputs);
 
@@ -47,7 +47,7 @@ public:
 };
 
 class DecisionTree {
-    Node* root = NULL;
+    DecisionTreeNode* root = NULL;
 
     void init(PartialFunction partial_function);
 
@@ -57,7 +57,7 @@ public:
 
     DecisionTree(int _num_inputs);
 
-    DecisionTree(int _num_inputs, Node *_root);
+    DecisionTree(int _num_inputs, DecisionTreeNode *_root);
 
     DecisionTree(DecisionTree *to_point_to);
 
@@ -71,7 +71,7 @@ public:
 
     void apply_operation(SetOperationType operation_type, DecisionTree *other);
 
-    Node* get_root();
+    DecisionTreeNode* get_root();
 
     bool is_empty();
 
@@ -91,7 +91,7 @@ public:
 
 vector<pair<int, int> > get__idxs_and_branches(PartialFunction partial_function);
 
-Node* get_new_node();
+DecisionTreeNode* get_new_node();
 
 int get__global_num_decision_tree_nodes();
 

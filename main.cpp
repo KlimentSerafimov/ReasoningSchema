@@ -7,6 +7,11 @@
 #include "UnionOfPartialFunctions.h"
 #include "enumerate_meta_training_sets.h"
 #include "BitvectorTasks.h"
+#include <bits/stdc++.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <experimental/filesystem>
+
 
 vector<MetaExample> get_meta_examples_of_language_over_boolean_functions(int language_id, int num_inputs, int min_partition_size, int max_partition_size, int macro_partition)
 {
@@ -250,7 +255,7 @@ void recursive_minimal_factoring_schema(int num_inputs, int language_id, vector<
                 "HERE_language(n=" + std::to_string(num_inputs) + ",id=" + std::to_string(language_id) + ")[rec="+std::to_string(rec_id)+"]";
 
         ReasoningSchemaOptimizer my_schema =
-                ReasoningSchemaOptimizer(local_meta_examples, language_name, true || (rec_id != 0));
+                ReasoningSchemaOptimizer(local_meta_examples, language_name);
 
         for(int i = 0;i<local_meta_examples.size();i++)
         {
@@ -307,54 +312,67 @@ void modeling_of_language_over_boolean_functions()
     }
 }
 
-void modeling_of_bitvector_functions()
-{
-    BitvectorTasks bitvector_tasks = BitvectorTasks();
+void modeling_of_bitvector_functions() {
+
+    for(int add_by = 1; add_by <= 32; add_by ++) {
+        string str_task_name;
+//    str_task_name = str_task_name__sum;
+//    str_task_name = str_task_name__greater;
+//    str_task_name = str_task_name__cumulative_binary_operator;
+//    str_task_name = str_task_name__bitwise_binary_operator;
+//    str_task_name = str_task_name__one_shift_idx; // requires double_node
+//    str_task_name = str_task_name__count_unary; // requires double_node
+//    str_task_name = str_task_name__unary_sum; // requires double_node
+//    str_task_name = str_task_name__least_set_bit;
+//    str_task_name = str_task_name__max_window_between_bits;
+//    str_task_name = str_task_name__max_window_between_bits_with_state;
+//    str_task_name = str_task_name__linear_and_or_expression;
+//    str_task_name = str_task_name__linear_and_or_nand_nor_expression;
+//    str_task_name = str_task_name__sort_bits;
+
+//    TaskName task_name = TaskName(str_task_name);
+
+//    str_task_name = str_task_name__multiply_by;
+        str_task_name = str_task_name__add;
+        int multiply_by = add_by;
+        TaskName task_name = TaskName(str_task_name, multiply_by);
+
+//    str_task_name = str_task_name__one_shift_idx__reverse_subtask;
+//    str_task_name = str_task_name__count_unary__reverse_subtask;
+//    int init_size = 3;
+//    TaskName task_name = TaskName(str_task_name, init_size);
+
+        int init_iter = 0;
+        int num_iter = 7;
+        MetricType metric_type = most_progress;
+        int recursive_rep_set_depth = 1;
+        int min_mask_size = 2;
+        int max_mask_size = 3;
+        int num_prev_subtasks = num_iter+1;
+        int num_first_in_prior = 100;
+
+        char dir_name[str_task_name.size()];
+        for (int i = 0; i < str_task_name.size(); i++) {
+            dir_name[i] = str_task_name[i];
+        }
+
+        if (mkdir(dir_name, 0777) == -1) {
+            cerr << "Error :  " << strerror(errno) << endl;
+        } else {
+            cout << "Directory created" << endl;
+        }
+
+        BitvectorTasks bitvecbtor_tasks =
+                BitvectorTasks(
+                        task_name, init_iter, num_iter, recursive_rep_set_depth,
+                        metric_type, min_mask_size, max_mask_size, num_prev_subtasks, (string) dir_name,
+                        num_first_in_prior);
+    }
+
 }
 
 int main() {
 
-    bool test_bitvector = false;
-    if(test_bitvector)
-    {
-
-        int size = 25;
-
-        Bitvector init_a = Bitvector(1, size);
-        Bitvector a = Bitvector(1, size);
-
-        Bitvector flip_a = a.get_flipped();
-        assert(flip_a.count() == size-1);
-
-        assert(init_a == a);
-
-        a |= Bitvector(15-1,size);
-        assert(a == Bitvector(15, size));
-
-        Bitvector second_init_a = a;
-        Bitvector d = a ^ Bitvector(3, size);
-        Bitvector init_d = d;
-        assert(second_init_a == a);
-        assert(d == Bitvector(15^3, size));
-
-
-        Bitvector e = d & Bitvector(30000000, size);
-
-        assert(second_init_a == a);
-        assert(init_d == d);
-        assert(e == Bitvector((15^3)&30000000, size));
-
-        d &= Bitvector(12356789, size);
-        assert(d == Bitvector((15^3)&12356789, size));
-
-        d.set(12);
-        assert(d.get_bit(12));
-
-        Bitvector f = d.get_flipped();
-        assert(f.get_bit(12) == 0);
-
-        return 0;
-    }
 
     bool do__enumerate_sets_of_meta_examples = false;
     if(do__enumerate_sets_of_meta_examples)

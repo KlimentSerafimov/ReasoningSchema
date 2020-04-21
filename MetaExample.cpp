@@ -122,6 +122,7 @@ MetaExample::MetaExample(BittreeTaskTypeAsPartialFunction _partial_function, Bit
 float MetaExample::cost(Bitvector mask)
 {
     vector<vector<int> > bit_coordinates;
+    int custom_cost = 0;
     for(int i = 0;i<partial_function.bits.size();i++)
     {
         if(get_bit(mask, i))
@@ -135,12 +136,19 @@ float MetaExample::cost(Bitvector mask)
             vector<int> coord;
             while(at->names.back().is_child)
             {
-                cout << at->names.back().id <<" ";
+//                cout << at->names.back().id <<" ";
                 coord.push_back(at->names.back().id);
                 at = at->parents.back();
+                if(!at->names.back().is_child)
+                {
+                    if(at->names.back().to_string() == "input")
+                    {
+                        custom_cost += 100;
+                    }
+                }
             }
             bit_coordinates.push_back(coord);
-            cout << "-- ";
+//            cout << "-- ";
 
 //            cout << partial_function.bits[i]->names.back().to_string() << " ";
 //            cout << partial_function.bits[i]->parents.back()->names.back().to_string() << " ";
@@ -181,13 +189,13 @@ float MetaExample::cost(Bitvector mask)
 
     //cout << endl;
     //cout << mask.to_string() <<" "<< greatest_dist << endl;
-    return (float)greatest_dist;
+    return (float)sum_sum+custom_cost;
 }
 
-vector<Bitvector> MetaExample::get_masks(int min_mask_size, int max_mask_size)
+vector<vector<Bitvector> > MetaExample::get_masks(int min_mask_size, int max_mask_size, int num_first_in_prior)
 {
 
-    vector<Bitvector> ret;
+    vector<vector<Bitvector> > ret;
 
     vector<pair<float, Bitvector> > ret_with_cost;
 
@@ -196,8 +204,22 @@ vector<Bitvector> MetaExample::get_masks(int min_mask_size, int max_mask_size)
         return ret;
     }
     cout << "MASKS: " << endl;
+
+    if(min_mask_size < 0 )
+    {
+        min_mask_size = get_function_size()+min_mask_size;
+        min_mask_size = max(min_mask_size, 2);
+    }
+    if(max_mask_size < 0 )
+    {
+        max_mask_size = get_function_size()+max_mask_size;
+        max_mask_size = max(max_mask_size, 3);
+    }
+
     min_mask_size = min(min_mask_size, get_function_size());
     max_mask_size = min(max_mask_size, get_function_size());
+
+
     for(int i = min_mask_size;i<=max_mask_size;i++)
     {
         Bitvector local_mask(all_zeroes, get_function_size());
@@ -205,10 +227,12 @@ vector<Bitvector> MetaExample::get_masks(int min_mask_size, int max_mask_size)
         {
             local_mask.set(j);
         }
+
         do{
+
             ret_with_cost.push_back(make_pair(cost(local_mask), local_mask));
-            ret.push_back(local_mask);
-            //cout << bitvector_to_str(local_mask, get_function_size()) << endl;
+//            ret.push_back(local_mask);
+            cout << bitvector_to_str(local_mask, get_function_size()) << endl;
         }while(next_mask(local_mask, i));
     }
 
@@ -217,17 +241,25 @@ vector<Bitvector> MetaExample::get_masks(int min_mask_size, int max_mask_size)
 
     ret.clear();
 
+    vector<Bitvector> ret_bucket;
+
+    int bucket_id = 0;
     for(int i = 0;i<ret_with_cost.size();i++)
     {
         cout << ret_with_cost[i].second.to_string() << " " << ret_with_cost[i].first;
-        if (i < ret_with_cost.size())
+        ret_bucket.push_back(ret_with_cost[i].second);
+        cout << " put in bucket " + std::to_string(bucket_id);
+        if (num_first_in_prior != -1 && i % num_first_in_prior == 0)
         {
-            cout << " include";
-            ret.push_back(ret_with_cost[i].second);
+            ret.push_back(ret_bucket);
+            ret_bucket.clear();
+            bucket_id++;
+            cout << endl;
         }
         cout << endl;
-
     }
+    ret.push_back(ret_bucket);
+    ret_bucket.clear();
     cout << endl;
     return ret;
 

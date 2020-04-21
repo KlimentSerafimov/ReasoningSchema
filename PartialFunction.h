@@ -69,18 +69,20 @@ public:
     bool operator < (const PartialFunction& other) const;
 
     bool operator == (const PartialFunction& other) const;
+
+    string bit_to_string(int i);
 };
 
 class BittreeTaskTypeAsPartialFunction : public PartialFunction
 {
 public:
-    BittreeTaskType* bittree_task_type;
-    int subtask_depth;
-    BittreeTaskTypeAsPartialFunction(BittreeTaskType *_bittree_taks_type,
-                                     int subtask_depth);
+    BittreeTaskType* bittree_task_type{};
+    int subtask_depth{};
+    BittreeTaskTypeAsPartialFunction(BittreeTaskType *_bittree_taks_type, int subtask_depth);
 
-    BittreeTaskTypeAsPartialFunction(PartialFunction partial_function);
+    BittreeTaskTypeAsPartialFunction(const PartialFunction& partial_function);
 
+    BittreeTaskTypeAsPartialFunction(vector<BitInBittree*> _bits, BittreeTaskType *_bittree_taks_type, int subtask_depth);
 
     BittreeTaskTypeAsPartialFunction() = default;
 

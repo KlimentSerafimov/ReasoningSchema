@@ -103,7 +103,7 @@ public:
         return true;
     }
 
-    vector<Bitvector> get_masks(int min_mask_size, int max_mask_size);
+    vector<vector<Bitvector> > get_masks(int min_mask_size, int max_mask_size, int num_first_in_prior);
 
 };
 
