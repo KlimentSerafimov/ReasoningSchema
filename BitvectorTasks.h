@@ -70,12 +70,14 @@ class BitvectorTasks {
     void populate_ordering_over_boolean_functions_with_bitwise_and();
 
     vector<vector<vector<Bitvector> > >
-    masks_generator(BittreeTypeExpression *type_expression, int init_num_iter, int num_subtasks,
-                    int max_masks_size, int min_mask_size, int num_first_in_prior);
+    masks_generator(int num_subtasks, int max_masks_size, int min_mask_size, int num_first_in_prior, vector<BittreeTaskType*> multi_task_set);
+
+    vector<BittreeTaskType*> get_multi_task_type(BittreeTypeExpression *type_expression, int init_num_iter);
 
     vector<vector<MetaExample> >
     get_meta_examples(BittreeTypeExpression *type_expression, TaskName task_name, int num_iter,
                       int subtask_depth);
+
 
 public:
 

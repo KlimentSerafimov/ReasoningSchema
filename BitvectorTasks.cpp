@@ -239,61 +239,64 @@ BittreeTaskInstance::BittreeTaskInstance(BittreeTaskType* _bittree_task_type)
     }
 }
 
-vector<vector<vector<Bitvector> > >
-BitvectorTasks::masks_generator(BittreeTypeExpression *type_expression, int init_num_iter, int num_subtasks,
-                                int max_masks_size, int min_mask_size, int num_first_in_prior)
-{
+vector<BittreeTaskType *>
+BitvectorTasks::get_multi_task_type(BittreeTypeExpression *type_expression, int init_num_iter) {
     int num_iter = init_num_iter;
 
+    vector<BittreeTaskType *> multi_task_type;
+    for (int i = 0; i < num_iter; i++) {
+        if(i == 0)
+        {
+            multi_task_type.push_back(type_expression->base_task_type->get_supertask_type(type_expression->delta_task_type));
+        } else{
+            multi_task_type.push_back(multi_task_type[i-1]->get_supertask_type(type_expression->delta_task_type));
+        }
+        cout << multi_task_type[i]->to_string() << endl;
+    }
+    return multi_task_type;
+
+}
+
+vector<vector<vector<Bitvector> > >
+BitvectorTasks::masks_generator(int num_subtasks, int max_masks_size, int min_mask_size, int num_first_in_prior, vector<BittreeTaskType*> multi_task_type)
+{
     if(true)
     {
-//        vector<Bitvector> masks =
-//                meta_examples[i][0].get_masks(max_mask_size);
-
         vector<vector<vector<Bitvector> > > masks;
-
-        vector<BittreeTaskType *> curriculum;
-        curriculum.push_back(type_expression->base_task_type);
-//        masks.push_back(curriculum[0]->to_meta_example(-1).get_masks(max_masks_size));
-//        num_iter--;
-        for (int i = 0; i < num_iter; i++) {
-            curriculum.push_back(curriculum[i]->get_supertask_type(type_expression->delta_task_type));
-            cout << curriculum[i + 1]->to_string() << endl;
-//            masks.push_back(curriculum[i + 1]->to_meta_example(-1, num_subtasks).get_masks(min_mask_size,
-//                                                                                           max_masks_size, num_first_in_prior));
-            masks.push_back(curriculum[i + 1]->to_meta_example(-1, num_subtasks).get_masks(min_mask_size,
-                                                                                           max_masks_size, num_first_in_prior));
+        for (int i = 0; i < multi_task_type.size(); i++) {
+            masks.push_back(multi_task_type[i]->to_meta_example(-1, num_subtasks).get_masks(min_mask_size, max_masks_size, num_first_in_prior));
         }
 
         return masks;
 
     }
     else {
-        vector<vector<Bitvector> > masks;
-
-        vector<BittreeTaskType *> curriculum;
-        int num_subtree_markers = 1;
-        int max_mask_type_depth = 100;
-        curriculum.push_back(type_expression->base_task_type);
-
-//        memset_visited(vis_type, num_subtree_markers);
-//        BittreeProgram program = BittreeProgram(curriculum[0], NULL, num_subtree_markers);
-//        masks.push_back(program.all_bittree_masks_as_bitvectors);
-//        num_iter--;
-        for (int i = 0; i < num_iter; i++) {
-            curriculum.push_back(curriculum[i]->get_supertask_type(type_expression->delta_task_type));
-//            cout << curriculum[i + 1]->to_string() << endl;
-            memset_visited(vis_type, num_subtree_markers);
-            BittreeProgram program = BittreeProgram(curriculum[i + 1], NULL, num_subtree_markers, max_mask_type_depth, num_subtasks);
-            masks.push_back(program.all_bittree_masks_as_bitvectors);
-        }
-
-//      BittreeTaskInstance instances = BittreeTaskInstance(curriculum[4]);
-
-        vector<vector<vector<Bitvector> > > ret;
-        ret.push_back(masks);
-
-        return ret;
+        // need to refactor using multi_task_type instead of curriculum
+//        vector<vector<Bitvector> > masks;
+//
+//        vector<BittreeTaskType *> curriculum;
+//        int num_subtree_markers = 1;
+//        int max_mask_type_depth = 100;
+//        curriculum.push_back(type_expression->base_task_type);
+//
+////        memset_visited(vis_type, num_subtree_markers);
+////        BittreeProgram program = BittreeProgram(curriculum[0], NULL, num_subtree_markers);
+////        masks.push_back(program.all_bittree_masks_as_bitvectors);
+////        num_iter--;
+//        for (int i = 0; i < num_iter; i++) {
+//            curriculum.push_back(curriculum[i]->get_supertask_type(type_expression->delta_task_type));
+////            cout << curriculum[i + 1]->to_string() << endl;
+//            memset_visited(vis_type, num_subtree_markers);
+//            BittreeProgram program = BittreeProgram(curriculum[i + 1], NULL, num_subtree_markers, max_mask_type_depth, num_subtasks);
+//            masks.push_back(program.all_bittree_masks_as_bitvectors);
+//        }
+//
+////      BittreeTaskInstance instances = BittreeTaskInstance(curriculum[4]);
+//
+//        vector<vector<vector<Bitvector> > > ret;
+//        ret.push_back(masks);
+//
+//        return ret;
     }
 
 }
@@ -369,7 +372,7 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
     else
     {
         BittreeTypeExpression type_expression_for_meta_examples = BittreeTypeExpression(task_name);
-        BittreeTypeExpression type_expression_for_masks = BittreeTypeExpression(task_name);
+        BittreeTypeExpression type_expression_for_multi_task_set = BittreeTypeExpression(task_name);
 
 
         if(task_name.num_iter_defined)
@@ -377,8 +380,11 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
             num_iter = task_name.num_iter;
         }
 
-        vector<vector<vector<Bitvector> > > masks = masks_generator(&type_expression_for_masks, num_iter, num_prev_subtasks,
-                                                           max_mask_size, min_mask_size, num_first_in_prior);
+        vector<BittreeTaskType *> multi_task_type = get_multi_task_type(&type_expression_for_multi_task_set, num_iter);
+
+        vector<vector<vector<Bitvector> > > masks = masks_generator(num_prev_subtasks,
+                                                                    max_mask_size, min_mask_size, num_first_in_prior,
+                                                                    multi_task_type);
 
         vector<vector<MetaExample> > meta_examples = get_meta_examples(
                 &type_expression_for_meta_examples, task_name, num_iter, num_prev_subtasks);
@@ -386,9 +392,12 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
         assert(meta_examples.size() == masks.size());
 
         dir_path =
-//                "" + dir_path + "/" +
-                "dir__" + task_name.get_task_name() + "[17th_gen][num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
-                 + ",min_mask_size=" +std::to_string(min_mask_size) + ",max_mask_size=" +std::to_string(max_mask_size) + ",num_first_in_prior="+std::to_string(num_first_in_prior)+"]";
+                 "task_name__" + task_name.get_task_name() +
+                 "__20th_gen__num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
+                 "__min_mask_size=" +std::to_string(min_mask_size) +
+                 "__max_mask_size=" +std::to_string(max_mask_size) +
+                 "__num_first_in_prior="+std::to_string(num_first_in_prior) +
+                 "__metric=" + metric_type_name[metric];
 
         char _dir_path[dir_path.length()];
 
@@ -396,13 +405,16 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
             _dir_path[i] = dir_path[i];
         }
 
-
-        if (mkdir( _dir_path, 0777) == -1){
+        int check_mkdir = mkdir( _dir_path, 0777);
+        if (check_mkdir == -1){
             cerr << "Error :  " << strerror(errno) << endl;
             assert(false);
         }
         else {
-            cout << "Directory created" << endl;
+            cout << "Directory created " << _dir_path << endl;
+            cout << "should be " << dir_path << endl;
+            dir_path = _dir_path;
+
 //            assert(false);
         }
 
@@ -454,7 +466,7 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
                 do{
                     prev_meta_examples_size = now_meta_examples_size;
 
-                    language_name = language_name + "[rec="+std::to_string(rec_id)+"]";
+                    language_name = language_name + "__rec="+std::to_string(rec_id);
 
                     ReasoningSchemaOptimizer my_schema =
                             ReasoningSchemaOptimizer(
@@ -522,6 +534,7 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
         }
     }
 }
+
 
 class SubdomainScore
 {

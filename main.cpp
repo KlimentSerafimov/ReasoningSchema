@@ -314,42 +314,44 @@ void modeling_of_language_over_boolean_functions()
 
 void modeling_of_bitvector_functions() {
 
-    for(int add_by = 1; add_by <= 32; add_by ++) {
+    bool is_const = true;
+    for(int add_by = is_const*0 + (!is_const)*1; add_by <= is_const*0 + (!is_const)*32; add_by ++) {
         string str_task_name;
-//    str_task_name = str_task_name__sum;
-//    str_task_name = str_task_name__greater;
-//    str_task_name = str_task_name__cumulative_binary_operator;
-//    str_task_name = str_task_name__bitwise_binary_operator;
-//    str_task_name = str_task_name__one_shift_idx; // requires double_node
-//    str_task_name = str_task_name__count_unary; // requires double_node
-//    str_task_name = str_task_name__unary_sum; // requires double_node
-//    str_task_name = str_task_name__least_set_bit;
-//    str_task_name = str_task_name__max_window_between_bits;
-//    str_task_name = str_task_name__max_window_between_bits_with_state;
-//    str_task_name = str_task_name__linear_and_or_expression;
-//    str_task_name = str_task_name__linear_and_or_nand_nor_expression;
-//    str_task_name = str_task_name__sort_bits;
 
-//    TaskName task_name = TaskName(str_task_name);
+//        str_task_name = str_task_name__sum;
+//        str_task_name = str_task_name__greater;
+//        str_task_name = str_task_name__cumulative_binary_operator;
+//        str_task_name = str_task_name__bitwise_binary_operator;
+//        str_task_name = str_task_name__one_shift_idx; // requires double_node
+//        str_task_name = str_task_name__count_unary; // requires double_node
+//        str_task_name = str_task_name__unary_sum; // requires double_node
+//        str_task_name = str_task_name__least_set_bit;
+        str_task_name = str_task_name__max_window_between_bits;
+//        str_task_name = str_task_name__max_window_between_bits_with_state;
+//        str_task_name = str_task_name__linear_and_or_expression;
+//        str_task_name = str_task_name__linear_and_or_nand_nor_expression;
+//        str_task_name = str_task_name__sort_bits;
 
-//    str_task_name = str_task_name__multiply_by;
-        str_task_name = str_task_name__add;
-        int multiply_by = add_by;
-        TaskName task_name = TaskName(str_task_name, multiply_by);
+        TaskName task_name = TaskName(str_task_name);
 
-//    str_task_name = str_task_name__one_shift_idx__reverse_subtask;
-//    str_task_name = str_task_name__count_unary__reverse_subtask;
-//    int init_size = 3;
-//    TaskName task_name = TaskName(str_task_name, init_size);
+//        str_task_name = str_task_name__multiply_by;
+//        str_task_name = str_task_name__add;
+//        int multiply_by = add_by;
+//        TaskName task_name = TaskName(str_task_name, multiply_by);
+
+//        str_task_name = str_task_name__one_shift_idx__reverse_subtask;
+//        str_task_name = str_task_name__count_unary__reverse_subtask;
+//        int init_size = 3;
+//        TaskName task_name = TaskName(str_task_name, init_size);
 
         int init_iter = 0;
-        int num_iter = 7;
-        MetricType metric_type = most_progress;
+        int num_iter = 12;
+        MetricType metric_type = min_rep_set;
         int recursive_rep_set_depth = 1;
         int min_mask_size = 2;
         int max_mask_size = 3;
-        int num_prev_subtasks = num_iter+1;
-        int num_first_in_prior = 100;
+        int num_prev_subtasks = 1;
+        int num_first_in_prior = 1000;
 
         char dir_name[str_task_name.size()];
         for (int i = 0; i < str_task_name.size(); i++) {

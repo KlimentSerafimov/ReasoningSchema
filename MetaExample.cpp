@@ -229,7 +229,6 @@ vector<vector<Bitvector> > MetaExample::get_masks(int min_mask_size, int max_mas
         }
 
         do{
-
             ret_with_cost.push_back(make_pair(cost(local_mask), local_mask));
 //            ret.push_back(local_mask);
             cout << bitvector_to_str(local_mask, get_function_size()) << endl;
@@ -246,7 +245,7 @@ vector<vector<Bitvector> > MetaExample::get_masks(int min_mask_size, int max_mas
     int bucket_id = 0;
     for(int i = 0;i<ret_with_cost.size();i++)
     {
-        cout << ret_with_cost[i].second.to_string() << " " << ret_with_cost[i].first;
+        cout << "subdomain " << ret_with_cost[i].second.to_string() << " cost " << ret_with_cost[i].first;
         ret_bucket.push_back(ret_with_cost[i].second);
         cout << " put in bucket " + std::to_string(bucket_id);
         if (num_first_in_prior != -1 && i % num_first_in_prior == 0)

@@ -390,8 +390,8 @@ ReasoningSchemaOptimizer::ReasoningSchemaOptimizer(vector<MetaExample> _meta_exa
     metric = metric_type;
     parent_pointer = nullptr;
     masks = _masks;
-    fout_name = "[metric=" + metric_type_name[metric]+"]";
-    fout.open(""+dir_path + "" + fout_name + ordering_name);
+    fout.open(  dir_path + "/" + ordering_name);
+    assert(fout.is_open());
     main__minimal_factoring_schema(_meta_examples);
     fout.close();
 }
