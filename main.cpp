@@ -344,14 +344,14 @@ void modeling_of_bitvector_functions() {
 //        int init_size = 3;
 //        TaskName task_name = TaskName(str_task_name, init_size);
 
-        int init_iter = 0;
-        int num_iter = 12;
-        MetricType metric_type = min_rep_set;
+        int init_iter = 5;
+        int num_iter = 7;
+        MetricType metric_type = most_progress;
         int recursive_rep_set_depth = 1;
         int min_mask_size = 2;
         int max_mask_size = 3;
         int num_prev_subtasks = 1;
-        int num_first_in_prior = 1000;
+        int num_first_in_prior = 100;
 
         char dir_name[str_task_name.size()];
         for (int i = 0; i < str_task_name.size(); i++) {

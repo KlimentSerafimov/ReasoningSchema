@@ -148,6 +148,8 @@ float MetaExample::cost(Bitvector mask)
                 }
             }
             bit_coordinates.push_back(coord);
+
+            custom_cost += 1000;
 //            cout << "-- ";
 
 //            cout << partial_function.bits[i]->names.back().to_string() << " ";

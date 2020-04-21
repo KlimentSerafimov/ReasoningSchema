@@ -182,11 +182,13 @@ void PartialFunction::init_via_bits(vector<BitInBittree*> _bits)
     total_function = Bitvector(0);
     partition = 0;
     set<int> bit_ids;
+    vector<BitInBittree*> remaining_bits;
     for(int i = 0;i<bits.size();i++)
     {
         if(bit_ids.find(bits[i]->bit_id) == bit_ids.end())
         {
             bit_ids.insert(bits[i]->bit_id);
+            remaining_bits.push_back(bits[i]);
             if (bits[i]->is_bit_set) {
                 partition.set(function_size, 1);
                 total_function.set(function_size, bits[i]->bit_val);
@@ -195,6 +197,8 @@ void PartialFunction::init_via_bits(vector<BitInBittree*> _bits)
         }
     }
     total_function.set_size(function_size);
+    bits = remaining_bits;
+    assert(bits.size() == function_size);
 }
 
 bool PartialFunction::operator < (const PartialFunction& other) const {
@@ -308,4 +312,46 @@ BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(vector<BitInB
     init_via_bits(bits);
     bittree_task_type = _bittree_taks_type;
     subtask_depth = _subtask_depth;
+}
+
+void BittreeTaskTypeAsPartialFunction::assign_bits(Bitvector &bitvector) {
+
+    assert(bits.size() == function_size);
+    assert(bitvector.get_size() == bits.size());
+
+    for(int k = 0; k < bits.size(); k++)
+    {
+        bits[k]->is_bit_set = true;
+        bits[k]->bit_val = bitvector.get_bit(k);
+    }
+
+}
+
+vector<string> BittreeTaskTypeAsPartialFunction::get_path_of_bit_id(int bit_id) {
+
+
+    NodeTemplate *at = bits[bit_id]->parents.back();
+
+    vector<string> path;
+
+    vector<int> coord;
+//    cout << at->names.back().to_string() <<" ";
+    path.push_back(at->names.back().to_string());
+    while (at->names.back().is_child) {
+        coord.push_back(at->names.back().id);
+        at = at->parents.back();
+        path.push_back(at->names.back().to_string());
+//        cout << at->names.back().to_string() <<" ";
+        if (!at->names.back().is_child) {
+            if (at->names.back().to_string() == "input") {
+            }
+        }
+    }
+//    cout << endl;
+
+    return path;
+}
+
+void BittreeTaskTypeAsPartialFunction::update_bitvector() {
+    init_via_bits(bits);
 }

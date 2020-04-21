@@ -175,9 +175,7 @@ TraceNode* TraceOperation::get_output(){
                         MetaExample(
                                 operands[0]->trace_state.meta_examples[i].partial_function.get_composition(
                                         operands[1]->trace_state.meta_examples[i].partial_function),
-                                operands[0]->trace_state.meta_examples[i].generalization,
-                                i
-                                ));
+                                operands[0]->trace_state.meta_examples[i].generalization, i));
             }
 
             output = new TraceNode(this, meta_examples);

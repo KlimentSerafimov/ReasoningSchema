@@ -76,7 +76,7 @@ public:
 class BittreeTaskTypeAsPartialFunction : public PartialFunction
 {
 public:
-    BittreeTaskType* bittree_task_type{};
+    BittreeTaskType* bittree_task_type;
     int subtask_depth{};
     BittreeTaskTypeAsPartialFunction(BittreeTaskType *_bittree_taks_type, int subtask_depth);
 
@@ -87,6 +87,12 @@ public:
     BittreeTaskTypeAsPartialFunction() = default;
 
     string to_string__one_line();
+
+    void assign_bits(Bitvector &bitvector);
+
+    vector<string> get_path_of_bit_id(int i);
+
+    void update_bitvector();
 };
 
 #endif //COMPACTPOSET_PARTIALFUNCTION_H

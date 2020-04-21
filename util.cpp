@@ -168,6 +168,7 @@ void Bitvector::set_size(int _size)
     else
     {
         assert(_size <= size);
+        size = _size;
     }
 }
 
