@@ -384,18 +384,18 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
 
         vector<BittreeTaskType *> multi_task_type = get_multi_task_type(&type_expression_for_multi_task_set, num_iter);
 
-        vector<vector<vector<Bitvector> > > masks = masks_generator(num_prev_subtasks,
-                                                                    max_mask_size, min_mask_size, num_first_in_prior,
-                                                                    multi_task_type);
+//        vector<vector<vector<Bitvector> > > masks = masks_generator(num_prev_subtasks,
+//                                                                    max_mask_size, min_mask_size, num_first_in_prior,
+//                                                                    multi_task_type);
+
+        vector<vector<vector<Bitvector> > > masks;
 
         vector<vector<MetaExample> > meta_examples = get_meta_examples(
                 &type_expression_for_meta_examples, task_name, num_iter, num_prev_subtasks);
 
-        assert(meta_examples.size() == masks.size());
-
         dir_path =
                  "task_name__" + task_name.get_task_name() +
-                 "__gen=23__num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
+                 "__gen=30__num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
                  "__min_mask_size=" +std::to_string(min_mask_size) +
                  "__max_mask_size=" +std::to_string(max_mask_size) +
                  "__num_first_in_prior="+std::to_string(num_first_in_prior) +
@@ -418,10 +418,82 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
 
         }
 
+        vector<Bitvector> next_subdomains;
+
+        for(int task_id = 0; task_id < init_iter;task_id++)
+        {
+            masks.emplace_back();
+        }
+
         for(int task_id = init_iter; task_id < meta_examples.size(); task_id++) {
 
+            masks.emplace_back();
+
+            assert(task_id == masks.size()-1);
+
+            if(next_subdomains.size() != 0)
+            {
+                cout << "next_subdomains" << endl;
+                for(int i = 0; i<next_subdomains.size();i++)
+                {
+                    cout << next_subdomains[i].to_string() << endl;
+                }
+                int init_next_subdomains_size = next_subdomains.size();
+                for(int i = 0;i<init_next_subdomains_size;i++)
+                {
+                    Bitvector right_alternative_next = Bitvector(0, next_subdomains[i].get_size());
+                    for(int j = 0;j<next_subdomains[i].get_size();j++)
+                    {
+                        if(j+1 < right_alternative_next.get_size()) {
+                            right_alternative_next.set(j + 1, next_subdomains[i].get_bit(j));
+                        } else{
+                            right_alternative_next.set(0, next_subdomains[i].get_bit(j));
+                        }
+                    }
+                    next_subdomains.push_back(right_alternative_next);
+                    Bitvector left_alternative_next = Bitvector(0, next_subdomains[i].get_size());
+                    for(int j = 0;j<next_subdomains[i].get_size();j++)
+                    {
+                        if(j-1 >= 0) {
+                            left_alternative_next.set(j - 1, next_subdomains[i].get_bit(j));
+                        } else{
+                            left_alternative_next.set(left_alternative_next.get_size()-1, next_subdomains[i].get_bit(j));
+                        }
+                    }
+                    next_subdomains.push_back(left_alternative_next);
+
+                    cout << "left_alternative" << endl;
+                    cout << left_alternative_next.to_string() << endl;
+
+                    cout << "right_alternative" << endl;
+                    cout << right_alternative_next.to_string() << endl;
+                }
+
+                cout << "with_alternative:" << endl;
+
+                for(int i = 0; i<next_subdomains.size();i++)
+                {
+                    cout << next_subdomains[i].to_string() << endl;
+                }
+                cout << endl;
+
+                for(int i = 0;i<next_subdomains.size();i++)
+                {
+                    vector<Bitvector> singleton;
+                    singleton.push_back(next_subdomains[i]);
+                    masks[task_id].push_back(singleton);
+                }
+
+//                masks[task_id].insert(masks[task_id].begin(), next_subdomains);
+
+                next_subdomains.clear();
+            }
+
+            multi_task_type[task_id]->to_meta_example(-1, num_prev_subtasks).append_to_masks(
+                    min_mask_size, max_mask_size, num_first_in_prior, masks[task_id]);
+
             string language_name =
-                    "[size=" + std::to_string(task_id + 1) + "]";
+                    "[task_id=" + std::to_string(task_id+1) + "]";
 
             assert(meta_examples[task_id].size() > 0);
             assert(masks[task_id].size() > 0);
@@ -496,7 +568,7 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
                     {
                         break;
                     }
-                }while(now_meta_examples_size != prev_meta_examples_size);
+                } while(now_meta_examples_size != prev_meta_examples_size);
 
                 static ofstream fout;
 
@@ -521,8 +593,6 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
 
                 if(task_id+1 < multi_task_type.size()) {
 
-                    vector<Bitvector> next_subdomains;
-
                     for (int subdomain_id = 0; subdomain_id < subdomains.size(); subdomain_id++) {
                         BittreeTaskTypeAsPartialFunction bittree_as_partial = BittreeTaskTypeAsPartialFunction(
                                 multi_task_type[task_id], num_prev_subtasks);
@@ -531,19 +601,19 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
                         BittreeTaskTypeAsPartialFunction next_bittree_as_partial = BittreeTaskTypeAsPartialFunction(
                                 multi_task_type[task_id + 1], num_prev_subtasks);
 
-                        cout << "pre_init from: " << endl;
-                        cout << bittree_as_partial.to_string__one_line() << endl;
-                        cout << "pre_init to: " << endl;
-                        cout << next_bittree_as_partial.to_string__one_line() << endl;
+//                        fout << "pre_init from: " << endl;
+//                        fout << bittree_as_partial.to_string__one_line() << endl;
+//                        fout << "pre_init to: " << endl;
+//                        fout << next_bittree_as_partial.to_string__one_line() << endl;
 
                         bittree_as_partial.assign_bits(subdomains[subdomain_id]);
                         bittree_as_partial.update_bitvector();
 
-                        cout << "init from: " << endl;
-                        cout << bittree_as_partial.to_string__one_line() << endl;
-
-                        cout << "init to: " << endl;
-                        cout << next_bittree_as_partial.to_string__one_line() << endl;
+//                        fout << "init from: " << endl;
+//                        fout << bittree_as_partial.to_string__one_line() << endl;
+//
+//                        fout << "init to: " << endl;
+//                        fout << next_bittree_as_partial.to_string__one_line() << endl;
 
                         for (int bit_id = 0, next_bit_id = 0; next_bit_id < next_bittree_as_partial.bits.size();) {
 
@@ -553,17 +623,17 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
 
                                 vector<string> next_path = next_bittree_as_partial.get_path_of_bit_id(next_bit_id);
 
-                                for (int ii = 0; ii < path.size(); ii++) {
-                                    cout << path[ii] << " ";
-                                }
-                                cout << endl;
-                                for (int ii = 0; ii < next_path.size(); ii++) {
-                                    cout << next_path[ii] << " ";
-                                }
-                                cout << endl;
+//                                for (int ii = 0; ii < path.size(); ii++) {
+//                                    fout << path[ii] << " ";
+//                                }
+//                                fout << endl;
+//                                for (int ii = 0; ii < next_path.size(); ii++) {
+//                                    fout << next_path[ii] << " ";
+//                                }
+//                                fout << endl;
 
                                 if (path == next_path) {
-                                    cout << "the_same" << endl;
+//                                    fout << "the_same" << endl;
 
                                     next_bittree_as_partial.bits[next_bit_id]->is_bit_set = true;
                                     next_bittree_as_partial.bits[next_bit_id]->bit_val = bittree_as_partial.bits[bit_id]->bit_val;
@@ -573,13 +643,13 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
                                 } else {
                                     next_bittree_as_partial.bits[next_bit_id]->is_bit_set = true;
                                     next_bittree_as_partial.bits[next_bit_id]->bit_val = 0;
-                                    cout << "not the_same" << endl;
+//                                    fout << "not the_same" << endl;
                                     next_bit_id++;
                                 }
                             }
                             else
                             {
-                                cout << "outside" << endl;
+//                                fout << "outside" << endl;
                                 next_bittree_as_partial.bits[next_bit_id]->is_bit_set = true;
                                 next_bittree_as_partial.bits[next_bit_id]->bit_val = 0;
                                 next_bit_id++;
@@ -591,18 +661,18 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
 
                         next_subdomains.push_back(next_bittree_as_partial.total_function);
 
-                        cout << "from: " << endl;
-                        cout << bittree_as_partial.to_string__one_line() << endl;
-                        cout << "to: " << endl;
-                        cout << next_bittree_as_partial.to_string__one_line() << endl;
+//                        fout << "from: " << endl;
+//                        fout << bittree_as_partial.to_string__one_line() << endl;
+//                        fout << "to: " << endl;
+////                        fout << next_bittree_as_partial.to_string__one_line() << endl;
                         fout << next_bittree_as_partial.to_string__one_line() << endl;
-
-                        cout << endl;
+////                        fout << next_bittree_as_partial.total_function.to_string() << endl;
+//                        fout << endl;
                     }
 
                     for(int subdomain_id = 0; subdomain_id < next_subdomains.size(); subdomain_id ++)
                     {
-                        next_subdomains[subdomain_id].set_size(subdomains[subdomain_id].get_size());
+//                        next_subdomains[subdomain_id].set_size(subdomains[subdomain_id].get_size());
                         fout << next_subdomains[subdomain_id].to_string() << endl;
                     }
 

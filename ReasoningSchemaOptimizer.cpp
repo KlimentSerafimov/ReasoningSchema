@@ -277,19 +277,12 @@ HeuristicScore ReasoningSchemaOptimizer::calculate_heuristic(Module* module) {
 
     bool minimize_num_necessary_meta_examples;
 
-    if(root_pointer->metric == min_rep_set)
-    {
+    if (root_pointer->metric == min_rep_set) {
         return HeuristicScore(
                 module->subdomain_mask.count(),
                 delta_ratio);
-    } else{
+    } else {
         return HeuristicScore(module->subdomain_mask.count(), current_delta);
-    }
-
-    if (minimize_num_necessary_meta_examples) {
-
-
-    } else{
     }
 }
 
@@ -521,20 +514,20 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
 
                 HeuristicScore heuristic;
 
-//                cout << "working on mask = " << bitvector_to_str(masks[bucket_id][mask_id], function_size) << " time: "
-//                     << (double) time(nullptr) - local_time << " ";
+                cout << "working on mask = " << bitvector_to_str(masks[bucket_id][mask_id], function_size) << " time: "
+                     << (double) time(nullptr) - local_time << " ";
 
                 if (parent_pointer != nullptr && bucket_id < parent_pointer->heuristic_score_by_bucket_id_by_mask_id.size() &&
                 mask_id < parent_pointer->heuristic_score_by_bucket_id_by_mask_id[bucket_id].size() &&
                 skip_mask(masks[bucket_id][mask_id])) {
-//                    cout << "skip" << endl;
+                    cout << "skip" << endl;
                     assert(parent_pointer != nullptr);
                     heuristic = parent_pointer->heuristic_score_by_bucket_id_by_mask_id[bucket_id][mask_id];
                     mask_ids_by_heuristic.push_back(make_pair(heuristic, make_pair(bucket_id, mask_id)));
                     heuristic_score_by_bucket_id_by_mask_id[bucket_id].push_back(heuristic);
 
                 } else {
-//                    cout << "calc" << endl;
+                    cout << "calc" << endl;
                     Module local_module = Module(this);
 
                     calc_module(masks[bucket_id][mask_id], &local_module);
@@ -546,14 +539,15 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
                     mask_ids_by_heuristic.push_back(make_pair(heuristic, make_pair(bucket_id, mask_id)));
                     heuristic_score_by_bucket_id_by_mask_id[bucket_id].push_back(heuristic);
 
-                    if (heuristic.defined) {
-                        assert(heuristic.num_input_bits >= 1);
-                        possible_candidate_found = true;
-                        //break;
-                        num_candidates_to_find--;
 
-                    }
+                }
+                if (heuristic.defined) {
+                    assert(heuristic.num_input_bits >= 1);
+                    possible_candidate_found = true;
+                    num_candidates_to_find--;
 
+//                    if(bucket_id == 0)
+//                        break;
                 }
 
 //            cout << "heuristic = " << fixed << setprecision(4) << heuristic.to_string() << endl;
