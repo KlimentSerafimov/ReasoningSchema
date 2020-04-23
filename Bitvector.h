@@ -115,7 +115,7 @@ public:
 
         bool ret = true;
         int offset = 0;
-        for(int i = init_block; i<=end_block;i++, offset+=BLOCK_SIZE)
+        for(int i = init_block; i<=end_block;i++)
         {
             if( blocks[i] != other.blocks[i])
             {
@@ -158,17 +158,21 @@ public:
 
     bool operator < (const Bitvector &other) const
     {
+        bool ret = false;
         if(num_blocks == 1)
         {
-            return blocks[0] < other.blocks[0];
+            ret = blocks[0] < other.blocks[0];
         }
         else {
 //            assert(false);
             for (int i = min(get_size() - 1, other.get_size() - 1); i >= 0; i--) {
-                if (get_bit(i) ^ other.get_bit(i)) return other.get_bit(i);
+                if (get_bit(i) ^ other.get_bit(i)){
+                    ret = other.get_bit(i);
+                    break;
+                }
             }
         }
-        return false;
+        return ret;
     }
 
     void operator ++(int)

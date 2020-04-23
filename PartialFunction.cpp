@@ -355,3 +355,9 @@ vector<string> BittreeTaskTypeAsPartialFunction::get_path_of_bit_id(int bit_id) 
 void BittreeTaskTypeAsPartialFunction::update_bitvector() {
     init_via_bits(bits);
 }
+
+vector<Bitvector> BittreeTaskTypeAsPartialFunction::generate_variety() {
+
+    return bittree_task_type->generate_variety(subtask_depth);
+
+}

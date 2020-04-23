@@ -317,6 +317,7 @@ BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, TaskNa
 
     for(int iter = 0;iter<num_iter;iter++)
     {
+        cout << "GENERATING DATA FOR ITER: " << iter << endl;
         vector<vector<MetaExample> > meta_examples;
         instances.populate_meta_examples(meta_examples, 0, subtask_depth);
 //        for(int i = 0;i<meta_examples.size();i++)
@@ -329,10 +330,8 @@ BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, TaskNa
 //        }
 //        cout << "----------------------------------------" << endl;
 
-        if(iter < num_iter)
-        {
-            instances.deepen();
-        }
+        instances.deepen();
+        cout << "DONE GENERATING DATA FOR ITER: " << iter << endl;
     }
 
     vector<vector<MetaExample> > meta_examples;
@@ -395,7 +394,9 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
 
         dir_path =
                  "task_name__" + task_name.get_task_name() +
-                 "__gen=30__num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
+                 "__gen=36__init_iter=" + std::to_string(init_iter) +
+                 "__end_iter=" + std::to_string(num_iter) +
+                 "__num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
                  "__min_mask_size=" +std::to_string(min_mask_size) +
                  "__max_mask_size=" +std::to_string(max_mask_size) +
                  "__num_first_in_prior="+std::to_string(num_first_in_prior) +
@@ -433,41 +434,41 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
 
             if(next_subdomains.size() != 0)
             {
-                cout << "next_subdomains" << endl;
-                for(int i = 0; i<next_subdomains.size();i++)
-                {
-                    cout << next_subdomains[i].to_string() << endl;
-                }
-                int init_next_subdomains_size = next_subdomains.size();
-                for(int i = 0;i<init_next_subdomains_size;i++)
-                {
-                    Bitvector right_alternative_next = Bitvector(0, next_subdomains[i].get_size());
-                    for(int j = 0;j<next_subdomains[i].get_size();j++)
-                    {
-                        if(j+1 < right_alternative_next.get_size()) {
-                            right_alternative_next.set(j + 1, next_subdomains[i].get_bit(j));
-                        } else{
-                            right_alternative_next.set(0, next_subdomains[i].get_bit(j));
-                        }
-                    }
-                    next_subdomains.push_back(right_alternative_next);
-                    Bitvector left_alternative_next = Bitvector(0, next_subdomains[i].get_size());
-                    for(int j = 0;j<next_subdomains[i].get_size();j++)
-                    {
-                        if(j-1 >= 0) {
-                            left_alternative_next.set(j - 1, next_subdomains[i].get_bit(j));
-                        } else{
-                            left_alternative_next.set(left_alternative_next.get_size()-1, next_subdomains[i].get_bit(j));
-                        }
-                    }
-                    next_subdomains.push_back(left_alternative_next);
-
-                    cout << "left_alternative" << endl;
-                    cout << left_alternative_next.to_string() << endl;
-
-                    cout << "right_alternative" << endl;
-                    cout << right_alternative_next.to_string() << endl;
-                }
+//                cout << "next_subdomains" << endl;
+//                for(int i = 0; i<next_subdomains.size();i++)
+//                {
+//                    cout << next_subdomains[i].to_string() << endl;
+//                }
+//                int init_next_subdomains_size = next_subdomains.size();
+//                for(int i = 0;i<init_next_subdomains_size;i++)
+//                {
+//                    Bitvector right_alternative_next = Bitvector(0, next_subdomains[i].get_size());
+//                    for(int j = 0;j<next_subdomains[i].get_size();j++)
+//                    {
+//                        if(j+1 < right_alternative_next.get_size()) {
+//                            right_alternative_next.set(j + 1, next_subdomains[i].get_bit(j));
+//                        } else{
+//                            right_alternative_next.set(0, next_subdomains[i].get_bit(j));
+//                        }
+//                    }
+//                    next_subdomains.push_back(right_alternative_next);
+//                    Bitvector left_alternative_next = Bitvector(0, next_subdomains[i].get_size());
+//                    for(int j = 0;j<next_subdomains[i].get_size();j++)
+//                    {
+//                        if(j-1 >= 0) {
+//                            left_alternative_next.set(j - 1, next_subdomains[i].get_bit(j));
+//                        } else{
+//                            left_alternative_next.set(left_alternative_next.get_size()-1, next_subdomains[i].get_bit(j));
+//                        }
+//                    }
+//                    next_subdomains.push_back(left_alternative_next);
+//
+//                    cout << "left_alternative" << endl;
+//                    cout << left_alternative_next.to_string() << endl;
+//
+//                    cout << "right_alternative" << endl;
+//                    cout << right_alternative_next.to_string() << endl;
+//                }
 
                 cout << "with_alternative:" << endl;
 
@@ -477,21 +478,27 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
                 }
                 cout << endl;
 
-                for(int i = 0;i<next_subdomains.size();i++)
+                bool first_from_prior_from_prev_task = false;
+                if(first_from_prior_from_prev_task) {
+                    for (int i = 0; i < next_subdomains.size(); i++) {
+                        vector<Bitvector> singleton;
+                        singleton.push_back(next_subdomains[i]);
+                        masks[task_id].push_back(singleton);
+                    }
+                }
+                else
                 {
-                    vector<Bitvector> singleton;
-                    singleton.push_back(next_subdomains[i]);
-                    masks[task_id].push_back(singleton);
+                    masks[task_id].push_back(next_subdomains);
                 }
 
 //                masks[task_id].insert(masks[task_id].begin(), next_subdomains);
 
                 next_subdomains.clear();
             }
-
-            multi_task_type[task_id]->to_meta_example(-1, num_prev_subtasks).append_to_masks(
-                    min_mask_size, max_mask_size, num_first_in_prior, masks[task_id]);
-
+            else {
+                multi_task_type[task_id]->to_meta_example(-1, num_prev_subtasks).append_to_masks(
+                        min_mask_size, max_mask_size, num_first_in_prior, masks[task_id]);
+            }
             string language_name =
                     "[task_id=" + std::to_string(task_id+1) + "]";
 
@@ -587,11 +594,12 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
                     BittreeTaskTypeAsPartialFunction bittree_as_partial = BittreeTaskTypeAsPartialFunction(multi_task_type[task_id], num_prev_subtasks);
                     bittree_as_partial.assign_bits(subdomains[j]);
                     fout << bittree_as_partial.to_string__one_line() << endl;
-
                 }
 
 
                 if(task_id+1 < multi_task_type.size()) {
+
+                    set<Bitvector> next_subdomain_set;
 
                     for (int subdomain_id = 0; subdomain_id < subdomains.size(); subdomain_id++) {
                         BittreeTaskTypeAsPartialFunction bittree_as_partial = BittreeTaskTypeAsPartialFunction(
@@ -659,7 +667,14 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
 
                         next_bittree_as_partial.update_bitvector();
 
-                        next_subdomains.push_back(next_bittree_as_partial.total_function);
+                        vector<Bitvector> local_variety = next_bittree_as_partial.generate_variety();
+
+                        for(int i = 0;i<local_variety.size();i++)
+                        {
+                            next_subdomain_set.insert(local_variety[i]);
+                        }
+
+//                        next_subdomains.push_back(next_bittree_as_partial.total_function);
 
 //                        fout << "from: " << endl;
 //                        fout << bittree_as_partial.to_string__one_line() << endl;
@@ -668,6 +683,11 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
                         fout << next_bittree_as_partial.to_string__one_line() << endl;
 ////                        fout << next_bittree_as_partial.total_function.to_string() << endl;
 //                        fout << endl;
+                    }
+
+                    for(auto subdomain : next_subdomain_set)
+                    {
+                        next_subdomains.push_back(subdomain);
                     }
 
                     for(int subdomain_id = 0; subdomain_id < next_subdomains.size(); subdomain_id ++)

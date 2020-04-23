@@ -28,7 +28,6 @@ public:
     Bitvector total_function;
     Bitvector partition;
 
-
     vector<BitInBittree*> bits;
 
     PartialFunction();
@@ -93,6 +92,8 @@ public:
     vector<string> get_path_of_bit_id(int i);
 
     void update_bitvector();
+
+    vector<Bitvector> generate_variety();
 };
 
 #endif //COMPACTPOSET_PARTIALFUNCTION_H

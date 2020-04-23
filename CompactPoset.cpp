@@ -1688,37 +1688,126 @@ vector<MetaExample> get_meta_examples_that_are_individually_consistent_with_all_
 {
     vector<MetaExample> consistent_meta_examples;
 
-    for (int insert_meta_example_id = 0; insert_meta_example_id < meta_examples.size(); insert_meta_example_id++)
+    map<MetaExample, vector<int> > equiv_meta_examples;
+
+    for(int i = 0;i<meta_examples.size();i++)
     {
         MetaExample local_insert_meta_example =
-                meta_examples[insert_meta_example_id].get_application_of_subdomain(subdomain_mask);
-        if (!local_insert_meta_example.fully_constrained())
+                meta_examples[i].get_application_of_subdomain(subdomain_mask);
+        if(equiv_meta_examples.find(local_insert_meta_example) == equiv_meta_examples.end())
         {
-            bool is_consistent = true;
-            for (int test_meta_example_id = 0; test_meta_example_id < meta_examples.size(); test_meta_example_id++)
-            {
-                MetaExample local_test_meta_example =
-                        meta_examples[test_meta_example_id].get_application_of_subdomain(subdomain_mask);
-                if (!local_test_meta_example.fully_constrained())
-                {
-                    bool new_implementation_for_consistency =
-                            local_insert_meta_example.is_consistent_with(local_test_meta_example);
+            equiv_meta_examples[local_insert_meta_example] = vector<int>();
+        }
+        equiv_meta_examples[local_insert_meta_example].push_back(i);
+    }
 
-                    if (!new_implementation_for_consistency)
+    bool on_reduced_domain = true;
+
+    if(on_reduced_domain)
+    {
+        for(auto it_insert = equiv_meta_examples.begin(); it_insert != equiv_meta_examples.end(); it_insert++)
+        {
+            MetaExample local_insert_meta_example = (*it_insert).first;
+            vector<int> ids = (*it_insert).second;
+            if (!local_insert_meta_example.fully_constrained())
+            {
+//                cout << "inner loop | ";
+                bool is_consistent = true;
+
+                for(auto it_test = equiv_meta_examples.begin(); it_test != equiv_meta_examples.end(); it_test++)
+                {
+                    MetaExample local_test_meta_example = (*it_test).first;
+
+                    if (!local_test_meta_example.fully_constrained())
                     {
-                        is_consistent = false;
-                        break;
+                        bool new_implementation_for_consistency =
+                                local_insert_meta_example.is_consistent_with(local_test_meta_example);
+
+                        if (!new_implementation_for_consistency)
+                        {
+//                            cout << "inconsistent" << endl;
+                            is_consistent = false;
+                            break;
+                        }
                     }
                 }
-            }
-            if (is_consistent)
-            {
+                if (is_consistent)
+                {
+//                    cout << "consistent" << endl;
 //                MetaExample local_consistent_meta_example =
 //                        meta_examples[insert_meta_example_id].get_application_of_subdomain(subdomain_mask);
-                consistent_meta_examples.push_back(local_insert_meta_example);
+//                    consistent_meta_examples.push_back(local_insert_meta_example);
+                    for(int i = 0;i<ids.size();i++)
+                    {
+                        MetaExample local_consistent_meta_example =
+                                meta_examples[ids[i]].get_application_of_subdomain(subdomain_mask);
+                        consistent_meta_examples.push_back(local_consistent_meta_example);
+                    }
+                }
+
+//                cout << "end inner loop" << endl;
             }
         }
     }
+
+    if(false){
+
+//    cout << "IN CONTROL" << endl;
+        vector<MetaExample> control_consistent_meta_examples;
+        for (int insert_meta_example_id = 0; insert_meta_example_id < meta_examples.size(); insert_meta_example_id++) {
+            MetaExample local_insert_meta_example =
+                    meta_examples[insert_meta_example_id].get_application_of_subdomain(subdomain_mask);
+            if (!local_insert_meta_example.fully_constrained()) {
+//                cout << "inner loop | ";
+                bool is_consistent = true;
+                for (int test_meta_example_id = 0;
+                     test_meta_example_id < meta_examples.size(); test_meta_example_id++) {
+                    MetaExample local_test_meta_example =
+                            meta_examples[test_meta_example_id].get_application_of_subdomain(subdomain_mask);
+                    if (!local_test_meta_example.fully_constrained()) {
+                        bool new_implementation_for_consistency =
+                                local_insert_meta_example.is_consistent_with(local_test_meta_example);
+
+                        if (!new_implementation_for_consistency) {
+                            is_consistent = false;
+                            cout << "inconsistent" << endl;
+                            break;
+                        }
+                    }
+                }
+                if (is_consistent) {
+                    cout << "consistent" << endl;
+//                MetaExample local_consistent_meta_example =
+//                        meta_examples[insert_meta_example_id].get_application_of_subdomain(subdomain_mask);
+                    control_consistent_meta_examples.push_back(local_insert_meta_example);
+                }
+
+//                cout << "end inner loop" << endl;
+            }
+        }
+
+        sort(consistent_meta_examples.begin(), consistent_meta_examples.end());
+        sort(control_consistent_meta_examples.begin(), control_consistent_meta_examples.end());
+        if(consistent_meta_examples != control_consistent_meta_examples)
+        {
+            cout << consistent_meta_examples.size() << endl;
+            cout << control_consistent_meta_examples.size() << endl;
+            for(int i = 0;i<consistent_meta_examples.size();i++)
+            {
+                cout << consistent_meta_examples[i].to_string() << " ";
+            }
+            cout << endl;
+            cout << endl;
+            for(int i = 0;i<control_consistent_meta_examples.size();i++)
+            {
+                cout << control_consistent_meta_examples[i].to_string() << " ";
+            }
+            cout << endl;
+            cout << endl;
+            assert(false);
+        }
+    }
+
     return consistent_meta_examples;
 }
 

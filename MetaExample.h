@@ -56,7 +56,38 @@ public:
 
     bool operator < (const MetaExample &other) const
     {
-        return generalization.total_function < other.generalization.total_function;
+        if(partial_function.partition == other.partial_function.partition) {
+            Bitvector partial = (partial_function.partition & partial_function.total_function);
+            Bitvector other_partial = (other.partial_function.partition & other.partial_function.total_function);
+            if (partial == other_partial) {
+                if(generalization.partition == other.generalization.partition) {
+                    Bitvector gen = (generalization.partition & generalization.total_function);
+                    Bitvector other_gen = (other.generalization.partition & other.generalization.total_function);
+                    return gen < other_gen;
+                } else{
+                    return generalization.partition < other.generalization.partition;
+                }
+            } else {
+                return partial < other_partial;
+            }
+        } else{
+            return partial_function.partition < other.partial_function.partition;
+        }
+    }
+
+    bool operator == (const MetaExample &other) const
+    {
+        Bitvector partial = (partial_function.partition & partial_function.total_function);
+        Bitvector other_partial = (other.partial_function.partition & other.partial_function.total_function);
+
+        Bitvector gen = (generalization.partition & generalization.total_function);
+        Bitvector other_gen = (other.generalization.partition & other.generalization.total_function);
+
+        return partial == other_partial && gen == other_gen;
+    }
+
+    bool operator != (const MetaExample &other) const {
+        return !(*this == other);
     }
 
     bool is_consistent_with(MetaExample other);

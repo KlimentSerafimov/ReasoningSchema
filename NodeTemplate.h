@@ -114,8 +114,6 @@ public:
 
     int node_id = -1;
 
-
-
     void init(NodeTemplate* _parent, Name name)
     {
         parents.push_back(_parent);

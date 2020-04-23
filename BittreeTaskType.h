@@ -82,7 +82,11 @@ public:
 
     BittreeNode *add_child(NodeType node_type, BitInBittreeType bit_in_bittree_type);
 
+    void push_back_child(BittreeNode* child);
+
     string to_string__one_line();
+
+    void populate_leaf_internals_and_bit_ids(vector<pair<BittreeNode *, vector<int> > > & vector);
 };
 
 class BittreeInputOutputType: public TreeNode
@@ -286,6 +290,8 @@ public:
     }
 
     string to_string__one_line__first_part(int i);
+
+    vector<Bitvector> generate_variety(int subtask_depth);
 };
 
 //class BittreeTaskTypeDecomposition: public TreeNode

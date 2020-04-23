@@ -318,7 +318,7 @@ void modeling_of_bitvector_functions() {
     for(int add_by = is_const*0 + (!is_const)*1; add_by <= is_const*0 + (!is_const)*32; add_by ++) {
         string str_task_name;
 
-//        str_task_name = str_task_name__sum;
+        str_task_name = str_task_name__sum;
 //        str_task_name = str_task_name__greater;
 //        str_task_name = str_task_name__cumulative_binary_operator;
 //        str_task_name = str_task_name__bitwise_binary_operator;
@@ -344,14 +344,14 @@ void modeling_of_bitvector_functions() {
 //        int init_size = 3;
 //        TaskName task_name = TaskName(str_task_name, init_size);
 
-        int init_iter = 6;
-        int num_iter = 14;
+        int init_iter = 5;
+        int num_iter = 16;
         MetricType metric_type = most_progress;
         int recursive_rep_set_depth = 1;
         int min_mask_size = 2;
         int max_mask_size = 3;
         int num_prev_subtasks = 1;
-        int num_first_in_prior = 10000;
+        int num_first_in_prior = -1;
 
         char dir_name[str_task_name.size()];
         for (int i = 0; i < str_task_name.size(); i++) {

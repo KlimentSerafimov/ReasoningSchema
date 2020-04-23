@@ -395,6 +395,42 @@ string BittreeNode::to_string__one_line() {
     return ret;
 }
 
+void BittreeNode::push_back_child(BittreeNode *child) {
+    children.push_back(child);
+}
+
+void BittreeNode::populate_leaf_internals_and_bit_ids(vector<pair<BittreeNode *, vector<int> >> & ret) {
+    if(node_type == leaf_node)
+    {
+        assert(leaf_node_type == bit_node);
+        assert(false);
+    }
+    else if(node_type == internal_node)
+    {
+        assert(leaf_node_type == not_leaf_node);
+        vector<int> ids;
+        for(int i = 0;i<children.size();i++)
+        {
+            if(children[i]->node_type == leaf_node)
+            {
+                assert(children[i]->leaf_node_type == bit_node);
+                assert(children[i]->bit->is_bit_set);
+                if(children[i]->bit->bit_val)
+                {
+                    ids.push_back(i);
+                }
+            } else{
+                children[i]->populate_leaf_internals_and_bit_ids(ret);
+            }
+        }
+        if(ids.size()>=1) {
+            ret.emplace_back(make_pair(this, ids));
+        }
+    } else{
+        assert(false);
+    }
+}
+
 //BittreeInputOutputType::BittreeInputOutputType(): TreeNode(NULL, Name("NULL"), this)
 //{
 //}
@@ -1275,6 +1311,226 @@ string BittreeTaskType::to_string__one_line__first_part(int subtask_depth) {
             }
             subtask_depth-=1;
         }
+    }
+
+    return ret;
+}
+
+enum Rules {inherit_from_parent, stay, move_right, move_left, copy_right, copy_left};
+
+bool next_rule(vector<vector<Rules> > & rules, vector<Rules> possible_rules)
+{
+    for(int i = 0;i<rules.size();i++)
+    {
+        for(int j = 0;j<rules[i].size();j++) {
+            for(int k = 0;k<possible_rules.size();k++)
+            {
+                if(rules[i][j] == possible_rules[k])
+                {
+                    if(k == possible_rules.size()-1)
+                    {
+                        rules[i][j] = possible_rules[0];
+                    } else{
+                        rules[i][j] = possible_rules[k+1];
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+vector<Bitvector> BittreeTaskType::generate_variety(int subtask_depth)
+{
+    BittreeNode* local_parent = new BittreeNode(NULL, Name("local_parent"), internal_node);
+    local_parent->push_back_child(io->input);
+    local_parent->push_back_child(io->output);
+
+    int init_subtask_depth = subtask_depth;
+    if(subtask_depth > 0) {
+        BittreeTaskType* at_subtask = decomposition->subtask->solution;
+        if(at_subtask == NULL)
+        {
+            at_subtask = decomposition->subtask;
+        }
+        while(subtask_depth>0)
+        {
+            local_parent->push_back_child(at_subtask->io->output);
+
+            if(at_subtask->decomposition != NULL)
+            {
+                assert(at_subtask->decomposition->subtask != NULL);
+                at_subtask = at_subtask->decomposition->subtask;
+            } else
+            {
+                break;
+            }
+            subtask_depth-=1;
+        }
+    }
+
+    subtask_depth = init_subtask_depth;
+
+    cout << "HERE: " << local_parent->to_string__one_line() << endl;
+
+    vector<pair<BittreeNode*, vector<int> > > leaf_internals_and_bit_ids;
+
+    local_parent->populate_leaf_internals_and_bit_ids(leaf_internals_and_bit_ids);
+
+    for(int i = 0;i<leaf_internals_and_bit_ids.size();i++)
+    {
+        for(int j = 0;j<leaf_internals_and_bit_ids[i].second.size();j++) {
+            cout << leaf_internals_and_bit_ids[i].second[j] << " ";
+        }
+        cout << endl;
+    }
+
+    vector<Rules> possible_rules;
+    possible_rules.push_back(stay);
+    possible_rules.push_back(move_right);
+    possible_rules.push_back(move_left);
+//    possible_rules.push_back(copy_right);
+//    possible_rules.push_back(copy_left);
+
+    vector<vector<Rules> > rules;
+
+    for(int i = 0;i<leaf_internals_and_bit_ids.size();i++)
+    {
+        rules.emplace_back();
+        for(int j = 0;j<leaf_internals_and_bit_ids[i].second.size();j++) {
+            assert(possible_rules.size() >= 1);
+            rules[i].push_back(possible_rules[0]);
+        }
+    }
+
+    set<Bitvector> ret_set;
+
+    vector<vector<int> > init_vals;
+    for(int i = 0;i<leaf_internals_and_bit_ids.size();i++)
+    {
+        init_vals.emplace_back(vector<int>());
+        BittreeNode* local_node = leaf_internals_and_bit_ids[i].first;
+        for(int j = 0;j<local_node->children.size();j++)
+        {
+            local_node->children[j]->bit->is_bit_set = true;
+            int bit_val = local_node->children[j]->bit->bit_val;
+            init_vals[i].push_back(bit_val);
+        }
+    }
+
+    do
+    {
+        for(int i = 0;i<leaf_internals_and_bit_ids.size();i++)
+        {
+            BittreeNode* local_node = leaf_internals_and_bit_ids[i].first;
+            for(int j = 0;j<leaf_internals_and_bit_ids[i].second.size();j++) {
+                int bit_id = leaf_internals_and_bit_ids[i].second[j];
+                local_node->children[bit_id]->bit->is_bit_set = true;
+                local_node->children[bit_id]->bit->bit_val = 0;
+            }
+        }
+
+        for(int i = 0;i<leaf_internals_and_bit_ids.size();i++)
+        {
+            for(int j = 0;j<leaf_internals_and_bit_ids[i].second.size();j++) {
+                int bit_id = leaf_internals_and_bit_ids[i].second[j];
+                int next_bit_id;
+                if(rules[i][j] == move_left) {
+                    if (bit_id != 0) {
+                        int left_bit_id = bit_id-1;
+                        next_bit_id = left_bit_id;
+                    }
+                    else
+                    {
+                        int last_bit_id = leaf_internals_and_bit_ids[i].first->children.size()-1;
+                        next_bit_id = last_bit_id;
+                    }
+                }
+                else if(rules[i][j] == move_right) {
+                    if (bit_id+1 < leaf_internals_and_bit_ids[i].first->children.size()) {
+                        int left_bit_id = bit_id+1;
+                        next_bit_id = left_bit_id;
+                    }
+                    else
+                    {
+                        int first_bit_id = 0;
+                        next_bit_id = first_bit_id;
+                    }
+                } else{
+                    assert(rules[i][j] == copy_right || rules[i][j] == copy_left || rules[i][j] == stay);
+                    next_bit_id = -1;
+                }
+                if(next_bit_id != -1) {
+                    leaf_internals_and_bit_ids[i].first->children[next_bit_id]->bit->is_bit_set = true;
+                    leaf_internals_and_bit_ids[i].first->children[next_bit_id]->bit->bit_val = 1;
+                }
+            }
+            for(int j = 0;j<leaf_internals_and_bit_ids[i].second.size();j++) {
+                int bit_id = leaf_internals_and_bit_ids[i].second[j];
+                int next_bit_id;
+                if(rules[i][j] == copy_left) {
+                    if (bit_id != 0) {
+                        int left_bit_id = bit_id-1;
+                        next_bit_id = left_bit_id;
+                    }
+                    else
+                    {
+                        int last_bit_id = leaf_internals_and_bit_ids[i].first->children.size()-1;
+                        next_bit_id = last_bit_id;
+                    }
+                }
+                else if(rules[i][j] == copy_right) {
+                    if (bit_id+1 < leaf_internals_and_bit_ids[i].first->children.size()) {
+                        int left_bit_id = bit_id+1;
+                        next_bit_id = left_bit_id;
+                    }
+                    else
+                    {
+                        int first_bit_id = 0;
+                        next_bit_id = first_bit_id;
+                    }
+                }
+                else if(rules[i][j] == stay) {
+                    next_bit_id = bit_id;
+                }else{
+                    assert(rules[i][j] == move_right || rules[i][j] == move_left);
+                    next_bit_id = -1;
+                }
+                if(next_bit_id != -1) {
+                    leaf_internals_and_bit_ids[i].first->children[bit_id]->bit->is_bit_set = true;
+                    leaf_internals_and_bit_ids[i].first->children[bit_id]->bit->bit_val = 1;
+                    leaf_internals_and_bit_ids[i].first->children[next_bit_id]->bit->is_bit_set = true;
+                    leaf_internals_and_bit_ids[i].first->children[next_bit_id]->bit->bit_val = 1;
+                }
+            }
+        }
+
+        cout << " HERE2: " << local_parent->to_string__one_line() << endl;
+
+        ret_set.insert(BittreeTaskTypeAsPartialFunction(this, subtask_depth).total_function);
+
+        for(int i = 0;i<leaf_internals_and_bit_ids.size();i++)
+        {
+            BittreeNode* local_node = leaf_internals_and_bit_ids[i].first;
+            for(int j = 0;j<local_node->children.size();j++)
+            {
+                assert(local_node->children[j]->bit->is_bit_set);
+                local_node->children[j]->bit->bit_val = init_vals[i][j];
+            }
+        }
+
+    }while(next_rule(rules, possible_rules));
+
+    vector<Bitvector> ret;
+
+
+    cout << "HOPE: " << endl;
+    for(auto bitvector : ret_set)
+    {
+        ret.push_back(bitvector);
+        cout << bitvector.to_string() << endl;
     }
 
     return ret;

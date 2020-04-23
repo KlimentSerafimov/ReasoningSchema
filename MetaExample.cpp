@@ -93,6 +93,8 @@ MetaExample::MetaExample(int _function_size, Bitvector _total_function, Bitvecto
 bool MetaExample::is_consistent_with(MetaExample other) {
     assert(generalization.partition == other.generalization.partition);
 
+//    cout << to_string() <<" " << other.to_string() << endl;
+
     if(other.generalization.is_contained_in(partial_function) &&
             generalization.is_contained_in(other.partial_function))
     {
@@ -191,6 +193,7 @@ float MetaExample::cost(Bitvector mask)
 
     //cout << endl;
     //cout << mask.to_string() <<" "<< greatest_dist << endl;
+    return 0;
     return (float)sum_sum+custom_cost;
 }
 
@@ -324,7 +327,7 @@ void MetaExample::append_to_masks(int min_mask_size, int max_mask_size, int num_
         cout << "subdomain " << ret_with_cost[i].second.to_string() << " cost " << ret_with_cost[i].first;
         ret_bucket.push_back(ret_with_cost[i].second);
         cout << " put in bucket " + std::to_string(bucket_id);
-        if (num_first_in_prior != -1 && i % num_first_in_prior == 0)
+        if (num_first_in_prior != -1 && (i+1) % num_first_in_prior == 0)
         {
             ret.push_back(ret_bucket);
             ret_bucket.clear();
