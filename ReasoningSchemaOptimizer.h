@@ -59,7 +59,7 @@ public:
 
     vector<MetaExample> get_necessary_meta_examples(bool print);
 
-    vector<Bitvector> get_bitvectors();
+    vector<Bitvector> get_subdomains();
 
     PartialFunction query(PartialFunction partial_function);
 
@@ -78,6 +78,8 @@ public:
     string partial_function_to_string__one_line(PartialFunction partial_function);
 
     string meta_example_to_string__one_line(MetaExample meta_example);
+
+    ReasoningSchemaOptimizer();
 };
 
 #endif //COMPACTPOSET_REASONINGSCHEMAOPTIMIZER_H

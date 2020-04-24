@@ -34,7 +34,6 @@ string PartialFunction::to_string() {
 bool PartialFunction::is_contained_in(PartialFunction other_partial_function) {
     assert(function_size == other_partial_function.function_size);
     if((partition & other_partial_function.partition) == other_partial_function.partition) {
-//    assert(partition == (1<<(1<<function_size))-1);
         Bitvector left = (total_function & other_partial_function.partition);
         Bitvector right = (other_partial_function.total_function & other_partial_function.partition);
         bool ret = (left == right);

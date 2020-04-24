@@ -6,12 +6,14 @@
 #include "BitvectorTasks.h"
 #include "TraceVersionSpace.h"
 #include <cstring>
+#include <random>
 #include <string>
 
 #include <bits/stdc++.h>
 #include <sys/stat.h>
 
 #include <iostream>
+#include <time.h>
 
 using namespace std;
 
@@ -342,10 +344,134 @@ BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, TaskNa
     return meta_examples;
 }
 
+vector<Bitvector> get_next_subdomains(
+        MetricType metric, string dir_path, string init_language_name,
+        vector<Bitvector> subdomains, BittreeTaskType * current_bittree, BittreeTaskType * next_bittree, int num_prev_subtasks)
+{
+    static ofstream fout;
+
+    string fout_name = "subdomains__metric=" + metric_type_name[metric];
+    fout.open(dir_path + "/" + fout_name + init_language_name);
+    for (int j = 0; j < subdomains.size(); j++) {
+        fout << subdomains[j].to_string() << endl;
+    }
+//                assert(subdomains.size() == multi_task_type.size());
+
+    fout << endl;
+
+    for (int j = 0; j < subdomains.size(); j++) {
+        BittreeTaskTypeAsPartialFunction bittree_as_partial = BittreeTaskTypeAsPartialFunction(
+                current_bittree, num_prev_subtasks);
+        bittree_as_partial.assign_bits(subdomains[j]);
+        fout << bittree_as_partial.to_string__one_line() << endl;
+    }
+
+    vector<Bitvector> next_subdomains;
+    if (next_bittree != NULL) {
+
+        set<Bitvector> next_subdomain_set;
+
+        for (int subdomain_id = 0; subdomain_id < subdomains.size(); subdomain_id++) {
+            BittreeTaskTypeAsPartialFunction bittree_as_partial = BittreeTaskTypeAsPartialFunction(
+                    current_bittree, num_prev_subtasks);
+
+
+            BittreeTaskTypeAsPartialFunction next_bittree_as_partial = BittreeTaskTypeAsPartialFunction(
+                    next_bittree, num_prev_subtasks);
+
+//                        fout << "pre_init from: " << endl;
+//                        fout << bittree_as_partial.to_string__one_line() << endl;
+//                        fout << "pre_init to: " << endl;
+//                        fout << next_bittree_as_partial.to_string__one_line() << endl;
+
+            bittree_as_partial.assign_bits(subdomains[subdomain_id]);
+            bittree_as_partial.update_bitvector();
+
+//                        fout << "init from: " << endl;
+//                        fout << bittree_as_partial.to_string__one_line() << endl;
+//
+//                        fout << "init to: " << endl;
+//                        fout << next_bittree_as_partial.to_string__one_line() << endl;
+
+            for (int bit_id = 0, next_bit_id = 0; next_bit_id < next_bittree_as_partial.bits.size();) {
+
+                if (bit_id < bittree_as_partial.bits.size()) {
+
+                    vector<string> path = bittree_as_partial.get_path_of_bit_id(bit_id);
+
+                    vector<string> next_path = next_bittree_as_partial.get_path_of_bit_id(next_bit_id);
+
+//                                for (int ii = 0; ii < path.size(); ii++) {
+//                                    fout << path[ii] << " ";
+//                                }
+//                                fout << endl;
+//                                for (int ii = 0; ii < next_path.size(); ii++) {
+//                                    fout << next_path[ii] << " ";
+//                                }
+//                                fout << endl;
+
+                    if (path == next_path) {
+//                                    fout << "the_same" << endl;
+
+                        next_bittree_as_partial.bits[next_bit_id]->is_bit_set = true;
+                        next_bittree_as_partial.bits[next_bit_id]->bit_val = bittree_as_partial.bits[bit_id]->bit_val;
+
+                        next_bit_id++;
+                        bit_id++;
+                    } else {
+                        next_bittree_as_partial.bits[next_bit_id]->is_bit_set = true;
+                        next_bittree_as_partial.bits[next_bit_id]->bit_val = 0;
+//                                    fout << "not the_same" << endl;
+                        next_bit_id++;
+                    }
+                } else {
+//                                fout << "outside" << endl;
+                    next_bittree_as_partial.bits[next_bit_id]->is_bit_set = true;
+                    next_bittree_as_partial.bits[next_bit_id]->bit_val = 0;
+                    next_bit_id++;
+                }
+
+            }
+
+            next_bittree_as_partial.update_bitvector();
+
+            vector<Bitvector> local_variety = next_bittree_as_partial.generate_variety();
+
+            for (int i = 0; i < local_variety.size(); i++) {
+                next_subdomain_set.insert(local_variety[i]);
+            }
+
+//                        next_subdomains.push_back(next_bittree_as_partial.total_function);
+
+//                        fout << "from: " << endl;
+//                        fout << bittree_as_partial.to_string__one_line() << endl;
+//                        fout << "to: " << endl;
+////                        fout << next_bittree_as_partial.to_string__one_line() << endl;
+            fout << next_bittree_as_partial.to_string__one_line() << endl;
+////                        fout << next_bittree_as_partial.total_function.to_string() << endl;
+//                        fout << endl;
+        }
+
+        for (auto subdomain : next_subdomain_set) {
+            next_subdomains.push_back(subdomain);
+        }
+
+        for (int subdomain_id = 0; subdomain_id < next_subdomains.size(); subdomain_id++) {
+//                        next_subdomains[subdomain_id].set_size(subdomains[subdomain_id].get_size());
+            fout << next_subdomains[subdomain_id].to_string() << endl;
+        }
+
+    }
+
+    fout.close();
+    return next_subdomains;
+}
+
 
 BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, int recursive_rep_set_depth,
                                MetricType metric, int min_mask_size, int max_mask_size, int num_prev_subtasks,
-                               string dir_path, int num_first_in_prior)
+                               string dir_path, int num_first_in_prior, int seed_train_set, int num_minimization_steps,
+                               double minimization_fraction)
 {
 
     if(false)
@@ -393,14 +519,17 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
                 &type_expression_for_meta_examples, task_name, num_iter, num_prev_subtasks);
 
         dir_path =
-                 "task_name__" + task_name.get_task_name() +
-                 "__gen=36__init_iter=" + std::to_string(init_iter) +
-                 "__end_iter=" + std::to_string(num_iter) +
-                 "__num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
-                 "__min_mask_size=" +std::to_string(min_mask_size) +
-                 "__max_mask_size=" +std::to_string(max_mask_size) +
-                 "__num_first_in_prior="+std::to_string(num_first_in_prior) +
-                 "__metric=" + metric_type_name[metric]+"__end";
+                 "task_name=" + task_name.get_task_name() +
+                 "-gen=44__init_iter=" + std::to_string(init_iter) +
+                 "-end_iter=" + std::to_string(num_iter) +
+                 "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
+                 "-min_mask_size=" +std::to_string(min_mask_size) +
+                 "-max_mask_size=" +std::to_string(max_mask_size) +
+                 "-get_fst_from_pior="+std::to_string(num_first_in_prior) +
+                 "-metric=" + metric_type_name[metric]+
+                 "-seed_train_set=" + std::to_string(seed_train_set)+
+                 "-num_minimize_steps="+std::to_string(num_minimization_steps)+
+                 "-minimize_fraction="+std::to_string(minimization_fraction);
 
         char _dir_path[dir_path.length()+1];
 
@@ -421,10 +550,16 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
 
         vector<Bitvector> next_subdomains;
 
+        masks.reserve(init_iter);
         for(int task_id = 0; task_id < init_iter;task_id++)
         {
             masks.emplace_back();
         }
+
+        ofstream summary(dir_path + "/summary");
+        ofstream summary_with_times(dir_path + "/summary_with_times");
+
+        time_t init_time = time(nullptr);
 
         for(int task_id = init_iter; task_id < meta_examples.size(); task_id++) {
 
@@ -432,44 +567,10 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
 
             assert(task_id == masks.size()-1);
 
+            bool is_first = task_id == init_iter;
+
             if(next_subdomains.size() != 0)
             {
-//                cout << "next_subdomains" << endl;
-//                for(int i = 0; i<next_subdomains.size();i++)
-//                {
-//                    cout << next_subdomains[i].to_string() << endl;
-//                }
-//                int init_next_subdomains_size = next_subdomains.size();
-//                for(int i = 0;i<init_next_subdomains_size;i++)
-//                {
-//                    Bitvector right_alternative_next = Bitvector(0, next_subdomains[i].get_size());
-//                    for(int j = 0;j<next_subdomains[i].get_size();j++)
-//                    {
-//                        if(j+1 < right_alternative_next.get_size()) {
-//                            right_alternative_next.set(j + 1, next_subdomains[i].get_bit(j));
-//                        } else{
-//                            right_alternative_next.set(0, next_subdomains[i].get_bit(j));
-//                        }
-//                    }
-//                    next_subdomains.push_back(right_alternative_next);
-//                    Bitvector left_alternative_next = Bitvector(0, next_subdomains[i].get_size());
-//                    for(int j = 0;j<next_subdomains[i].get_size();j++)
-//                    {
-//                        if(j-1 >= 0) {
-//                            left_alternative_next.set(j - 1, next_subdomains[i].get_bit(j));
-//                        } else{
-//                            left_alternative_next.set(left_alternative_next.get_size()-1, next_subdomains[i].get_bit(j));
-//                        }
-//                    }
-//                    next_subdomains.push_back(left_alternative_next);
-//
-//                    cout << "left_alternative" << endl;
-//                    cout << left_alternative_next.to_string() << endl;
-//
-//                    cout << "right_alternative" << endl;
-//                    cout << right_alternative_next.to_string() << endl;
-//                }
-
                 cout << "with_alternative:" << endl;
 
                 for(int i = 0; i<next_subdomains.size();i++)
@@ -531,196 +632,184 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
 
             //project the ordering of the subdomain masks onto the language of f(n) = ordering over the subdomain masks that solves the problem. 
 
-            if(true)
-            {
-                vector<MetaExample> local_meta_examples = meta_examples[task_id];
-                int prev_meta_examples_size = -1;
-                int now_meta_examples_size = (int) local_meta_examples.size();
-                int rec_id = 0;
+            bool train_set_minimization = !is_first;
+            if(train_set_minimization) {
 
-                vector<Bitvector> subdomains;
+                vector<MetaExample> test_meta_examples = meta_examples[task_id];
+                vector<MetaExample> train_meta_examples;
+
+                std::shuffle(test_meta_examples.begin(), test_meta_examples.end(), std::mt19937(std::random_device()()));
+
+                for(int i = 0;i<test_meta_examples.size();i++)
+                {
+                    test_meta_examples[i].idx = i;
+                }
+
+                for (int i = 0; i < min((int)test_meta_examples.size(), seed_train_set); i ++) {
+                    train_meta_examples.push_back(test_meta_examples[i]);
+                    train_meta_examples.back().idx = (int)train_meta_examples.size()-1;
+                }
 
                 string init_language_name = language_name;
 
-                do{
-                    prev_meta_examples_size = now_meta_examples_size;
+                vector<Bitvector> subdomains;
+                int min_train_set_size = test_meta_examples.size();
+                vector<MetaExample> min_train_meta_examples;
 
-                    language_name = language_name + "__rec="+std::to_string(rec_id);
+                summary << "task_id " << task_id+1 << endl;
+                summary_with_times << "task_id_" << task_id+1<<" ";
 
+                for(int minimization_step = 0; minimization_step < num_minimization_steps;minimization_step++) {
+                    bool all_solved = false;
+                    vector<Bitvector> local_subdomains;
+                    while (!all_solved) {
+                        language_name = init_language_name + "__min_step="+std::to_string(minimization_step) + "__size_of_train_set=" +
+                                        std::to_string(train_meta_examples.size());
+
+                        ReasoningSchemaOptimizer my_schema =
+                                ReasoningSchemaOptimizer(
+                                        train_meta_examples, language_name, masks[task_id], dir_path, metric);
+
+                        all_solved = true;
+                        int num_added = 0;
+                        for (int i = 0; i < test_meta_examples.size(); i++) {
+                            PartialFunction generalization = my_schema.query(test_meta_examples[i].partial_function);
+                            cout << "query  " << test_meta_examples[i].to_string() << endl;
+                            cout << "result " << generalization.to_string() << endl;
+                            cout << endl;
+                            if (!generalization.is_contained_in(test_meta_examples[i].generalization)) {
+                                cout << "wrong" << endl;
+                                train_meta_examples.push_back(test_meta_examples[i]);
+                                train_meta_examples.back().idx = train_meta_examples.size() - 1;
+                                all_solved = false;
+                                num_added += 1;
+                                if (num_added >= seed_train_set) {
+                                    cout << "break" << endl;
+                                    break;
+                                }
+                            } else{
+                                cout << "ok" << endl;
+                            }
+                        }
+
+                        if(all_solved)
+                        {
+                            local_subdomains = my_schema.get_subdomains();
+                        }
+
+                        if(train_meta_examples.size() >= min_train_set_size)
+                        {
+                            break;
+                        }
+                    }
+                    if(all_solved) {
+                        summary << train_meta_examples.size() << endl;
+                        summary_with_times << train_meta_examples.size() << " " << (time(nullptr) - init_time) << endl;
+
+                        if (min_train_set_size > train_meta_examples.size()) {
+                            min_train_set_size = train_meta_examples.size();
+                            min_train_meta_examples = train_meta_examples;
+                            assert(local_subdomains.size() >= 1);
+                            subdomains = local_subdomains;
+                        }
+                    }
+                    train_meta_examples = min_train_meta_examples;
+
+                    std::shuffle(train_meta_examples.begin(), train_meta_examples.end(), std::mt19937(std::random_device()()));
+
+                    vector<MetaExample> new_train_set;
+
+                    new_train_set.reserve(train_meta_examples.size()*minimization_fraction);
+                    for(int i = 0;i<train_meta_examples.size()*minimization_fraction;i++)
+                    {
+                        new_train_set.emplace_back(train_meta_examples[i]);
+                        new_train_set[i].idx = i;
+                    }
+                    train_meta_examples = new_train_set;
+                }
+
+
+                BittreeTaskType* next_bittree_task_type = NULL;
+                if(task_id + 1 < multi_task_type.size())
+                {
+                    next_bittree_task_type = multi_task_type[task_id+1];
+                }
+                next_subdomains = get_next_subdomains(
+                        metric, dir_path, init_language_name, subdomains, multi_task_type[task_id], next_bittree_task_type, num_prev_subtasks);
+
+            } else {
+
+                if (true) {
+                    vector<MetaExample> local_meta_examples = meta_examples[task_id];
+                    int prev_meta_examples_size = -1;
+                    int now_meta_examples_size = (int) local_meta_examples.size();
+                    int rec_id = 0;
+
+                    vector<Bitvector> subdomains;
+
+                    string init_language_name = language_name;
+
+                    do {
+                        prev_meta_examples_size = now_meta_examples_size;
+
+                        language_name = language_name + "__rec=" + std::to_string(rec_id);
+
+                        ReasoningSchemaOptimizer my_schema =
+                                ReasoningSchemaOptimizer(
+                                        local_meta_examples, language_name, masks[task_id], dir_path, metric);
+
+                        for (int i = 0; i < local_meta_examples.size(); i++) {
+                            PartialFunction generalization = my_schema.query(local_meta_examples[i].partial_function);
+                            cout << "query  " << local_meta_examples[i].to_string() << endl;
+                            cout << "result " << generalization.to_string() << endl;
+                            cout << endl;
+                            assert(generalization.is_contained_in(local_meta_examples[i].generalization));
+                        }
+                        cout << "TESTING DONE. ALL CORRECT" << endl;
+
+                        local_meta_examples = my_schema.get_necessary_meta_examples(false);
+
+                        now_meta_examples_size = (int) local_meta_examples.size();
+
+                        if (rec_id == 0) {
+                            subdomains = my_schema.get_subdomains();
+                        }
+
+                        rec_id++;
+                        if (recursive_rep_set_depth != -1 && rec_id > recursive_rep_set_depth) {
+                            break;
+                        }
+                    } while (now_meta_examples_size != prev_meta_examples_size);
+
+                    BittreeTaskType* next_bittree_task_type = NULL;
+                    if(task_id +1 < multi_task_type.size())
+                    {
+                        next_bittree_task_type = multi_task_type[task_id+1];
+                    }
+                    next_subdomains =
+                            get_next_subdomains(metric, dir_path, init_language_name, subdomains, multi_task_type[task_id], next_bittree_task_type, num_prev_subtasks);
+
+                } else if (true) {
                     ReasoningSchemaOptimizer my_schema =
                             ReasoningSchemaOptimizer(
-                                    local_meta_examples, language_name, masks[task_id], dir_path, metric);
+                                    meta_examples[task_id], language_name, masks[task_id], dir_path, metric);
 
-                    for(int i = 0;i<local_meta_examples.size();i++)
-                    {
-                        PartialFunction generalization = my_schema.query(local_meta_examples[i].partial_function);
-                        cout << "query  " << local_meta_examples[i].to_string() << endl;
+                    for (int j = 0; j < meta_examples[task_id].size(); j++) {
+                        PartialFunction generalization = my_schema.query(meta_examples[task_id][j].partial_function);
+                        cout << "query  " << meta_examples[task_id][j].to_string() << endl;
                         cout << "result " << generalization.to_string() << endl;
                         cout << endl;
-                        assert(generalization.is_contained_in(local_meta_examples[i].generalization));
+                        assert(generalization.is_contained_in(meta_examples[task_id][j].generalization));
                     }
                     cout << "TESTING DONE. ALL CORRECT" << endl;
 
-                    local_meta_examples = my_schema.get_necessary_meta_examples(false);
-
-                    now_meta_examples_size = (int) local_meta_examples.size();
-
-                    if(rec_id == 0)
-                    {
-                        subdomains = my_schema.get_bitvectors();
-                    }
-
-                    rec_id++;
-                    if(recursive_rep_set_depth != -1 && rec_id > recursive_rep_set_depth)
-                    {
-                        break;
-                    }
-                } while(now_meta_examples_size != prev_meta_examples_size);
-
-                static ofstream fout;
-
-                string fout_name = "subdomains__metric=" + metric_type_name[metric];
-                fout.open(dir_path + "/" + fout_name + init_language_name);
-                for(int j = 0; j < subdomains.size(); j++)
-                {
-                    fout << subdomains[j].to_string() << endl;
+                    vector<MetaExample> necessary_meta_examples = my_schema.get_necessary_meta_examples(false);
+                } else {
+                    cout << "Need to send a prior over Bitmasks as a vector of vectors of bitvectors" << endl;
+                    assert(false);
+                    TraceVersionSpace trace_version_space = TraceVersionSpace(meta_examples[task_id],
+                                                                              masks[task_id][0]);
                 }
-//                assert(subdomains.size() == multi_task_type.size());
-
-                fout << endl;
-
-                for(int j = 0; j < subdomains.size(); j++)
-                {
-                    BittreeTaskTypeAsPartialFunction bittree_as_partial = BittreeTaskTypeAsPartialFunction(multi_task_type[task_id], num_prev_subtasks);
-                    bittree_as_partial.assign_bits(subdomains[j]);
-                    fout << bittree_as_partial.to_string__one_line() << endl;
-                }
-
-
-                if(task_id+1 < multi_task_type.size()) {
-
-                    set<Bitvector> next_subdomain_set;
-
-                    for (int subdomain_id = 0; subdomain_id < subdomains.size(); subdomain_id++) {
-                        BittreeTaskTypeAsPartialFunction bittree_as_partial = BittreeTaskTypeAsPartialFunction(
-                                multi_task_type[task_id], num_prev_subtasks);
-
-
-                        BittreeTaskTypeAsPartialFunction next_bittree_as_partial = BittreeTaskTypeAsPartialFunction(
-                                multi_task_type[task_id + 1], num_prev_subtasks);
-
-//                        fout << "pre_init from: " << endl;
-//                        fout << bittree_as_partial.to_string__one_line() << endl;
-//                        fout << "pre_init to: " << endl;
-//                        fout << next_bittree_as_partial.to_string__one_line() << endl;
-
-                        bittree_as_partial.assign_bits(subdomains[subdomain_id]);
-                        bittree_as_partial.update_bitvector();
-
-//                        fout << "init from: " << endl;
-//                        fout << bittree_as_partial.to_string__one_line() << endl;
-//
-//                        fout << "init to: " << endl;
-//                        fout << next_bittree_as_partial.to_string__one_line() << endl;
-
-                        for (int bit_id = 0, next_bit_id = 0; next_bit_id < next_bittree_as_partial.bits.size();) {
-
-                            if(bit_id < bittree_as_partial.bits.size()) {
-
-                                vector<string> path = bittree_as_partial.get_path_of_bit_id(bit_id);
-
-                                vector<string> next_path = next_bittree_as_partial.get_path_of_bit_id(next_bit_id);
-
-//                                for (int ii = 0; ii < path.size(); ii++) {
-//                                    fout << path[ii] << " ";
-//                                }
-//                                fout << endl;
-//                                for (int ii = 0; ii < next_path.size(); ii++) {
-//                                    fout << next_path[ii] << " ";
-//                                }
-//                                fout << endl;
-
-                                if (path == next_path) {
-//                                    fout << "the_same" << endl;
-
-                                    next_bittree_as_partial.bits[next_bit_id]->is_bit_set = true;
-                                    next_bittree_as_partial.bits[next_bit_id]->bit_val = bittree_as_partial.bits[bit_id]->bit_val;
-
-                                    next_bit_id++;
-                                    bit_id++;
-                                } else {
-                                    next_bittree_as_partial.bits[next_bit_id]->is_bit_set = true;
-                                    next_bittree_as_partial.bits[next_bit_id]->bit_val = 0;
-//                                    fout << "not the_same" << endl;
-                                    next_bit_id++;
-                                }
-                            }
-                            else
-                            {
-//                                fout << "outside" << endl;
-                                next_bittree_as_partial.bits[next_bit_id]->is_bit_set = true;
-                                next_bittree_as_partial.bits[next_bit_id]->bit_val = 0;
-                                next_bit_id++;
-                            }
-
-                        }
-
-                        next_bittree_as_partial.update_bitvector();
-
-                        vector<Bitvector> local_variety = next_bittree_as_partial.generate_variety();
-
-                        for(int i = 0;i<local_variety.size();i++)
-                        {
-                            next_subdomain_set.insert(local_variety[i]);
-                        }
-
-//                        next_subdomains.push_back(next_bittree_as_partial.total_function);
-
-//                        fout << "from: " << endl;
-//                        fout << bittree_as_partial.to_string__one_line() << endl;
-//                        fout << "to: " << endl;
-////                        fout << next_bittree_as_partial.to_string__one_line() << endl;
-                        fout << next_bittree_as_partial.to_string__one_line() << endl;
-////                        fout << next_bittree_as_partial.total_function.to_string() << endl;
-//                        fout << endl;
-                    }
-
-                    for(auto subdomain : next_subdomain_set)
-                    {
-                        next_subdomains.push_back(subdomain);
-                    }
-
-                    for(int subdomain_id = 0; subdomain_id < next_subdomains.size(); subdomain_id ++)
-                    {
-//                        next_subdomains[subdomain_id].set_size(subdomains[subdomain_id].get_size());
-                        fout << next_subdomains[subdomain_id].to_string() << endl;
-                    }
-
-                }
-
-                fout.close();
-            }
-            else if(true) {
-                ReasoningSchemaOptimizer my_schema =
-                        ReasoningSchemaOptimizer(
-                                meta_examples[task_id], language_name, masks[task_id], dir_path, metric);
-
-                for (int j = 0; j < meta_examples[task_id].size(); j++) {
-                    PartialFunction generalization = my_schema.query(meta_examples[task_id][j].partial_function);
-                    cout << "query  " << meta_examples[task_id][j].to_string() << endl;
-                    cout << "result " << generalization.to_string() << endl;
-                    cout << endl;
-                    assert(generalization.is_contained_in(meta_examples[task_id][j].generalization));
-                }
-                cout << "TESTING DONE. ALL CORRECT" << endl;
-
-                vector<MetaExample> necessary_meta_examples = my_schema.get_necessary_meta_examples(false);
-            }
-            else
-            {
-                cout << "Need to send a prior over Bitmasks as a vector of vectors of bitvectors" << endl;
-                assert(false);
-                TraceVersionSpace trace_version_space = TraceVersionSpace(meta_examples[task_id], masks[task_id][0]);
             }
         }
     }

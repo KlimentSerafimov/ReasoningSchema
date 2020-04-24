@@ -1688,23 +1688,24 @@ vector<MetaExample> get_meta_examples_that_are_individually_consistent_with_all_
 {
     vector<MetaExample> consistent_meta_examples;
 
-    map<MetaExample, vector<int> > equiv_meta_examples;
-
-    for(int i = 0;i<meta_examples.size();i++)
-    {
-        MetaExample local_insert_meta_example =
-                meta_examples[i].get_application_of_subdomain(subdomain_mask);
-        if(equiv_meta_examples.find(local_insert_meta_example) == equiv_meta_examples.end())
-        {
-            equiv_meta_examples[local_insert_meta_example] = vector<int>();
-        }
-        equiv_meta_examples[local_insert_meta_example].push_back(i);
-    }
 
     bool on_reduced_domain = true;
 
     if(on_reduced_domain)
     {
+        map<MetaExample, vector<int> > equiv_meta_examples;
+
+        for(int i = 0;i<meta_examples.size();i++)
+        {
+            MetaExample local_insert_meta_example =
+                    meta_examples[i].get_application_of_subdomain(subdomain_mask);
+            if(equiv_meta_examples.find(local_insert_meta_example) == equiv_meta_examples.end())
+            {
+                equiv_meta_examples[local_insert_meta_example] = vector<int>();
+            }
+            equiv_meta_examples[local_insert_meta_example].push_back(i);
+        }
+
         for(auto it_insert = equiv_meta_examples.begin(); it_insert != equiv_meta_examples.end(); it_insert++)
         {
             MetaExample local_insert_meta_example = (*it_insert).first;
@@ -1734,14 +1735,15 @@ vector<MetaExample> get_meta_examples_that_are_individually_consistent_with_all_
                 if (is_consistent)
                 {
 //                    cout << "consistent" << endl;
-//                MetaExample local_consistent_meta_example =
-//                        meta_examples[insert_meta_example_id].get_application_of_subdomain(subdomain_mask);
-//                    consistent_meta_examples.push_back(local_insert_meta_example);
-                    for(int i = 0;i<ids.size();i++)
-                    {
-                        MetaExample local_consistent_meta_example =
-                                meta_examples[ids[i]].get_application_of_subdomain(subdomain_mask);
-                        consistent_meta_examples.push_back(local_consistent_meta_example);
+
+                    if(true) {
+                        consistent_meta_examples.push_back(local_insert_meta_example);
+                    } else {
+                        for (int i = 0; i < ids.size(); i++) {
+                            MetaExample local_consistent_meta_example =
+                                    meta_examples[ids[i]].get_application_of_subdomain(subdomain_mask);
+                            consistent_meta_examples.push_back(local_consistent_meta_example);
+                        }
                     }
                 }
 
@@ -1749,9 +1751,7 @@ vector<MetaExample> get_meta_examples_that_are_individually_consistent_with_all_
             }
         }
     }
-
-    if(false){
-
+    else{
 //    cout << "IN CONTROL" << endl;
         vector<MetaExample> control_consistent_meta_examples;
         for (int insert_meta_example_id = 0; insert_meta_example_id < meta_examples.size(); insert_meta_example_id++) {
@@ -1770,13 +1770,13 @@ vector<MetaExample> get_meta_examples_that_are_individually_consistent_with_all_
 
                         if (!new_implementation_for_consistency) {
                             is_consistent = false;
-                            cout << "inconsistent" << endl;
+//                            cout << "inconsistent" << endl;
                             break;
                         }
                     }
                 }
                 if (is_consistent) {
-                    cout << "consistent" << endl;
+//                    cout << "consistent" << endl;
 //                MetaExample local_consistent_meta_example =
 //                        meta_examples[insert_meta_example_id].get_application_of_subdomain(subdomain_mask);
                     control_consistent_meta_examples.push_back(local_insert_meta_example);
@@ -1786,26 +1786,27 @@ vector<MetaExample> get_meta_examples_that_are_individually_consistent_with_all_
             }
         }
 
-        sort(consistent_meta_examples.begin(), consistent_meta_examples.end());
-        sort(control_consistent_meta_examples.begin(), control_consistent_meta_examples.end());
-        if(consistent_meta_examples != control_consistent_meta_examples)
-        {
-            cout << consistent_meta_examples.size() << endl;
-            cout << control_consistent_meta_examples.size() << endl;
-            for(int i = 0;i<consistent_meta_examples.size();i++)
-            {
-                cout << consistent_meta_examples[i].to_string() << " ";
-            }
-            cout << endl;
-            cout << endl;
-            for(int i = 0;i<control_consistent_meta_examples.size();i++)
-            {
-                cout << control_consistent_meta_examples[i].to_string() << " ";
-            }
-            cout << endl;
-            cout << endl;
-            assert(false);
-        }
+//        sort(consistent_meta_examples.begin(), consistent_meta_examples.end());
+//        sort(control_consistent_meta_examples.begin(), control_consistent_meta_examples.end());
+//        if(consistent_meta_examples != control_consistent_meta_examples)
+//        {
+//            cout << consistent_meta_examples.size() << endl;
+//            cout << control_consistent_meta_examples.size() << endl;
+//            for(int i = 0;i<consistent_meta_examples.size();i++)
+//            {
+//                cout << consistent_meta_examples[i].to_string() << " ";
+//            }
+//            cout << endl;
+//            cout << endl;
+//            for(int i = 0;i<control_consistent_meta_examples.size();i++)
+//            {
+//                cout << control_consistent_meta_examples[i].to_string() << " ";
+//            }
+//            cout << endl;
+//            cout << endl;
+//            assert(false);
+//        }
+        consistent_meta_examples = control_consistent_meta_examples;
     }
 
     return consistent_meta_examples;

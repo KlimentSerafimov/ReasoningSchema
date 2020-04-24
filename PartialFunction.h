@@ -76,7 +76,7 @@ class BittreeTaskTypeAsPartialFunction : public PartialFunction
 {
 public:
     BittreeTaskType* bittree_task_type;
-    int subtask_depth{};
+    int subtask_depth;
     BittreeTaskTypeAsPartialFunction(BittreeTaskType *_bittree_taks_type, int subtask_depth);
 
     BittreeTaskTypeAsPartialFunction(const PartialFunction& partial_function);

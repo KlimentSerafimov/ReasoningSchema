@@ -879,7 +879,7 @@ string ReasoningSchemaOptimizer::meta_example_to_string__one_line(MetaExample me
 //    return meta_example.partial_function.to_string__one_line()
 }
 
-vector<Bitvector> ReasoningSchemaOptimizer::get_bitvectors() {
+vector<Bitvector> ReasoningSchemaOptimizer::get_subdomains() {
     ReasoningSchemaOptimizer* at = root_pointer;
     vector<Bitvector> subdomains;
     while(at!=nullptr)
@@ -890,4 +890,8 @@ vector<Bitvector> ReasoningSchemaOptimizer::get_bitvectors() {
         at = at->next;
     }
     return subdomains;
+}
+
+ReasoningSchemaOptimizer::ReasoningSchemaOptimizer() {
+
 }
