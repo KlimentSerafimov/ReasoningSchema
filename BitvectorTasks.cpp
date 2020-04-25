@@ -101,13 +101,12 @@ BitvectorTasks::BitvectorTasks(int _function_size, int task_id) {
     }
 }
 
-InstanceTree::InstanceTree(BittreeTaskType* _instance, BittreeInputOutputType* _delta, TaskName _task_name) {
+InstanceTree::InstanceTree(BittreeTaskType* _instance, TaskName _task_name) {
     instance = _instance;
-    delta = _delta;
     task_name = _task_name;
 }
 
-void InstanceTree::prepare_for_deepening()
+void InstanceTree::prepare_for_deepening(BittreeInputOutputType* delta)
 {
     superinstance_type = instance->get_supertask_type(delta);
 
@@ -164,25 +163,25 @@ void InstanceTree::prepare_for_deepening()
     prepared_for_deepening = true;
 }
 
-void InstanceTree::deepen()
+void InstanceTree::deepen(BittreeInputOutputType* delta)
 {
     if(deepened)
     {
         for (int i = 0; i < num_superinstances; i++) {
-            superinstance_trees[i]->deepen();
+            superinstance_trees[i]->deepen(delta);
         }
     }
     else
     {
         if(!prepared_for_deepening)
         {
-            prepare_for_deepening();
+            prepare_for_deepening(delta);
         }
         assert(superinstance_trees.size() == 0);
         for (int i = 0; i < num_superinstances; i++) {
             superinstance_trees.push_back(
-                    new InstanceTree(superinstances[i], delta, task_name));
-            superinstance_trees[i]->prepare_for_deepening();
+                    new InstanceTree(superinstances[i], task_name));
+            superinstance_trees[i]->prepare_for_deepening(delta);
         }
         deepened = true;
     }
@@ -251,7 +250,7 @@ BitvectorTasks::get_multi_task_type(BittreeTypeExpression *type_expression, int 
     for (int i = 0; i < num_iter; i++) {
         if(i == 0)
         {
-            multi_task_type.push_back(type_expression->base_task_type->get_supertask_type(type_expression->delta_task_type));
+            multi_task_type.push_back(type_expression->base_task_type->get_supertask_type(type_expression->init_delta_task_type));
         } else{
             multi_task_type.push_back(multi_task_type[i-1]->get_supertask_type(type_expression->delta_task_type));
         }
@@ -309,19 +308,24 @@ vector<vector<MetaExample> >
 BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, TaskName task_name, int init_num_iter,
                                   int subtask_depth)
 {
+    int num_iter = init_num_iter;
     type_expression->base_task_type->solve(task_name);
+    num_iter--;
+
 //    cout << type_expression->base_task_type->to_string() << endl;
 
-    int num_iter = init_num_iter;
-    InstanceTree instances = InstanceTree(type_expression->base_task_type, type_expression->delta_task_type, task_name);
-    instances.prepare_for_deepening();
+    InstanceTree instances = InstanceTree(type_expression->base_task_type, task_name);
+    instances.prepare_for_deepening(type_expression->init_delta_task_type);
+    instances.deepen(type_expression->init_delta_task_type);
+//
+//    instances.prepare_for_deepening(type_expression->delta_task_type);
     num_iter--;
 
     for(int iter = 0;iter<num_iter;iter++)
     {
         cout << "GENERATING DATA FOR ITER: " << iter << endl;
-        vector<vector<MetaExample> > meta_examples;
-        instances.populate_meta_examples(meta_examples, 0, subtask_depth);
+//        vector<vector<MetaExample> > meta_examples;
+//        instances.populate_meta_examples(meta_examples, 0, subtask_depth);
 //        for(int i = 0;i<meta_examples.size();i++)
 //        {
 //            for(int j = 0;j<meta_examples[i].size();j++)
@@ -332,7 +336,7 @@ BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, TaskNa
 //        }
 //        cout << "----------------------------------------" << endl;
 
-        instances.deepen();
+        instances.deepen(type_expression->delta_task_type);
         cout << "DONE GENERATING DATA FOR ITER: " << iter << endl;
     }
 
@@ -520,7 +524,7 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
 
         dir_path =
                  "task_name=" + task_name.get_task_name() +
-                 "-gen=44__init_iter=" + std::to_string(init_iter) +
+                 "-gen=46__init_iter=" + std::to_string(init_iter) +
                  "-end_iter=" + std::to_string(num_iter) +
                  "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
                  "-min_mask_size=" +std::to_string(min_mask_size) +

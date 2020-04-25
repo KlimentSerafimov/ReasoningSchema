@@ -326,9 +326,9 @@ void modeling_of_bitvector_functions() {
 //        str_task_name = str_task_name__count_unary; // requires double_node
 //        str_task_name = str_task_name__unary_sum; // requires double_node
 //        str_task_name = str_task_name__least_set_bit;
-        str_task_name = str_task_name__max_window_between_bits;
+//        str_task_name = str_task_name__max_window_between_bits;
 //        str_task_name = str_task_name__max_window_between_bits_with_state;
-//        str_task_name = str_task_name__linear_and_or_expression;
+        str_task_name = str_task_name__linear_and_or_expression;
 //        str_task_name = str_task_name__linear_and_or_nand_nor_expression;
 //        str_task_name = str_task_name__sort_bits;
 
@@ -344,8 +344,8 @@ void modeling_of_bitvector_functions() {
 //        int init_size = 3;
 //        TaskName task_name = TaskName(str_task_name, init_size);
 
-        int init_iter = 5;
-        int num_iter = 14;
+        int init_iter = 3;
+        int num_iter = 8;
         MetricType metric_type = most_progress;
         int recursive_rep_set_depth = 1;
         int min_mask_size = 2;
@@ -353,7 +353,7 @@ void modeling_of_bitvector_functions() {
         int num_prev_subtasks = 1;
         int num_first_in_prior = -1;
         int seed_train_set = 20;
-        int num_minimization_steps = 20;
+        int num_minimization_steps = 80;
         double minimization_fraction = 17.0/20;
 
         char dir_name[str_task_name.size()];
