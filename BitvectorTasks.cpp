@@ -316,10 +316,10 @@ BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, TaskNa
 
     InstanceTree instances = InstanceTree(type_expression->base_task_type, task_name);
     instances.prepare_for_deepening(type_expression->init_delta_task_type);
-    instances.deepen(type_expression->init_delta_task_type);
+//    instances.deepen(type_expression->init_delta_task_type);
 //
 //    instances.prepare_for_deepening(type_expression->delta_task_type);
-    num_iter--;
+//    num_iter--;
 
     for(int iter = 0;iter<num_iter;iter++)
     {
@@ -513,18 +513,12 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
 
         vector<BittreeTaskType *> multi_task_type = get_multi_task_type(&type_expression_for_multi_task_set, num_iter);
 
-//        vector<vector<vector<Bitvector> > > masks = masks_generator(num_prev_subtasks,
-//                                                                    max_mask_size, min_mask_size, num_first_in_prior,
-//                                                                    multi_task_type);
-
-        vector<vector<vector<Bitvector> > > masks;
-
         vector<vector<MetaExample> > meta_examples = get_meta_examples(
                 &type_expression_for_meta_examples, task_name, num_iter, num_prev_subtasks);
 
         dir_path =
                  "task_name=" + task_name.get_task_name() +
-                 "-gen=46__init_iter=" + std::to_string(init_iter) +
+                 "-gen=47-init_iter=" + std::to_string(init_iter) +
                  "-end_iter=" + std::to_string(num_iter) +
                  "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
                  "-min_mask_size=" +std::to_string(min_mask_size) +
@@ -553,6 +547,8 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
         }
 
         vector<Bitvector> next_subdomains;
+
+        vector<vector<vector<Bitvector> > > masks;
 
         masks.reserve(init_iter);
         for(int task_id = 0; task_id < init_iter;task_id++)
@@ -611,7 +607,12 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
             assert(masks[task_id].size() > 0);
             assert(masks[task_id][0].size() > 0);
 
-            assert(meta_examples[task_id][0].get_function_size() == masks[task_id][0][0].get_size());
+            int len_domain_of_meta_example =  meta_examples[task_id][0].get_function_size();
+            int len_mask = masks[task_id][0][0].get_size();
+
+            cout << meta_examples[task_id][0].partial_function.to_string__one_line() << endl;
+
+            assert(len_domain_of_meta_example == len_mask);
 
 //            vector<Bitvector> masks =
 //                    meta_examples[task_id][0].get_masks(max_mask_size);

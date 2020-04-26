@@ -1391,8 +1391,8 @@ vector<Bitvector> BittreeTaskType::generate_variety(int subtask_depth)
     possible_rules.push_back(stay);
     possible_rules.push_back(move_right);
     possible_rules.push_back(move_left);
-//    possible_rules.push_back(copy_right);
-//    possible_rules.push_back(copy_left);
+    possible_rules.push_back(copy_right);
+    possible_rules.push_back(copy_left);
 
     vector<vector<Rules> > rules;
 
