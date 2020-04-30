@@ -25,6 +25,7 @@ BitInBittree::BitInBittree(BittreeNode* _parent, Name name, BitInBittreeType _bi
         global_bit_id++;
     }
     copied_from = _copied_from;
+    _copied_from->copies.push_back(this);
     is_bit_set = copied_from->bit_in_bittree->is_bit_set;
     bit_val = copied_from->bit_in_bittree->bit_val;
 }

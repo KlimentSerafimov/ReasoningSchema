@@ -261,6 +261,8 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
 
         base_task_type = new BittreeTaskType(
                 NULL,  Name("base_task_type"), internal_node, internal_node);
+        init_delta_task_type = new BittreeInputOutputType(
+                NULL,  Name("init_delta_task_type"), internal_node, internal_node);
         delta_task_type = new BittreeInputOutputType(
                 NULL,  Name("delta_task_type"), internal_node, internal_node);
 

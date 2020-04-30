@@ -518,7 +518,7 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
 
         dir_path =
                  "task_name=" + task_name.get_task_name() +
-                 "-gen=47-init_iter=" + std::to_string(init_iter) +
+                 "-gen=48-init_iter=" + std::to_string(init_iter) +
                  "-end_iter=" + std::to_string(num_iter) +
                  "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
                  "-min_mask_size=" +std::to_string(min_mask_size) +
@@ -596,10 +596,10 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
 
                 next_subdomains.clear();
             }
-            else {
+//            else {
                 multi_task_type[task_id]->to_meta_example(-1, num_prev_subtasks).append_to_masks(
                         min_mask_size, max_mask_size, num_first_in_prior, masks[task_id]);
-            }
+//            }
             string language_name =
                     "[task_id=" + std::to_string(task_id+1) + "]";
 
@@ -693,6 +693,7 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
                                     break;
                                 }
                             } else{
+                                assert(test_meta_examples[i].generalization.is_contained_in(generalization));
                                 cout << "ok" << endl;
                             }
                         }
@@ -769,6 +770,7 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
                             cout << "result " << generalization.to_string() << endl;
                             cout << endl;
                             assert(generalization.is_contained_in(local_meta_examples[i].generalization));
+                            assert(local_meta_examples[i].generalization.is_contained_in(generalization));
                         }
                         cout << "TESTING DONE. ALL CORRECT" << endl;
 

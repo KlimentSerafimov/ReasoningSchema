@@ -98,6 +98,7 @@ BittreeNode::BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool
 {
     init();
     copied_from = to_copy;
+    to_copy->copies.push_back(this);
     node_type = to_copy->node_type;
     leaf_node_type = to_copy->leaf_node_type;
     if(node_type == leaf_node)
@@ -123,6 +124,7 @@ BittreeNode::BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool
 {
     init();
     copied_from = to_copy;
+    to_copy->copies.push_back(this);
     node_type = to_copy->node_type;
     leaf_node_type = to_copy->leaf_node_type;
     if(node_type == leaf_node)
@@ -446,6 +448,7 @@ BittreeInputOutputType::BittreeInputOutputType(TreeNode *_parent, Name name, Bit
         : TreeNode(_parent, name, this)
 {
     copied_from = to_copy;
+    to_copy->copies.push_back(this);
     input = new BittreeNode(this, Name("input"), to_copy->input, all_new_bits);
     output = new BittreeNode(this, Name("output"), to_copy->output, all_new_bits);
 }
@@ -466,6 +469,7 @@ BittreeTaskType::BittreeTaskType(TreeNode *_parent, Name name, BittreeTaskType *
         : TreeNode(_parent, name, this)
 {
     copied_from = to_copy;
+    to_copy->copies.push_back(this);
     assert(to_copy->io != NULL);
     io = new BittreeInputOutputType(this, Name("io"), to_copy->io, all_new_bits);
 //    if(name.to_string() == "solution")
@@ -497,6 +501,7 @@ BittreeTaskType::BittreeTaskType(TreeNode *_parent, Name name, BittreeTaskType *
 BittreeTaskType::BittreeTaskType(TreeNode *_parent, Name name, BittreeTaskType *to_copy, bool all_new_bits,
                                  bool copy_all): TreeNode(_parent, name, this) {
     copied_from = to_copy;
+    to_copy->copies.push_back(this);
     assert(to_copy->io != NULL);
     io = new BittreeInputOutputType(this, Name("io"), to_copy->io, all_new_bits);
     if (decomposition != NULL) {
@@ -1316,7 +1321,8 @@ string BittreeTaskType::to_string__one_line__first_part(int subtask_depth) {
     return ret;
 }
 
-enum Rules {inherit_from_parent, stay, move_right, move_left, copy_right, copy_left};
+enum Rules {inherit_from_parent, stay, move_right, move_left, move_to_last_copy, copy_right, copy_left};
+int rule_cost[7] = {0, 1, 2, 2, 4, 20, 20};
 
 bool next_rule(vector<vector<Rules> > & rules, vector<Rules> possible_rules)
 {
@@ -1373,7 +1379,8 @@ vector<Bitvector> BittreeTaskType::generate_variety(int subtask_depth)
 
     subtask_depth = init_subtask_depth;
 
-    cout << "HERE: " << local_parent->to_string__one_line() << endl;
+    string init_str = local_parent->to_string__one_line();
+    cout << "HERE: " << init_str << endl;
 
     vector<pair<BittreeNode*, vector<int> > > leaf_internals_and_bit_ids;
 
@@ -1391,8 +1398,9 @@ vector<Bitvector> BittreeTaskType::generate_variety(int subtask_depth)
     possible_rules.push_back(stay);
     possible_rules.push_back(move_right);
     possible_rules.push_back(move_left);
-    possible_rules.push_back(copy_right);
-    possible_rules.push_back(copy_left);
+//    possible_rules.push_back(move_to_last_copy);
+//    possible_rules.push_back(copy_right);
+//    possible_rules.push_back(copy_left);
 
     vector<vector<Rules> > rules;
 
@@ -1432,8 +1440,13 @@ vector<Bitvector> BittreeTaskType::generate_variety(int subtask_depth)
             }
         }
 
+        int cost = 0;
         for(int i = 0;i<leaf_internals_and_bit_ids.size();i++)
         {
+
+//            for(int j = 0;j<leaf_internals_and_bit_ids[i].second.size();j++) {
+//                cost+=
+//            }
             for(int j = 0;j<leaf_internals_and_bit_ids[i].second.size();j++) {
                 int bit_id = leaf_internals_and_bit_ids[i].second[j];
                 int next_bit_id;
@@ -1458,6 +1471,21 @@ vector<Bitvector> BittreeTaskType::generate_variety(int subtask_depth)
                         int first_bit_id = 0;
                         next_bit_id = first_bit_id;
                     }
+                }
+                else if(rules[i][j] == move_to_last_copy) {
+                    next_bit_id = -1;
+                    TreeNode* copied_from = leaf_internals_and_bit_ids[i].first->children[bit_id]->bit->copied_from;
+                    assert(copied_from->bit_in_bittree != NULL);
+                    assert(copied_from->bit_in_bittree->copies.size() >= 2);
+                    TreeNode* last_copy = copied_from->bit_in_bittree->copies[copied_from->bit_in_bittree->copies.size()-2];
+                    assert(last_copy->bit_in_bittree != NULL);
+                    last_copy->bit_in_bittree->is_bit_set = true;
+                    last_copy->bit_in_bittree->bit_val = 1;
+                    cout << "move_to_last_copy" << endl;
+                    cout << "copied_from:"<<copied_from->to_string() << endl;
+                    cout << "copied_from:"<<copied_from->bit_in_bittree->to_string() << endl;
+                    cout << "last_copy:"<<last_copy->to_string() << endl;
+                    cout << "last_copy:"<<last_copy->bit_in_bittree->to_string() << endl;
                 } else{
                     assert(rules[i][j] == copy_right || rules[i][j] == copy_left || rules[i][j] == stay);
                     next_bit_id = -1;
@@ -1495,7 +1523,7 @@ vector<Bitvector> BittreeTaskType::generate_variety(int subtask_depth)
                 else if(rules[i][j] == stay) {
                     next_bit_id = bit_id;
                 }else{
-                    assert(rules[i][j] == move_right || rules[i][j] == move_left);
+                    assert(rules[i][j] == move_right || rules[i][j] == move_left ||  rules[i][j] == move_to_last_copy);
                     next_bit_id = -1;
                 }
                 if(next_bit_id != -1) {
@@ -1508,6 +1536,8 @@ vector<Bitvector> BittreeTaskType::generate_variety(int subtask_depth)
         }
 
         cout << " HERE2: " << local_parent->to_string__one_line() << endl;
+
+//        ret_set.insert(make_pair(cost, BittreeTaskTypeAsPartialFunction(this, subtask_depth).total_function));
 
         ret_set.insert(BittreeTaskTypeAsPartialFunction(this, subtask_depth).total_function);
 
@@ -1888,6 +1918,7 @@ BittreeTaskDecomposition::BittreeTaskDecomposition(
     if(to_copy != NULL)
     {
         copied_from = to_copy;
+        to_copy->copies.push_back(this);
         delta = new BittreeInputOutputType(this, Name("delta"), to_copy->delta, all_new_bits);
         subtask = new BittreeTaskType(this, Name("subtask"), to_copy->subtask, all_new_bits);
     }
@@ -1899,6 +1930,7 @@ BittreeTaskDecomposition::BittreeTaskDecomposition(TreeNode *parent, Name name, 
     if(to_copy != NULL)
     {
         copied_from = to_copy;
+        to_copy->copies.push_back(this);
         delta = new BittreeInputOutputType(this, Name("delta"), to_copy->delta, all_new_bits);
         subtask = new BittreeTaskType(this, Name("subtask"), to_copy->subtask, all_new_bits, copy_all);
     }

@@ -87,6 +87,7 @@ public:
 
     string to_string__one_line();
 
+
     void assign_bits(Bitvector &bitvector);
 
     vector<string> get_path_of_bit_id(int i);
