@@ -327,12 +327,12 @@ void modeling_of_bitvector_functions() {
 //        str_task_name = str_task_name__unary_sum; // requires double_node
 //        str_task_name = str_task_name__least_set_bit;
 //        str_task_name = str_task_name__max_window_between_bits;
-        str_task_name = str_task_name__max_window_between_bits_with_state;
+//        str_task_name = str_task_name__max_window_between_bits_with_state;
 //        str_task_name = str_task_name__linear_and_or_expression;
 //        str_task_name = str_task_name__linear_and_or_nand_nor_expression;
 //        str_task_name = str_task_name__sort_bits;
 
-        TaskName task_name = TaskName(str_task_name);
+//        TaskName task_name = TaskName(str_task_name);
 
 //        str_task_name = str_task_name__multiply_by;
 //        str_task_name = str_task_name__add;
@@ -344,16 +344,44 @@ void modeling_of_bitvector_functions() {
 //        int init_size = 3;
 //        TaskName task_name = TaskName(str_task_name, init_size);
 
-        int init_iter = 4;
-        int num_iter = 10;
+        str_task_name = str_task_name__gene_network;
+
+//        int network[4][4] = {
+//                {1, 1, 1, 1},
+//                {0, 1, 1, 1},
+//                {0, 0, 1, 1},
+//                {0, 0, 0, 1},
+//        };
+
+        int network[4][4] = {
+                {1, 0, 0, 0},
+                {0, 1, 0, 0},
+                {0, 0, 1, 0},
+                {0, 0, 0, 1},
+        };
+
+        int pow = 1;
+        int network_bits = 0;
+        for(int i = 0;i<4;i++){
+            for(int j = 0;j<4;j++){
+                network_bits+=pow*network[i][j];
+                pow*=2;
+            }
+        }
+
+        TaskName task_name = TaskName(str_task_name, network_bits);
+
+        int init_iter = 2;
+        int num_iter = 7;
+        ModeType mode_type = progressive_prior_mode;
         MetricType metric_type = most_progress;
         int recursive_rep_set_depth = 1;
-        int min_mask_size = 2;
+        int min_mask_size = 1;
         int max_mask_size = 3;
-        int num_prev_subtasks = 1;
+        int num_prev_subtasks = 0;
         int num_first_in_prior = -1;
-        int seed_train_set = 10;
-        int num_minimization_steps = 10;
+        int seed_train_set = -1;
+        int num_minimization_steps = 1;
         double minimization_fraction = 19.0/20;
 
         assert(minimization_fraction != 0);
@@ -361,7 +389,7 @@ void modeling_of_bitvector_functions() {
         BitvectorTasks bitvecbtor_tasks =
                 BitvectorTasks(
                         task_name, init_iter, num_iter, recursive_rep_set_depth,
-                        metric_type, min_mask_size, max_mask_size, num_prev_subtasks, (string) "",
+                        metric_type, mode_type, min_mask_size, max_mask_size, num_prev_subtasks, (string) "",
                         num_first_in_prior, seed_train_set, num_minimization_steps, minimization_fraction);
     }
 

@@ -473,7 +473,7 @@ vector<Bitvector> get_next_subdomains(
 
 
 BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, int recursive_rep_set_depth,
-                               MetricType metric, int min_mask_size, int max_mask_size, int num_prev_subtasks,
+                               MetricType metric, ModeType mode, int min_mask_size, int max_mask_size, int num_prev_subtasks,
                                string dir_path, int num_first_in_prior, int seed_train_set, int num_minimization_steps,
                                double minimization_fraction)
 {
@@ -518,13 +518,14 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
 
         dir_path =
                  "task_name=" + task_name.get_task_name() +
-                 "-gen=48-init_iter=" + std::to_string(init_iter) +
+                 "-gen=49-init_iter=" + std::to_string(init_iter) +
                  "-end_iter=" + std::to_string(num_iter) +
                  "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
                  "-min_mask_size=" +std::to_string(min_mask_size) +
                  "-max_mask_size=" +std::to_string(max_mask_size) +
                  "-get_fst_from_pior="+std::to_string(num_first_in_prior) +
                  "-metric=" + metric_type_name[metric]+
+                 "-mode="+mode_type_name[mode]+
                  "-seed_train_set=" + std::to_string(seed_train_set)+
                  "-num_minimize_steps="+std::to_string(num_minimization_steps)+
                  "-minimize_fraction="+std::to_string(minimization_fraction);
@@ -569,7 +570,7 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
 
             bool is_first = task_id == init_iter;
 
-            if(next_subdomains.size() != 0)
+            if(mode == progressive_prior_mode && next_subdomains.size() != 0)
             {
                 cout << "with_alternative:" << endl;
 
@@ -643,14 +644,23 @@ BitvectorTasks::BitvectorTasks(TaskName task_name, int init_iter, int num_iter, 
                 vector<MetaExample> test_meta_examples = meta_examples[task_id];
                 vector<MetaExample> train_meta_examples;
 
-                std::shuffle(test_meta_examples.begin(), test_meta_examples.end(), std::mt19937(std::random_device()()));
+
+                int local_seed_train_set = seed_train_set;
+                if(local_seed_train_set == -1)
+                {
+                    local_seed_train_set = test_meta_examples.size();
+                }
+                else
+                {
+                    std::shuffle(test_meta_examples.begin(), test_meta_examples.end(), std::mt19937(std::random_device()()));
+                }
 
                 for(int i = 0;i<test_meta_examples.size();i++)
                 {
                     test_meta_examples[i].idx = i;
                 }
 
-                for (int i = 0; i < min((int)test_meta_examples.size(), seed_train_set); i ++) {
+                for (int i = 0; i < min((int)test_meta_examples.size(), local_seed_train_set); i ++) {
                     train_meta_examples.push_back(test_meta_examples[i]);
                     train_meta_examples.back().idx = (int)train_meta_examples.size()-1;
                 }

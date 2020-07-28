@@ -9,4 +9,9 @@
 using namespace std;
 enum MetricType {min_rep_set, most_progress, first_from_user_prior};
 const string metric_type_name[30] = {"min_rep_set", "most_progress", "first_from_user_prior"};
+
+enum ModeType {progressive_prior_mode};
+const string mode_type_name[30] = {"progressive_prior_mode"};
+
+
 #endif //COMPACTPOSET_METRICTYPE_H

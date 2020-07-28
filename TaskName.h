@@ -27,6 +27,7 @@ static const string str_task_name__linear_and_or_expression = "linear_and_or_exp
 static const string str_task_name__linear_and_or_nand_nor_expression = "linear_and_or_nand_nor_expression";
 static const string str_task_name__sort_bits = "sort_bits";
 static const string str_task_name__add = "add";
+static const string str_task_name__gene_network = "gene_network";
 
 class TaskName
 {
@@ -58,6 +59,9 @@ public:
 
     int param__init_size = -1;
 
+    bool do__gene_network = false;
+    int param__network = -1;
+
     bool num_iter_defined = false;
     int num_iter = -1;
 
@@ -69,6 +73,7 @@ public:
         assert(_task_name != str_task_name__one_shift_idx__reverse_subtask);
         assert(_task_name != str_task_name__count_unary__reverse_subtask);
         assert(_task_name != str_task_name__add);
+        assert(_task_name != str_task_name__gene_network);
 
         task_name = _task_name;
 
@@ -92,7 +97,8 @@ public:
                 _task_name == str_task_name__multiply_by ||
                 _task_name == str_task_name__one_shift_idx__reverse_subtask ||
                 _task_name == str_task_name__count_unary__reverse_subtask ||
-                _task_name == str_task_name__add
+                _task_name == str_task_name__add ||
+                _task_name == str_task_name__gene_network
         );
         task_name = _task_name;
 
@@ -100,6 +106,7 @@ public:
         do__one_shift_idx__reverse_subtask = task_name == str_task_name__one_shift_idx__reverse_subtask;
         do__count_unary__reverse_subtask = task_name == str_task_name__count_unary__reverse_subtask;
         do__add = task_name == str_task_name__add;
+        do__gene_network = task_name == str_task_name__gene_network;
 
         if(do__multiply_by)
         {
@@ -114,6 +121,10 @@ public:
         else if(do__add)
         {
             param__add_by = _param;
+        }
+        else if(do__gene_network)
+        {
+            param__network = _param;
         }
         else
         {
@@ -134,6 +145,10 @@ public:
         else if(do__add)
         {
             return task_name + "(num=" + std::to_string(param__add_by) + ")";
+        }
+        else if(do__gene_network)
+        {
+            return task_name + "(network=" + std::to_string(param__network) + ")";
         }
         else{
             return task_name;

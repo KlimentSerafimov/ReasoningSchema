@@ -136,6 +136,8 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
 
         base_task_type = new BittreeTaskType(
                 NULL,  Name("base_task_type"), internal_node, internal_node);
+        init_delta_task_type = new BittreeInputOutputType(
+                NULL,  Name("init_delta_task_type"), internal_node, leaf_node);
         delta_task_type = new BittreeInputOutputType(
                 NULL,  Name("delta_task_type"), internal_node, leaf_node);
 
@@ -221,8 +223,12 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
         int init_output_sizes[2] = {1, 0};
         int delta_output_sizes[2] = {0, 1};
 
-        base_task_type = new BittreeTaskType(NULL,  Name("base_task_type"), internal_node, internal_node);
-        delta_task_type = new BittreeInputOutputType(NULL,  Name("delta_task_type"), internal_node, internal_node);
+        base_task_type = new BittreeTaskType(
+                NULL,  Name("base_task_type"), internal_node, internal_node);
+        init_delta_task_type = new BittreeInputOutputType(
+                NULL,  Name("init_delta_task_type"), internal_node, internal_node);
+        delta_task_type = new BittreeInputOutputType(
+                NULL,  Name("delta_task_type"), internal_node, internal_node);
 
         build_input_type(num_input_operands);
 
@@ -307,6 +313,8 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
         int num_input_operands = 3;
         base_task_type = new BittreeTaskType(
                 NULL,  Name("base_task_type"), internal_node, internal_node);
+        init_delta_task_type = new BittreeInputOutputType(
+                NULL,  Name("init_delta_task_type"), internal_node, internal_node);
         delta_task_type = new BittreeInputOutputType(
                 NULL,  Name("delta_task_type"), internal_node, internal_node);
 
@@ -315,6 +323,32 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
         int num_outputs = 1;
         int init_output_sizes[] = {1};
         int delta_output_sizes[] = {0};
+
+        build_output_type(num_outputs, init_output_sizes, delta_output_sizes);
+
+    }
+
+    if(task_name.do__gene_network)
+    {
+
+        assert(!enter);
+        enter = true;
+        int num_input_operands = 1;
+        int init_input_operand_sizes[1] = {0};
+        int delta_input_operand_sizes[1] = {2};
+
+        int num_outputs = 3;
+        int init_output_sizes[3] = {1, 0, 0};
+        int delta_output_sizes[3] = {0, 1, 1};
+
+        base_task_type =
+                new BittreeTaskType(NULL,  Name("base_task_type"), internal_node, internal_node);
+        init_delta_task_type = new BittreeInputOutputType(
+                NULL,  Name("init_delta_task_type"), internal_node, internal_node);
+        delta_task_type =
+                new BittreeInputOutputType(NULL,  Name("delta_task_type"), internal_node, internal_node);
+
+        build_input_type(num_input_operands, init_input_operand_sizes, delta_input_operand_sizes);
 
         build_output_type(num_outputs, init_output_sizes, delta_output_sizes);
 

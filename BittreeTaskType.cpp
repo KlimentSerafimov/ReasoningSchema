@@ -726,7 +726,103 @@ void BittreeInputOutputType::solve(TaskName task_name)
     {
         solve__sort_bits();
     }
+
+    if(task_name.do__gene_network)
+    {
+        solve__gene_network(task_name.param__network);
+    }
 }
+
+void BittreeInputOutputType::solve__gene_network(int network) {
+    const int num_operands = 1;
+    assert(input->children.size() == num_operands);
+    int operands[num_operands] = {0};
+    int len_operands[num_operands];
+    for(int i = 0;i<num_operands;i++) {
+        int pow = 1;
+        len_operands[i] = input->children.at(i)->children.size();
+        for (int j = 0; j < input->children.at(i)->children.size(); j++) {
+            assert(input->children.at(i)->children.at(j)->bit->is_bit_set == true);
+            operands[i] += pow * input->children.at(i)->children.at(j)->bit->bit_val;
+            pow *= 2;
+        }
+    }
+
+    Bitvector final = 0;
+    Bitvector bits = 0;
+    Bitvector intermediate = 0;
+
+    if(len_operands[0] >= 1)
+    {
+        assert(len_operands[0]%2==0);
+        vector<int> genes;
+        for(int i = 0;i<len_operands[0]/2;i++)
+        {
+            int bit0 = get_bit(operands[0], 2*i);
+            int bit1 = get_bit(operands[0], 2*i+1);
+            genes.push_back(bit0 + 2*bit1);
+        }
+
+        vector<bool> a_or_i;
+
+        for(int i = 0; i<genes.size()-1; i++)
+        {
+            int op = genes[i+1];
+            int operand = genes[i];
+            int bit = get_bit(network, operand+4*op);
+            bits.set(i, bit);
+            a_or_i.push_back(bit);
+        }
+
+        int bool_running_a_or_i = 1;
+
+        for(int i = a_or_i.size()-1;i>=0;i--)
+        {
+            if(bool_running_a_or_i)
+            {
+                if(a_or_i[i])
+                {
+                    bool_running_a_or_i = 1;
+                } else{
+                    bool_running_a_or_i = 0;
+                }
+            }
+            else
+            {
+                if(a_or_i[i])
+                {
+                    bool_running_a_or_i = 1;
+                } else{
+                    bool_running_a_or_i = 1;
+                }
+            }
+            intermediate.set(i, bool_running_a_or_i);
+        }
+
+        final = bool_running_a_or_i;
+
+    }
+
+    for(int i = 0;i<output->children.at(0)->children.size();i++)
+    {
+        assert(output->children.at(0)->children.at(i)->bit->is_bit_set == false);
+        output->children.at(0)->children.at(i)->bit->is_bit_set = true;
+        output->children.at(0)->children.at(i)->bit->bit_val = get_bit(final, i);
+    }
+    for(int i = 0;i<output->children.at(1)->children.size();i++)
+    {
+        assert(output->children.at(1)->children.at(i)->bit->is_bit_set == false);
+        output->children.at(1)->children.at(i)->bit->is_bit_set = true;
+        output->children.at(1)->children.at(i)->bit->bit_val = get_bit(bits, i);
+    }
+    for(int i = 0;i<output->children.at(2)->children.size();i++)
+    {
+        assert(output->children.at(2)->children.at(i)->bit->is_bit_set == false);
+        output->children.at(2)->children.at(i)->bit->is_bit_set = true;
+        output->children.at(2)->children.at(i)->bit->bit_val = get_bit(intermediate, i);
+    }
+}
+
 
 void BittreeInputOutputType::solve__sort_bits()
 {

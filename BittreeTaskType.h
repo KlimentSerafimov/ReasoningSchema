@@ -15,7 +15,6 @@
 class PartialFunction;
 class BittreeTaskTypeAsPartialFunction;
 class MetaExample;
-
 class BittreeNode;
 class BittreeTaskType;
 
@@ -182,8 +181,9 @@ public:
 
     void solve__count_unary__reverse_subtask(int init_size);
 
-};
+    void solve__gene_network(int network);
 
+};
 
 class BittreeTaskDecomposition: public TreeNode
 {
@@ -207,7 +207,6 @@ public:
 
     string bits_to_string(int num_tabs);
 };
-
 
 class BittreeTaskType: public TreeNode
 {
