@@ -380,6 +380,7 @@ void modeling_of_bitvector_functions() {
         int max_mask_size = 3;
         int num_prev_subtasks = 1;
         int num_first_in_prior = -1;
+        bool train_set_minimization = true;
         int seed_train_set = 20;
         int num_minimization_steps = 1;
         double minimization_fraction = 19.0/20;
@@ -390,7 +391,7 @@ void modeling_of_bitvector_functions() {
                 BitvectorTasks(
                         task_name, init_iter, num_iter, recursive_rep_set_depth,
                         metric_type, mode_type, min_mask_size, max_mask_size, num_prev_subtasks, (string) "",
-                        num_first_in_prior, seed_train_set, num_minimization_steps, minimization_fraction);
+                        num_first_in_prior, train_set_minimization, seed_train_set, num_minimization_steps, minimization_fraction);
     }
 
 }

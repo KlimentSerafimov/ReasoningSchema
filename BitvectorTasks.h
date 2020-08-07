@@ -70,6 +70,7 @@ class BitvectorTasks {
     int num_prev_subtasks;
     string dir_path;
     int num_first_in_prior;
+    bool train_set_minimization;
     int seed_train_set;
     int num_minimization_steps;
     double minimization_fraction;
@@ -101,7 +102,7 @@ public:
 
     BitvectorTasks(TaskName task_name, int init_iter, int num_iter, int recursive_rep_set_depth,
                    MetricType metric, ModeType mode, int min_mask_size, int max_mask_size, int num_prev_subtasks,
-                   string dir_path, int num_first_in_prior, int seed_train_set, int num_minimization_steps, double minimization_fraction);
+                   string dir_path, int num_first_in_prior, bool train_set_minimization, int seed_train_set, int num_minimization_steps, double minimization_fraction);
 };
 
 #endif //COMPACTPOSET_BITVECTORTASKS_H

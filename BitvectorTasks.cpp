@@ -497,9 +497,20 @@ void run_bittree_program(TaskName task_name)
 
 }
 
-BitvectorTasks::BitvectorTasks(TaskName _task_name, int _init_iter, int _num_iter, int _recursive_rep_set_depth,
-                               MetricType _metric, ModeType _mode, int _min_mask_size, int _max_mask_size, int _num_prev_subtasks,
-                               string _dir_path, int _num_first_in_prior, int _seed_train_set, int _num_minimization_steps,
+BitvectorTasks::BitvectorTasks(TaskName _task_name,
+                               int _init_iter,
+                               int _num_iter,
+                               int _recursive_rep_set_depth,
+                               MetricType _metric,
+                               ModeType _mode,
+                               int _min_mask_size,
+                               int _max_mask_size,
+                               int _num_prev_subtasks,
+                               string _dir_path,
+                               int _num_first_in_prior,
+                               bool _train_set_minimization,
+                               int _seed_train_set,
+                               int _num_minimization_steps,
                                double _minimization_fraction)
 {
     task_name = _task_name;
@@ -513,6 +524,7 @@ BitvectorTasks::BitvectorTasks(TaskName _task_name, int _init_iter, int _num_ite
     num_prev_subtasks = _num_prev_subtasks;
     dir_path = _dir_path;
     num_first_in_prior = _num_first_in_prior;
+    train_set_minimization = _train_set_minimization;
     seed_train_set = _seed_train_set;
     num_minimization_steps = _num_minimization_steps;
     minimization_fraction = _minimization_fraction;
@@ -535,13 +547,14 @@ BitvectorTasks::BitvectorTasks(TaskName _task_name, int _init_iter, int _num_ite
 
     vector<Bitvector> next_subdomains;
 
-    vector<vector<vector<Bitvector> > > masks;
-
-    masks.reserve(init_iter);
-    for(int task_id = 0; task_id < init_iter;task_id++)
-    {
-        masks.emplace_back();
-    }
+    vector<vector<vector<Bitvector> > > masks =
+            vector<vector<vector<Bitvector> > >(meta_examples.size(), vector<vector<Bitvector> >());
+//
+//    masks.reserve(init_iter);
+//    for(int task_id = 0; task_id < init_iter;task_id++)
+//    {
+//        masks.emplace_back();
+//    }
 
     ofstream summary(dir_path + "/summary");
     ofstream summary_with_times(dir_path + "/summary_with_times");
@@ -550,9 +563,14 @@ BitvectorTasks::BitvectorTasks(TaskName _task_name, int _init_iter, int _num_ite
 
     for(int task_id = init_iter, is_first = true; task_id < meta_examples.size(); task_id++, is_first = false) {
 
-        masks.emplace_back();
+        //each one of these loop operations needs to output a reasoning schema.
 
-        assert(task_id == masks.size() - 1);
+        vector<MetaExample> ret_train_meta_examples;
+        ReasoningSchemaOptimizer ret_schema;
+
+//        masks.emplace_back();
+
+//        assert(task_id == masks.size() - 1);
 
         if (mode == progressive_prior_mode && next_subdomains.size() != 0) {
             cout << "with_alternative:" << endl;
@@ -618,12 +636,10 @@ BitvectorTasks::BitvectorTasks(TaskName _task_name, int _init_iter, int _num_ite
 
         //project the ordering of the subdomain masks onto the language of f(n) = ordering over the subdomain masks that solves the problem.
 
-        bool train_set_minimization = !is_first;
-        if (train_set_minimization) {
+        if (train_set_minimization && !is_first) {
 
             vector<MetaExample> test_meta_examples = meta_examples[task_id];
             vector<MetaExample> train_meta_examples;
-
 
             int local_seed_train_set = seed_train_set;
             if (local_seed_train_set == -1) {
@@ -688,6 +704,8 @@ BitvectorTasks::BitvectorTasks(TaskName _task_name, int _init_iter, int _num_ite
 
                     if (all_solved) {
                         local_subdomains = my_schema.get_subdomains();
+                        ret_schema = my_schema;
+                        ret_train_meta_examples = train_meta_examples;
                     }
 
                     if (train_meta_examples.size() >= min_train_set_size) {
@@ -720,15 +738,14 @@ BitvectorTasks::BitvectorTasks(TaskName _task_name, int _init_iter, int _num_ite
                 train_meta_examples = new_train_set;
             }
 
-
             BittreeTaskType *next_bittree_task_type = NULL;
             if (task_id + 1 < multi_task_type.size()) {
                 next_bittree_task_type = multi_task_type[task_id + 1];
             }
 
             next_subdomains = get_next_subdomains(
-                    metric, dir_path, init_language_name, subdomains, multi_task_type[task_id], next_bittree_task_type,
-                    num_prev_subtasks);
+                metric, dir_path, init_language_name,
+                subdomains, multi_task_type[task_id], next_bittree_task_type,num_prev_subtasks);
 
         } else {
 
@@ -767,6 +784,8 @@ BitvectorTasks::BitvectorTasks(TaskName _task_name, int _init_iter, int _num_ite
 
                     if (rec_id == 0) {
                         subdomains = my_schema.get_subdomains();
+                        ret_schema = my_schema;
+                        ret_train_meta_examples = local_meta_examples;
                     }
 
                     rec_id++;
@@ -812,7 +831,7 @@ void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
             "task_name=" + task_name.get_task_name() +
-            "-gen=49-init_iter=" + std::to_string(init_iter) +
+            "-gen=50-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) +
@@ -820,6 +839,7 @@ void BitvectorTasks::set_up_directory() {
             "-fst_from_pior="+std::to_string(num_first_in_prior) +
             "-metric=" + metric_type_name[metric]+
             "-mode="+mode_type_name[mode]+
+            "-tsm="+std::to_string(train_set_minimization)[0]+
             "-seed_train_set=" + std::to_string(seed_train_set)+
             "-num_minimize_steps="+std::to_string(num_minimization_steps)+
             "-minimize_fraction="+std::to_string(minimization_fraction);
