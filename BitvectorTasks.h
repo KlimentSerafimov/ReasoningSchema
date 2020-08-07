@@ -100,7 +100,7 @@ class BitvectorTasks {
 
     void set_up_directory();
 
-    void one_step_of_incremental_meta_generalization(
+    pair<vector<MetaExample>, ReasoningSchemaOptimizer*>  one_step_of_incremental_meta_generalization(
             bool is_fist,
             int task_id,
             vector<MetaExample> meta_examples_of_task_id,

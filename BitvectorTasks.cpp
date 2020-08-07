@@ -497,7 +497,7 @@ void run_bittree_program(TaskName task_name)
 
 }
 
-void BitvectorTasks::one_step_of_incremental_meta_generalization(
+pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of_incremental_meta_generalization(
         bool is_first,
         int task_id, 
         vector<MetaExample> meta_examples_of_task_id,
@@ -507,15 +507,8 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
         BittreeTaskType * next_task_type
 )
 {
-
-    //each one of these loop operations needs to output a reasoning schema.
-
     vector<MetaExample> ret_train_meta_examples;
-    ReasoningSchemaOptimizer ret_schema;
-
-//        masks.emplace_back();
-
-//        assert(task_id == masks.size() - 1);
+    ReasoningSchemaOptimizer* ret_reasoning_schema;
 
     if (mode == progressive_prior_mode && next_subdomains.size() != 0) {
         cout << "with_alternative:" << endl;
@@ -620,14 +613,14 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
                                 "__size_of_train_set=" +
                                 std::to_string(train_meta_examples.size());
 
-                ReasoningSchemaOptimizer my_schema =
+                ReasoningSchemaOptimizer * my_reasoning_schema = new
                         ReasoningSchemaOptimizer(
                                 train_meta_examples, language_name, masks_of_task_id, dir_path, metric);
 
                 all_solved = true;
                 int num_added = 0;
                 for (int i = 0; i < test_meta_examples.size(); i++) {
-                    PartialFunction generalization = my_schema.query(test_meta_examples[i].partial_function);
+                    PartialFunction generalization = my_reasoning_schema->query(test_meta_examples[i].partial_function);
                     cout << "query  " << test_meta_examples[i].to_string() << endl;
                     cout << "result " << generalization.to_string() << endl;
                     cout << endl;
@@ -648,8 +641,8 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
                 }
 
                 if (all_solved) {
-                    local_subdomains = my_schema.get_subdomains();
-                    ret_schema = my_schema;
+                    local_subdomains = my_reasoning_schema->get_subdomains();
+                    ret_reasoning_schema = my_reasoning_schema;
                     ret_train_meta_examples = train_meta_examples;
                 }
 
@@ -704,12 +697,12 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
 
                 language_name = language_name + "__rec=" + std::to_string(rec_id);
 
-                ReasoningSchemaOptimizer my_schema =
+                ReasoningSchemaOptimizer * my_reasoning_schema = new
                         ReasoningSchemaOptimizer(
                                 local_meta_examples, language_name, masks_of_task_id, dir_path, metric);
 
                 for (int i = 0; i < local_meta_examples.size(); i++) {
-                    PartialFunction generalization = my_schema.query(local_meta_examples[i].partial_function);
+                    PartialFunction generalization = my_reasoning_schema->query(local_meta_examples[i].partial_function);
                     cout << "query  " << local_meta_examples[i].to_string() << endl;
                     cout << "result " << generalization.to_string() << endl;
                     cout << endl;
@@ -718,15 +711,15 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
                 }
                 cout << "TESTING DONE. ALL CORRECT" << endl;
 
-                local_meta_examples = my_schema.get_necessary_meta_examples(false);
-
-                now_meta_examples_size = (int) local_meta_examples.size();
-
                 if (rec_id == 0) {
-                    subdomains = my_schema.get_subdomains();
-                    ret_schema = my_schema;
+                    subdomains = my_reasoning_schema->get_subdomains();
+                    ret_reasoning_schema = my_reasoning_schema;
                     ret_train_meta_examples = local_meta_examples;
                 }
+
+                local_meta_examples = my_reasoning_schema->get_necessary_meta_examples(false);
+
+                now_meta_examples_size = (int) local_meta_examples.size();
 
                 rec_id++;
                 if (recursive_rep_set_depth != -1 && rec_id > recursive_rep_set_depth) {
@@ -739,12 +732,12 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
                                         next_task_type, num_prev_subtasks);
 
         } else if (true) {
-            ReasoningSchemaOptimizer my_schema =
+            ReasoningSchemaOptimizer my_reasoning_schema =
                     ReasoningSchemaOptimizer(
                             meta_examples_of_task_id, language_name, masks_of_task_id, dir_path, metric);
 
             for (int j = 0; j < meta_examples_of_task_id.size(); j++) {
-                PartialFunction generalization = my_schema.query(meta_examples_of_task_id[j].partial_function);
+                PartialFunction generalization = my_reasoning_schema.query(meta_examples_of_task_id[j].partial_function);
                 cout << "query  " << meta_examples_of_task_id[j].to_string() << endl;
                 cout << "result " << generalization.to_string() << endl;
                 cout << endl;
@@ -752,7 +745,7 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
             }
             cout << "TESTING DONE. ALL CORRECT" << endl;
 
-            vector<MetaExample> necessary_meta_examples = my_schema.get_necessary_meta_examples(false);
+            vector<MetaExample> necessary_meta_examples = my_reasoning_schema.get_necessary_meta_examples(false);
         } else {
             cout << "Need to send a prior over Bitmasks as a vector of vectors of bitvectors" << endl;
             assert(false);
@@ -760,6 +753,8 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
                                                                       masks_of_task_id[0]);
         }
     }
+    
+    return make_pair(ret_train_meta_examples, ret_reasoning_schema);
 }
 
 BitvectorTasks::BitvectorTasks(TaskName _task_name,
@@ -832,16 +827,52 @@ BitvectorTasks::BitvectorTasks(TaskName _task_name,
         {
             next_task_type = multi_task_type[task_id+1];
         }
-        one_step_of_incremental_meta_generalization(
+        pair<vector<MetaExample>, ReasoningSchemaOptimizer*> solution =
+            one_step_of_incremental_meta_generalization(
 
-                is_first,
-                task_id,
-                meta_examples[task_id],
-                next_subdomains,
-                masks[task_id],
-                multi_task_type[task_id],
-                next_task_type
-                );
+                    is_first,
+                    task_id,
+                    meta_examples[task_id],
+                    next_subdomains,
+                    masks[task_id],
+                    multi_task_type[task_id],
+                    next_task_type
+                    );
+
+        vector<MetaExample> rep_set = solution.first;
+        ReasoningSchemaOptimizer * reasoning_schema = solution.second;
+
+        vector<Module*> modules = reasoning_schema->get_modules();
+
+        ofstream module_meta_examples(dir_path + "/module_meta_examples__task_id_"+std::to_string(task_id));
+
+        for(int i = 0;i<modules.size();i++)
+        {
+            vector<MetaExample> necessary_meta_examples = modules[i]->module_meta_examples;
+            for(int j = 0;j<necessary_meta_examples.size();j++)
+            {
+                module_meta_examples << necessary_meta_examples[j].to_string() << endl;
+            }
+            module_meta_examples << endl;
+        }
+
+        ofstream rep_meta_examples(dir_path + "/rep_meta_examples__task_id_"+std::to_string(task_id));
+
+        for(int j = 0;j<rep_set.size();j++)
+        {
+            rep_meta_examples << rep_set[j].to_string() << endl;
+        }
+        rep_meta_examples << endl;
+
+        ofstream imp_meta_examples(dir_path + "/imp_meta_examples__task_id_"+std::to_string(task_id));
+
+        vector<MetaExample> imp_set = reasoning_schema->get_necessary_meta_examples(false);
+        for(int j = 0;j<imp_set.size();j++)
+        {
+            imp_meta_examples << imp_set[j].to_string() << endl;
+        }
+        imp_meta_examples << endl;
+
     }
 }
 
@@ -849,7 +880,7 @@ void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
             "task_name=" + task_name.get_task_name() +
-            "-gen=51-init_iter=" + std::to_string(init_iter) +
+            "-gen=53-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) +

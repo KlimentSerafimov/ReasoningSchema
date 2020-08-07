@@ -419,10 +419,9 @@ void ReasoningSchemaOptimizer::calc_module(Bitvector subdomain_mask, Module *mod
 
 //    cout << "num_individually_consistent_together_in_compact_poset = " << individually_consistent_meta_examples.size() << endl;
 
-    bool true_meta_learning = false;
+    bool true_meta_learning = true;
     if(true_meta_learning) {
         prune_globally_inconsistent_meta_examples(meta_examples, subdomain_mask, module->compact_poset);
-
         module->compact_poset->soft_delete_redundant_edges();
     }
 
@@ -445,13 +444,13 @@ void ReasoningSchemaOptimizer::calc_module(Bitvector subdomain_mask, Module *mod
             get_meta_examples_after_query(subdomain_mask, module->compact_poset, meta_examples, false, false);
 
     module->intermediate_num_missing_bits = get_num_missing_bits(module->meta_examples_after_query);
-    int intermediate_delta_num_bits = init_num_missing_bits - module->intermediate_num_missing_bits;
+//    int intermediate_delta_num_bits = init_num_missing_bits - module->intermediate_num_missing_bits;
 //    cout << "intermediate_num_missing_bits = " << module->intermediate_num_missing_bits << " intermediate_delta_num_bits = " << intermediate_delta_num_bits << endl;
 
     repeat_apply_parents(module);
 
     module->num_missing_bits = get_num_missing_bits(module->meta_examples_after_query);
-    int delta_num_bits = init_num_missing_bits - module->num_missing_bits;
+//    int delta_num_bits = init_num_missing_bits - module->num_missing_bits;
 //    cout << "after_repeat_num_missing_bits = " << module->num_missing_bits << " after_repeat_delta_num_missing_bits = " << delta_num_bits << endl;
 
 }
@@ -603,10 +602,37 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
 
             fout << best_module.print_module_sketch(time(nullptr) - init_time) << std::flush;
 
+            for (int i = 0; i < meta_examples.size(); i++) {
+                PartialFunction generalization = query(meta_examples[i].partial_function);
+                cout << "query  " << meta_examples[i].to_string() << endl;
+                cout << "result " << generalization.to_string() << endl;
+                cout << endl;
+                if (!meta_examples[i].generalization.is_contained_in(generalization)) {
+                    cout << "wrong" << endl;
+                    assert(false);
+                } else {
+                    assert(meta_examples[i].generalization.is_contained_in(generalization));
+                    cout << "ok" << endl;
+                }
+            }
+
             next = new ReasoningSchemaOptimizer(best_module.meta_examples_after_query, this);
 
             if(parent_pointer == nullptr)
             {
+                for (int i = 0; i < meta_examples.size(); i++) {
+                    PartialFunction generalization = query(meta_examples[i].partial_function);
+                    cout << "query  " << meta_examples[i].to_string() << endl;
+                    cout << "result " << generalization.to_string() << endl;
+                    cout << endl;
+                    if (!generalization.is_contained_in(meta_examples[i].generalization)) {
+                        cout << "wrong" << endl;
+                        assert(false);
+                    } else {
+                        assert(meta_examples[i].generalization.is_contained_in(generalization));
+                        cout << "ok" << endl;
+                    }
+                }
 
                 ReasoningSchemaOptimizer* last = this;
                 while(last->next != nullptr)
@@ -897,4 +923,15 @@ vector<Bitvector> ReasoningSchemaOptimizer::get_subdomains() {
 
 ReasoningSchemaOptimizer::ReasoningSchemaOptimizer() {
 
+}
+
+vector<Module *> ReasoningSchemaOptimizer::get_modules() {
+    vector<Module * > ret;
+    ReasoningSchemaOptimizer* at = this;
+    while(at != NULL)
+    {
+        ret.push_back(&at->best_module);
+        at = at->next;
+    }
+    return ret;
 }

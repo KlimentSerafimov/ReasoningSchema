@@ -318,7 +318,7 @@ void modeling_of_bitvector_functions() {
     for(int add_by = is_const*0 + (!is_const)*1; add_by <= is_const*0 + (!is_const)*32; add_by ++) {
         string str_task_name;
 
-        str_task_name = str_task_name__sum;
+//        str_task_name = str_task_name__sum;
 //        str_task_name = str_task_name__greater;
 //        str_task_name = str_task_name__cumulative_binary_operator;
 //        str_task_name = str_task_name__bitwise_binary_operator;
@@ -327,7 +327,7 @@ void modeling_of_bitvector_functions() {
 //        str_task_name = str_task_name__unary_sum; // requires double_node
 //        str_task_name = str_task_name__least_set_bit;
 //        str_task_name = str_task_name__max_window_between_bits;
-//        str_task_name = str_task_name__max_window_between_bits_with_state;
+        str_task_name = str_task_name__max_window_between_bits_with_state;
 //        str_task_name = str_task_name__linear_and_or_expression;
 //        str_task_name = str_task_name__linear_and_or_nand_nor_expression;
 //        str_task_name = str_task_name__sort_bits;
@@ -371,8 +371,8 @@ void modeling_of_bitvector_functions() {
 //
 //        TaskName task_name = TaskName(str_task_name, network_bits);
 
-        int init_iter = 3;
-        int num_iter = 7;
+        int init_iter = 4;
+        int num_iter = 16;
         ModeType mode_type = progressive_prior_mode;
         MetricType metric_type = most_progress;
         int recursive_rep_set_depth = 0;
@@ -382,7 +382,7 @@ void modeling_of_bitvector_functions() {
         int num_first_in_prior = -1;
         bool train_set_minimization = true;
         int seed_train_set = 20;
-        int num_minimization_steps = 1;
+        int num_minimization_steps = 30;
         double minimization_fraction = 19.0/20;
 
         assert(minimization_fraction != 0);

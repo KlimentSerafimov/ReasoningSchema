@@ -80,6 +80,8 @@ public:
     string meta_example_to_string__one_line(MetaExample meta_example);
 
     ReasoningSchemaOptimizer();
+
+    vector<Module *> get_modules();
 };
 
 #endif //COMPACTPOSET_REASONINGSCHEMAOPTIMIZER_H
