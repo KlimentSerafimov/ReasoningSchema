@@ -497,6 +497,271 @@ void run_bittree_program(TaskName task_name)
 
 }
 
+void BitvectorTasks::one_step_of_incremental_meta_generalization(
+        bool is_first,
+        int task_id, 
+        vector<MetaExample> meta_examples_of_task_id,
+        vector<Bitvector> & next_subdomains,
+        vector<vector<Bitvector> > masks_of_task_id,
+        BittreeTaskType * task_type,
+        BittreeTaskType * next_task_type
+)
+{
+
+    //each one of these loop operations needs to output a reasoning schema.
+
+    vector<MetaExample> ret_train_meta_examples;
+    ReasoningSchemaOptimizer ret_schema;
+
+//        masks.emplace_back();
+
+//        assert(task_id == masks.size() - 1);
+
+    if (mode == progressive_prior_mode && next_subdomains.size() != 0) {
+        cout << "with_alternative:" << endl;
+
+        for (int i = 0; i < next_subdomains.size(); i++) {
+            cout << next_subdomains[i].to_string() << endl;
+        }
+        cout << endl;
+
+        bool first_from_prior_from_prev_task = false;
+        if (first_from_prior_from_prev_task) {
+            for (int i = 0; i < next_subdomains.size(); i++) {
+                vector<Bitvector> singleton;
+                singleton.push_back(next_subdomains[i]);
+                masks_of_task_id.push_back(singleton);
+            }
+        } else {
+            masks_of_task_id.push_back(next_subdomains);
+        }
+
+//                masks_of_task_id.insert(masks_of_task_id.begin(), next_subdomains);
+
+        next_subdomains.clear();
+    }
+//            else {
+    task_type->to_meta_example(-1, num_prev_subtasks).append_to_masks(
+            min_mask_size, max_mask_size, num_first_in_prior, masks_of_task_id);
+//            }
+    string language_name =
+            "[task_id=" + std::to_string(task_id + 1) + "]";
+
+    assert(meta_examples_of_task_id.size() > 0);
+    assert(masks_of_task_id.size() > 0);
+    assert(masks_of_task_id[0].size() > 0);
+
+    int len_domain_of_meta_example = meta_examples_of_task_id[0].get_function_size();
+    int len_mask = masks_of_task_id[0][0].get_size();
+
+    cout << meta_examples_of_task_id[0].partial_function.to_string__one_line() << endl;
+
+    assert(len_domain_of_meta_example == len_mask);
+
+//            vector<Bitvector> masks =
+//                    meta_examples_of_task_id[0].get_masks(max_mask_size);
+
+    for (int j = 0; j < masks_of_task_id.size(); j++) {
+        for (int k = 0; k < masks_of_task_id[j].size(); k++) {
+            cout << bitvector_to_str(masks_of_task_id[j][k], masks_of_task_id[j][k].get_size()) << endl;
+        }
+        cout << endl;
+    }
+
+
+
+    //ideas:
+    //multi-objective beam search
+    //  objectives include num meta examples necessary to program, node degree, num bits modeled, num instances modeled, primitive size
+    //  intermediate bits of computation are those that segment the dataset such that single operators can now apply to a wider domain.
+    //  this leads to emergent task decomposition
+    //  optimize for task decomposition description in various cost semantics; type size, runtime, memory, depth of compilation.
+
+    //the ordering based on the structured mask ordering can be used to discover the type (init and delta)
+
+    //project the ordering of the subdomain masks onto the language of f(n) = ordering over the subdomain masks that solves the problem.
+
+    if (train_set_minimization && !is_first) {
+
+        vector<MetaExample> test_meta_examples = meta_examples_of_task_id;
+        vector<MetaExample> train_meta_examples;
+
+        int local_seed_train_set = seed_train_set;
+        if (local_seed_train_set == -1) {
+            local_seed_train_set = test_meta_examples.size();
+        } else {
+            std::shuffle(test_meta_examples.begin(), test_meta_examples.end(),
+                         std::mt19937(std::random_device()()));
+        }
+
+        for (int i = 0; i < test_meta_examples.size(); i++) {
+            test_meta_examples[i].idx = i;
+        }
+
+        for (int i = 0; i < min((int) test_meta_examples.size(), local_seed_train_set); i++) {
+            train_meta_examples.push_back(test_meta_examples[i]);
+            train_meta_examples.back().idx = (int) train_meta_examples.size() - 1;
+        }
+
+        string init_language_name = language_name;
+
+        vector<Bitvector> subdomains;
+        int min_train_set_size = test_meta_examples.size();
+        vector<MetaExample> min_train_meta_examples;
+
+        summary << "task_id " << task_id + 1 << endl;
+        summary_with_times << "task_id_" << task_id + 1 << " ";
+
+        for (int minimization_step = 0; minimization_step < num_minimization_steps; minimization_step++) {
+            bool all_solved = false;
+            vector<Bitvector> local_subdomains;
+            while (!all_solved) {
+                language_name = init_language_name + "__min_step=" + std::to_string(minimization_step) +
+                                "__size_of_train_set=" +
+                                std::to_string(train_meta_examples.size());
+
+                ReasoningSchemaOptimizer my_schema =
+                        ReasoningSchemaOptimizer(
+                                train_meta_examples, language_name, masks_of_task_id, dir_path, metric);
+
+                all_solved = true;
+                int num_added = 0;
+                for (int i = 0; i < test_meta_examples.size(); i++) {
+                    PartialFunction generalization = my_schema.query(test_meta_examples[i].partial_function);
+                    cout << "query  " << test_meta_examples[i].to_string() << endl;
+                    cout << "result " << generalization.to_string() << endl;
+                    cout << endl;
+                    if (!generalization.is_contained_in(test_meta_examples[i].generalization)) {
+                        cout << "wrong" << endl;
+                        train_meta_examples.push_back(test_meta_examples[i]);
+                        train_meta_examples.back().idx = train_meta_examples.size() - 1;
+                        all_solved = false;
+                        num_added += 1;
+                        if (num_added >= seed_train_set) {
+                            cout << "break" << endl;
+                            break;
+                        }
+                    } else {
+                        assert(test_meta_examples[i].generalization.is_contained_in(generalization));
+                        cout << "ok" << endl;
+                    }
+                }
+
+                if (all_solved) {
+                    local_subdomains = my_schema.get_subdomains();
+                    ret_schema = my_schema;
+                    ret_train_meta_examples = train_meta_examples;
+                }
+
+                if (train_meta_examples.size() >= min_train_set_size) {
+                    break;
+                }
+            }
+            if (all_solved) {
+                summary << train_meta_examples.size() << endl;
+                summary_with_times << train_meta_examples.size() << " " << (time(nullptr) - init_time) << endl;
+
+                if (min_train_set_size > train_meta_examples.size()) {
+                    min_train_set_size = train_meta_examples.size();
+                    min_train_meta_examples = train_meta_examples;
+                    assert(local_subdomains.size() >= 1);
+                    subdomains = local_subdomains;
+                }
+            }
+            train_meta_examples = min_train_meta_examples;
+
+            std::shuffle(train_meta_examples.begin(), train_meta_examples.end(),
+                         std::mt19937(std::random_device()()));
+
+            vector<MetaExample> new_train_set;
+
+            new_train_set.reserve(train_meta_examples.size() * minimization_fraction);
+            for (int i = 0; i < train_meta_examples.size() * minimization_fraction; i++) {
+                new_train_set.emplace_back(train_meta_examples[i]);
+                new_train_set[i].idx = i;
+            }
+            train_meta_examples = new_train_set;
+        }
+
+        next_subdomains = get_next_subdomains(
+                metric, dir_path, init_language_name,
+                subdomains, task_type, next_task_type, num_prev_subtasks);
+
+    } else {
+
+        if (true) {
+            vector<MetaExample> local_meta_examples = meta_examples_of_task_id;
+            int prev_meta_examples_size = -1;
+            int now_meta_examples_size = (int) local_meta_examples.size();
+            int rec_id = 0;
+
+            vector<Bitvector> subdomains;
+
+            string init_language_name = language_name;
+
+            do {
+                prev_meta_examples_size = now_meta_examples_size;
+
+                language_name = language_name + "__rec=" + std::to_string(rec_id);
+
+                ReasoningSchemaOptimizer my_schema =
+                        ReasoningSchemaOptimizer(
+                                local_meta_examples, language_name, masks_of_task_id, dir_path, metric);
+
+                for (int i = 0; i < local_meta_examples.size(); i++) {
+                    PartialFunction generalization = my_schema.query(local_meta_examples[i].partial_function);
+                    cout << "query  " << local_meta_examples[i].to_string() << endl;
+                    cout << "result " << generalization.to_string() << endl;
+                    cout << endl;
+                    assert(generalization.is_contained_in(local_meta_examples[i].generalization));
+                    assert(local_meta_examples[i].generalization.is_contained_in(generalization));
+                }
+                cout << "TESTING DONE. ALL CORRECT" << endl;
+
+                local_meta_examples = my_schema.get_necessary_meta_examples(false);
+
+                now_meta_examples_size = (int) local_meta_examples.size();
+
+                if (rec_id == 0) {
+                    subdomains = my_schema.get_subdomains();
+                    ret_schema = my_schema;
+                    ret_train_meta_examples = local_meta_examples;
+                }
+
+                rec_id++;
+                if (recursive_rep_set_depth != -1 && rec_id > recursive_rep_set_depth) {
+                    break;
+                }
+            } while (now_meta_examples_size != prev_meta_examples_size);
+
+            next_subdomains =
+                    get_next_subdomains(metric, dir_path, init_language_name, subdomains, task_type,
+                                        next_task_type, num_prev_subtasks);
+
+        } else if (true) {
+            ReasoningSchemaOptimizer my_schema =
+                    ReasoningSchemaOptimizer(
+                            meta_examples_of_task_id, language_name, masks_of_task_id, dir_path, metric);
+
+            for (int j = 0; j < meta_examples_of_task_id.size(); j++) {
+                PartialFunction generalization = my_schema.query(meta_examples_of_task_id[j].partial_function);
+                cout << "query  " << meta_examples_of_task_id[j].to_string() << endl;
+                cout << "result " << generalization.to_string() << endl;
+                cout << endl;
+                assert(generalization.is_contained_in(meta_examples_of_task_id[j].generalization));
+            }
+            cout << "TESTING DONE. ALL CORRECT" << endl;
+
+            vector<MetaExample> necessary_meta_examples = my_schema.get_necessary_meta_examples(false);
+        } else {
+            cout << "Need to send a prior over Bitmasks as a vector of vectors of bitvectors" << endl;
+            assert(false);
+            TraceVersionSpace trace_version_space = TraceVersionSpace(meta_examples_of_task_id,
+                                                                      masks_of_task_id[0]);
+        }
+    }
+}
+
 BitvectorTasks::BitvectorTasks(TaskName _task_name,
                                int _init_iter,
                                int _num_iter,
@@ -556,274 +821,27 @@ BitvectorTasks::BitvectorTasks(TaskName _task_name,
 //        masks.emplace_back();
 //    }
 
-    ofstream summary(dir_path + "/summary");
-    ofstream summary_with_times(dir_path + "/summary_with_times");
+    summary = ofstream(dir_path + "/summary");
+    summary_with_times = ofstream(dir_path + "/summary_with_times");
 
-    time_t init_time = time(nullptr);
+    init_time = time(nullptr);
 
     for(int task_id = init_iter, is_first = true; task_id < meta_examples.size(); task_id++, is_first = false) {
-
-        //each one of these loop operations needs to output a reasoning schema.
-
-        vector<MetaExample> ret_train_meta_examples;
-        ReasoningSchemaOptimizer ret_schema;
-
-//        masks.emplace_back();
-
-//        assert(task_id == masks.size() - 1);
-
-        if (mode == progressive_prior_mode && next_subdomains.size() != 0) {
-            cout << "with_alternative:" << endl;
-
-            for (int i = 0; i < next_subdomains.size(); i++) {
-                cout << next_subdomains[i].to_string() << endl;
-            }
-            cout << endl;
-
-            bool first_from_prior_from_prev_task = false;
-            if (first_from_prior_from_prev_task) {
-                for (int i = 0; i < next_subdomains.size(); i++) {
-                    vector<Bitvector> singleton;
-                    singleton.push_back(next_subdomains[i]);
-                    masks[task_id].push_back(singleton);
-                }
-            } else {
-                masks[task_id].push_back(next_subdomains);
-            }
-
-//                masks[task_id].insert(masks[task_id].begin(), next_subdomains);
-
-            next_subdomains.clear();
+        BittreeTaskType * next_task_type = NULL;
+        if(task_id + 1 < multi_task_type.size())
+        {
+            next_task_type = multi_task_type[task_id+1];
         }
-//            else {
-        multi_task_type[task_id]->to_meta_example(-1, num_prev_subtasks).append_to_masks(
-                min_mask_size, max_mask_size, num_first_in_prior, masks[task_id]);
-//            }
-        string language_name =
-                "[task_id=" + std::to_string(task_id + 1) + "]";
+        one_step_of_incremental_meta_generalization(
 
-        assert(meta_examples[task_id].size() > 0);
-        assert(masks[task_id].size() > 0);
-        assert(masks[task_id][0].size() > 0);
-
-        int len_domain_of_meta_example = meta_examples[task_id][0].get_function_size();
-        int len_mask = masks[task_id][0][0].get_size();
-
-        cout << meta_examples[task_id][0].partial_function.to_string__one_line() << endl;
-
-        assert(len_domain_of_meta_example == len_mask);
-
-//            vector<Bitvector> masks =
-//                    meta_examples[task_id][0].get_masks(max_mask_size);
-
-        for (int j = 0; j < masks[task_id].size(); j++) {
-            for (int k = 0; k < masks[task_id][j].size(); k++) {
-                cout << bitvector_to_str(masks[task_id][j][k], masks[task_id][j][k].get_size()) << endl;
-            }
-            cout << endl;
-        }
-
-
-
-        //ideas:
-        //multi-objective beam search
-        //  objectives include num meta examples necessary to program, node degree, num bits modeled, num instances modeled, primitive size
-        //  intermediate bits of computation are those that segment the dataset such that single operators can now apply to a wider domain.
-        //  this leads to emergent task decomposition
-        //  optimize for task decomposition description in various cost semantics; type size, runtime, memory, depth of compilation.
-
-        //the ordering based on the structured mask ordering can be used to discover the type (init and delta)
-
-        //project the ordering of the subdomain masks onto the language of f(n) = ordering over the subdomain masks that solves the problem.
-
-        if (train_set_minimization && !is_first) {
-
-            vector<MetaExample> test_meta_examples = meta_examples[task_id];
-            vector<MetaExample> train_meta_examples;
-
-            int local_seed_train_set = seed_train_set;
-            if (local_seed_train_set == -1) {
-                local_seed_train_set = test_meta_examples.size();
-            } else {
-                std::shuffle(test_meta_examples.begin(), test_meta_examples.end(),
-                             std::mt19937(std::random_device()()));
-            }
-
-            for (int i = 0; i < test_meta_examples.size(); i++) {
-                test_meta_examples[i].idx = i;
-            }
-
-            for (int i = 0; i < min((int) test_meta_examples.size(), local_seed_train_set); i++) {
-                train_meta_examples.push_back(test_meta_examples[i]);
-                train_meta_examples.back().idx = (int) train_meta_examples.size() - 1;
-            }
-
-            string init_language_name = language_name;
-
-            vector<Bitvector> subdomains;
-            int min_train_set_size = test_meta_examples.size();
-            vector<MetaExample> min_train_meta_examples;
-
-            summary << "task_id " << task_id + 1 << endl;
-            summary_with_times << "task_id_" << task_id + 1 << " ";
-
-            for (int minimization_step = 0; minimization_step < num_minimization_steps; minimization_step++) {
-                bool all_solved = false;
-                vector<Bitvector> local_subdomains;
-                while (!all_solved) {
-                    language_name = init_language_name + "__min_step=" + std::to_string(minimization_step) +
-                                    "__size_of_train_set=" +
-                                    std::to_string(train_meta_examples.size());
-
-                    ReasoningSchemaOptimizer my_schema =
-                            ReasoningSchemaOptimizer(
-                                    train_meta_examples, language_name, masks[task_id], dir_path, metric);
-
-                    all_solved = true;
-                    int num_added = 0;
-                    for (int i = 0; i < test_meta_examples.size(); i++) {
-                        PartialFunction generalization = my_schema.query(test_meta_examples[i].partial_function);
-                        cout << "query  " << test_meta_examples[i].to_string() << endl;
-                        cout << "result " << generalization.to_string() << endl;
-                        cout << endl;
-                        if (!generalization.is_contained_in(test_meta_examples[i].generalization)) {
-                            cout << "wrong" << endl;
-                            train_meta_examples.push_back(test_meta_examples[i]);
-                            train_meta_examples.back().idx = train_meta_examples.size() - 1;
-                            all_solved = false;
-                            num_added += 1;
-                            if (num_added >= seed_train_set) {
-                                cout << "break" << endl;
-                                break;
-                            }
-                        } else {
-                            assert(test_meta_examples[i].generalization.is_contained_in(generalization));
-                            cout << "ok" << endl;
-                        }
-                    }
-
-                    if (all_solved) {
-                        local_subdomains = my_schema.get_subdomains();
-                        ret_schema = my_schema;
-                        ret_train_meta_examples = train_meta_examples;
-                    }
-
-                    if (train_meta_examples.size() >= min_train_set_size) {
-                        break;
-                    }
-                }
-                if (all_solved) {
-                    summary << train_meta_examples.size() << endl;
-                    summary_with_times << train_meta_examples.size() << " " << (time(nullptr) - init_time) << endl;
-
-                    if (min_train_set_size > train_meta_examples.size()) {
-                        min_train_set_size = train_meta_examples.size();
-                        min_train_meta_examples = train_meta_examples;
-                        assert(local_subdomains.size() >= 1);
-                        subdomains = local_subdomains;
-                    }
-                }
-                train_meta_examples = min_train_meta_examples;
-
-                std::shuffle(train_meta_examples.begin(), train_meta_examples.end(),
-                             std::mt19937(std::random_device()()));
-
-                vector<MetaExample> new_train_set;
-
-                new_train_set.reserve(train_meta_examples.size() * minimization_fraction);
-                for (int i = 0; i < train_meta_examples.size() * minimization_fraction; i++) {
-                    new_train_set.emplace_back(train_meta_examples[i]);
-                    new_train_set[i].idx = i;
-                }
-                train_meta_examples = new_train_set;
-            }
-
-            BittreeTaskType *next_bittree_task_type = NULL;
-            if (task_id + 1 < multi_task_type.size()) {
-                next_bittree_task_type = multi_task_type[task_id + 1];
-            }
-
-            next_subdomains = get_next_subdomains(
-                metric, dir_path, init_language_name,
-                subdomains, multi_task_type[task_id], next_bittree_task_type,num_prev_subtasks);
-
-        } else {
-
-            if (true) {
-                vector<MetaExample> local_meta_examples = meta_examples[task_id];
-                int prev_meta_examples_size = -1;
-                int now_meta_examples_size = (int) local_meta_examples.size();
-                int rec_id = 0;
-
-                vector<Bitvector> subdomains;
-
-                string init_language_name = language_name;
-
-                do {
-                    prev_meta_examples_size = now_meta_examples_size;
-
-                    language_name = language_name + "__rec=" + std::to_string(rec_id);
-
-                    ReasoningSchemaOptimizer my_schema =
-                            ReasoningSchemaOptimizer(
-                                    local_meta_examples, language_name, masks[task_id], dir_path, metric);
-
-                    for (int i = 0; i < local_meta_examples.size(); i++) {
-                        PartialFunction generalization = my_schema.query(local_meta_examples[i].partial_function);
-                        cout << "query  " << local_meta_examples[i].to_string() << endl;
-                        cout << "result " << generalization.to_string() << endl;
-                        cout << endl;
-                        assert(generalization.is_contained_in(local_meta_examples[i].generalization));
-                        assert(local_meta_examples[i].generalization.is_contained_in(generalization));
-                    }
-                    cout << "TESTING DONE. ALL CORRECT" << endl;
-
-                    local_meta_examples = my_schema.get_necessary_meta_examples(false);
-
-                    now_meta_examples_size = (int) local_meta_examples.size();
-
-                    if (rec_id == 0) {
-                        subdomains = my_schema.get_subdomains();
-                        ret_schema = my_schema;
-                        ret_train_meta_examples = local_meta_examples;
-                    }
-
-                    rec_id++;
-                    if (recursive_rep_set_depth != -1 && rec_id > recursive_rep_set_depth) {
-                        break;
-                    }
-                } while (now_meta_examples_size != prev_meta_examples_size);
-
-                BittreeTaskType *next_bittree_task_type = NULL;
-                if (task_id + 1 < multi_task_type.size()) {
-                    next_bittree_task_type = multi_task_type[task_id + 1];
-                }
-                next_subdomains =
-                        get_next_subdomains(metric, dir_path, init_language_name, subdomains, multi_task_type[task_id],
-                                            next_bittree_task_type, num_prev_subtasks);
-
-            } else if (true) {
-                ReasoningSchemaOptimizer my_schema =
-                        ReasoningSchemaOptimizer(
-                                meta_examples[task_id], language_name, masks[task_id], dir_path, metric);
-
-                for (int j = 0; j < meta_examples[task_id].size(); j++) {
-                    PartialFunction generalization = my_schema.query(meta_examples[task_id][j].partial_function);
-                    cout << "query  " << meta_examples[task_id][j].to_string() << endl;
-                    cout << "result " << generalization.to_string() << endl;
-                    cout << endl;
-                    assert(generalization.is_contained_in(meta_examples[task_id][j].generalization));
-                }
-                cout << "TESTING DONE. ALL CORRECT" << endl;
-
-                vector<MetaExample> necessary_meta_examples = my_schema.get_necessary_meta_examples(false);
-            } else {
-                cout << "Need to send a prior over Bitmasks as a vector of vectors of bitvectors" << endl;
-                assert(false);
-                TraceVersionSpace trace_version_space = TraceVersionSpace(meta_examples[task_id],
-                                                                          masks[task_id][0]);
-            }
-        }
+                is_first,
+                task_id,
+                meta_examples[task_id],
+                next_subdomains,
+                masks[task_id],
+                multi_task_type[task_id],
+                next_task_type
+                );
     }
 }
 
@@ -831,7 +849,7 @@ void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
             "task_name=" + task_name.get_task_name() +
-            "-gen=50-init_iter=" + std::to_string(init_iter) +
+            "-gen=51-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) +

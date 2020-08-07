@@ -8,6 +8,7 @@
 #include "ReasoningSchemaOptimizer.h"
 #include "BittreeTypeExpression.h"
 #include "MetricType.h"
+#include <fstream>
 
 class MetaExample;
 
@@ -75,6 +76,10 @@ class BitvectorTasks {
     int num_minimization_steps;
     double minimization_fraction;
 
+    time_t init_time;
+    ofstream summary;
+    ofstream summary_with_times;
+
     int num_inputs;
     int function_size;
 
@@ -94,6 +99,16 @@ class BitvectorTasks {
                       int subtask_depth);
 
     void set_up_directory();
+
+    void one_step_of_incremental_meta_generalization(
+            bool is_fist,
+            int task_id,
+            vector<MetaExample> meta_examples_of_task_id,
+            vector<Bitvector> & next_subdomains,
+            vector<vector<Bitvector> > masks_of_task_id,
+            BittreeTaskType * task_type,
+            BittreeTaskType * next_task_type
+    );
 
 
 public:
