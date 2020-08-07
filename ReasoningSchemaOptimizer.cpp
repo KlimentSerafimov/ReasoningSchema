@@ -351,17 +351,20 @@ static string fout_name = "max_progress__sped_up.out";
 ReasoningSchemaOptimizer::ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name) {
     parent_pointer = nullptr;
 
-    assert(!fout.is_open());
-
-    fout.open(fout_name + " " + ordering_name );
-
-    fout << "meta_examples " << _meta_examples.size() << endl;
-    for(int i = 0;i<_meta_examples.size();i++)
-    {
-        fout << "\t"+_meta_examples[i].to_string() << endl << std::flush;
-        cout<< "print new meta_examples rep" << endl;
-        assert(false);
-    }
+//    assert(!fout.is_open());
+//
+//    fout.open(fout_name + " " + ordering_name );
+//
+//    fout << "meta_examples " << _meta_examples.size() << endl;
+//    for(int i = 0;i<_meta_examples.size();i++)
+//    {
+//        fout << "\t"+_meta_examples[i].to_string() << endl << std::flush;
+//        cout<< "print new meta_examples rep" << endl;
+//
+//        fout << "\t"+meta_example_to_string__one_line(_meta_examples[i]) << endl << std::flush;
+////        assert(false);
+//
+//    }
 
     main__minimal_factoring_schema(_meta_examples);
 

@@ -90,6 +90,9 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
         else if(task_name.param__multiply_by <= 4) init_output_size = 2;
         else if(task_name.param__multiply_by <= 8) init_output_size = 3;
         else if(task_name.param__multiply_by <= 16) init_output_size = 4;
+        else if(task_name.param__multiply_by <= 32) init_output_size = 5;
+        else if(task_name.param__multiply_by <= 64) init_output_size = 6;
+        else if(task_name.param__multiply_by <= 128) init_output_size = 6;
         else assert(false);
 
         assert(init_output_size != -1);

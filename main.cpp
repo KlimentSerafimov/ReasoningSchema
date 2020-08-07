@@ -7,7 +7,7 @@
 #include "UnionOfPartialFunctions.h"
 #include "enumerate_meta_training_sets.h"
 #include "BitvectorTasks.h"
-#include <bits/stdc++.h>
+//#include <bits/stdc++.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <experimental/filesystem>
@@ -304,7 +304,7 @@ void modeling_of_language_over_boolean_functions()
             remainder_and_two_factors_schema(num_inputs, function_size, meta_examples);
         }
 
-        bool run_recursive_minimal_factoring_schema = false;
+        bool run_recursive_minimal_factoring_schema = true;
 
         if(run_recursive_minimal_factoring_schema) {
             recursive_minimal_factoring_schema(num_inputs, language_id, meta_examples);
@@ -318,7 +318,7 @@ void modeling_of_bitvector_functions() {
     for(int add_by = is_const*0 + (!is_const)*1; add_by <= is_const*0 + (!is_const)*32; add_by ++) {
         string str_task_name;
 
-//        str_task_name = str_task_name__sum;
+        str_task_name = str_task_name__sum;
 //        str_task_name = str_task_name__greater;
 //        str_task_name = str_task_name__cumulative_binary_operator;
 //        str_task_name = str_task_name__bitwise_binary_operator;
@@ -332,11 +332,11 @@ void modeling_of_bitvector_functions() {
 //        str_task_name = str_task_name__linear_and_or_nand_nor_expression;
 //        str_task_name = str_task_name__sort_bits;
 
-//        TaskName task_name = TaskName(str_task_name);
+          TaskName task_name = TaskName(str_task_name);
 
 //        str_task_name = str_task_name__multiply_by;
 //        str_task_name = str_task_name__add;
-//        int multiply_by = add_by;
+//        int multiply_by = 100;
 //        TaskName task_name = TaskName(str_task_name, multiply_by);
 
 //        str_task_name = str_task_name__one_shift_idx__reverse_subtask;
@@ -344,7 +344,7 @@ void modeling_of_bitvector_functions() {
 //        int init_size = 3;
 //        TaskName task_name = TaskName(str_task_name, init_size);
 
-        str_task_name = str_task_name__gene_network;
+//        str_task_name = str_task_name__gene_network;
 
 //        int network[4][4] = {
 //                {1, 1, 1, 1},
@@ -353,34 +353,34 @@ void modeling_of_bitvector_functions() {
 //                {0, 0, 0, 1},
 //        };
 
-        int network[4][4] = {
-                {1, 0, 0, 0},
-                {0, 1, 0, 0},
-                {0, 0, 1, 0},
-                {0, 0, 0, 1},
-        };
+//        int network[4][4] = {
+//                {1, 0, 0, 0},
+//                {0, 1, 0, 0},
+//                {0, 0, 1, 0},
+//                {0, 0, 0, 1},
+//        };
 
-        int pow = 1;
-        int network_bits = 0;
-        for(int i = 0;i<4;i++){
-            for(int j = 0;j<4;j++){
-                network_bits+=pow*network[i][j];
-                pow*=2;
-            }
-        }
+//        int pow = 1;
+//        int network_bits = 0;
+//        for(int i = 0;i<4;i++){
+//            for(int j = 0;j<4;j++){
+//                network_bits+=pow*network[i][j];
+//                pow*=2;
+//            }
+//        }
+//
+//        TaskName task_name = TaskName(str_task_name, network_bits);
 
-        TaskName task_name = TaskName(str_task_name, network_bits);
-
-        int init_iter = 2;
+        int init_iter = 3;
         int num_iter = 7;
         ModeType mode_type = progressive_prior_mode;
         MetricType metric_type = most_progress;
-        int recursive_rep_set_depth = 1;
+        int recursive_rep_set_depth = 0;
         int min_mask_size = 1;
         int max_mask_size = 3;
-        int num_prev_subtasks = 0;
+        int num_prev_subtasks = 1;
         int num_first_in_prior = -1;
-        int seed_train_set = -1;
+        int seed_train_set = 20;
         int num_minimization_steps = 1;
         double minimization_fraction = 19.0/20;
 

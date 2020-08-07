@@ -107,12 +107,12 @@ bool MetaExample::is_consistent_with(MetaExample other) {
     return true;
 }
 
-MetaExample::MetaExample(PartialFunction _partial_function, PartialFunction _generalization, int _idx) {
-    assert(_generalization.is_contained_in(_partial_function));
-    partial_function = _partial_function;
-    generalization = _generalization;
-    idx = _idx;
-}
+//MetaExample::MetaExample(PartialFunction _partial_function, PartialFunction _generalization, int _idx) {
+//    assert(_generalization.is_contained_in(_partial_function));
+//    partial_function = _partial_function;
+//    generalization = _generalization;
+//    idx = _idx;
+//}
 
 MetaExample::MetaExample(BittreeTaskTypeAsPartialFunction _partial_function, BittreeTaskTypeAsPartialFunction _generalization, int _idx) {
     assert(_generalization.is_contained_in(_partial_function));

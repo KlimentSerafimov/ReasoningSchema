@@ -20,7 +20,7 @@ public:
 
     MetaExample() = default;
 
-    MetaExample(PartialFunction partial_function, PartialFunction total_function, int idx);
+//    MetaExample(PartialFunction partial_function, PartialFunction total_function, int idx);
     MetaExample(BittreeTaskTypeAsPartialFunction partial_function, BittreeTaskTypeAsPartialFunction total_function, int idx);
     MetaExample(int _function_size, Bitvector _total_function, Bitvector _partition);
     MetaExample(int _function_size, Bitvector _total_function, Bitvector _partition, Bitvector generalization_partition);
