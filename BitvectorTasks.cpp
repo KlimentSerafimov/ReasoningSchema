@@ -548,13 +548,11 @@ BitvectorTasks::BitvectorTasks(TaskName _task_name, int _init_iter, int _num_ite
 
     time_t init_time = time(nullptr);
 
-    for(int task_id = init_iter; task_id < meta_examples.size(); task_id++) {
+    for(int task_id = init_iter, is_first = true; task_id < meta_examples.size(); task_id++, is_first = false) {
 
         masks.emplace_back();
 
         assert(task_id == masks.size() - 1);
-
-        bool is_first = task_id == init_iter;
 
         if (mode == progressive_prior_mode && next_subdomains.size() != 0) {
             cout << "with_alternative:" << endl;
