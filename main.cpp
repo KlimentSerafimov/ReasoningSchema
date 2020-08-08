@@ -327,17 +327,27 @@ void modeling_of_bitvector_functions() {
 //        str_task_name = str_task_name__unary_sum; // requires double_node
 //        str_task_name = str_task_name__least_set_bit;
 //        str_task_name = str_task_name__max_window_between_bits;
-        str_task_name = str_task_name__max_window_between_bits_with_state;
+//        str_task_name = str_task_name__max_window_between_bits_with_state;
 //        str_task_name = str_task_name__linear_and_or_expression;
 //        str_task_name = str_task_name__linear_and_or_nand_nor_expression;
 //        str_task_name = str_task_name__sort_bits;
 
-          TaskName task_name = TaskName(str_task_name);
+//          TaskName task_name = TaskName(str_task_name);
 
 //        str_task_name = str_task_name__multiply_by;
 //        str_task_name = str_task_name__add;
-//        int multiply_by = 100;
-//        TaskName task_name = TaskName(str_task_name, multiply_by);
+        str_task_name = str_task_name__biggest_square;
+        int param = 3;
+
+        TaskName task_name = TaskName(str_task_name, param);
+
+        str_task_name = str_task_name__biggest_square_with_kernel;
+
+//        int width = 2;
+//        int kernel_w = 1;
+//        int kernel_h = width;
+//
+//        TaskName task_name = TaskName(str_task_name, param, kernel_w, kernel_h);
 
 //        str_task_name = str_task_name__one_shift_idx__reverse_subtask;
 //        str_task_name = str_task_name__count_unary__reverse_subtask;
@@ -371,8 +381,8 @@ void modeling_of_bitvector_functions() {
 //
 //        TaskName task_name = TaskName(str_task_name, network_bits);
 
-        int init_iter = 4;
-        int num_iter = 16;
+        int init_iter = 1;
+        int num_iter = 5;
         ModeType mode_type = progressive_prior_mode;
         MetricType metric_type = most_progress;
         int recursive_rep_set_depth = 0;
@@ -380,10 +390,10 @@ void modeling_of_bitvector_functions() {
         int max_mask_size = 3;
         int num_prev_subtasks = 1;
         int num_first_in_prior = -1;
-        bool train_set_minimization = true;
-        int seed_train_set = 20;
-        int num_minimization_steps = 30;
-        double minimization_fraction = 19.0/20;
+        bool train_set_minimization = false;
+        int seed_train_set = 400;
+        int num_minimization_steps = 5;
+        double minimization_fraction = 18.5/20;
 
         assert(minimization_fraction != 0);
 

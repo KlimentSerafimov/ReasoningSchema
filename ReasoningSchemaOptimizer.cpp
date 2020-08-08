@@ -277,7 +277,7 @@ HeuristicScore ReasoningSchemaOptimizer::calculate_heuristic(Module* module) {
 
     bool minimize_num_necessary_meta_examples;
 
-    if (root_pointer->metric == min_rep_set) {
+    if (metric == min_rep_set) {
         return HeuristicScore(
                 module->subdomain_mask.count(),
                 delta_ratio);
@@ -498,6 +498,7 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
         init_time = parent_pointer->init_time;
         root_pointer = parent_pointer->root_pointer;
         module_id = parent_pointer->module_id + 1;
+        metric = root_pointer->metric;
     }
 
     calc_masks(set_init_mask_size, set_end_mask_size);
@@ -548,8 +549,8 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
                     possible_candidate_found = true;
                     num_candidates_to_find--;
 
-//                    if(bucket_id == 0)
-//                        break;
+                    if(metric == first_from_user_prior)
+                        break;
                 }
 
 //            cout << "heuristic = " << fixed << setprecision(4) << heuristic.to_string() << endl;
@@ -602,17 +603,20 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
 
             fout << best_module.print_module_sketch(time(nullptr) - init_time) << std::flush;
 
-            for (int i = 0; i < meta_examples.size(); i++) {
-                PartialFunction generalization = query(meta_examples[i].partial_function);
-                cout << "query  " << meta_examples[i].to_string() << endl;
-                cout << "result " << generalization.to_string() << endl;
-                cout << endl;
-                if (!meta_examples[i].generalization.is_contained_in(generalization)) {
-                    cout << "wrong" << endl;
-                    assert(false);
-                } else {
-                    assert(meta_examples[i].generalization.is_contained_in(generalization));
-                    cout << "ok" << endl;
+            bool local_test = false;
+            if(local_test) {
+                for (int i = 0; i < meta_examples.size(); i++) {
+                    PartialFunction generalization = query(meta_examples[i].partial_function);
+                    cout << "query  " << meta_examples[i].to_string() << endl;
+                    cout << "result " << generalization.to_string() << endl;
+                    cout << endl;
+                    if (!meta_examples[i].generalization.is_contained_in(generalization)) {
+                        cout << "wrong" << endl;
+                        assert(false);
+                    } else {
+                        assert(meta_examples[i].generalization.is_contained_in(generalization));
+                        cout << "ok" << endl;
+                    }
                 }
             }
 
@@ -620,17 +624,20 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
 
             if(parent_pointer == nullptr)
             {
-                for (int i = 0; i < meta_examples.size(); i++) {
-                    PartialFunction generalization = query(meta_examples[i].partial_function);
-                    cout << "query  " << meta_examples[i].to_string() << endl;
-                    cout << "result " << generalization.to_string() << endl;
-                    cout << endl;
-                    if (!generalization.is_contained_in(meta_examples[i].generalization)) {
-                        cout << "wrong" << endl;
-                        assert(false);
-                    } else {
-                        assert(meta_examples[i].generalization.is_contained_in(generalization));
-                        cout << "ok" << endl;
+                bool local_test = false;
+                if(local_test) {
+                    for (int i = 0; i < meta_examples.size(); i++) {
+                        PartialFunction generalization = query(meta_examples[i].partial_function);
+                        cout << "query  " << meta_examples[i].to_string() << endl;
+                        cout << "result " << generalization.to_string() << endl;
+                        cout << endl;
+                        if (!generalization.is_contained_in(meta_examples[i].generalization)) {
+                            cout << "wrong" << endl;
+                            assert(false);
+                        } else {
+                            assert(meta_examples[i].generalization.is_contained_in(generalization));
+                            cout << "ok" << endl;
+                        }
                     }
                 }
 
@@ -935,3 +942,19 @@ vector<Module *> ReasoningSchemaOptimizer::get_modules() {
     }
     return ret;
 }
+
+vector<Module *> ReasoningSchemaOptimizer::get_program_as_vector_of_modules() {
+    vector<Module * > ret;
+    ReasoningSchemaOptimizer* at = this;
+    while(at != NULL)
+    {
+        ret.push_back(&at->best_module);
+        for(int i = 0;i<at->best_module.repeats_module_pointers.size(); i++)
+        {
+            ret.push_back(at->best_module.repeats_module_pointers[i]);
+        }
+        at = at->next;
+    }
+    return ret;
+}
+

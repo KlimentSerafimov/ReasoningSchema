@@ -85,7 +85,7 @@ public:
 
     string to_string__one_line();
 
-    void populate_leaf_internals_and_bit_ids(vector<pair<BittreeNode *, vector<int> > > & vector);
+    void populate_leaf_internals_and_bit_ids(vector<BittreeNode*> path, vector<pair<BittreeNode *, vector<int> > > & vector);
 };
 
 class BittreeInputOutputType: public TreeNode
@@ -183,6 +183,7 @@ public:
 
     void solve__gene_network(int network);
 
+    void solve__do_biggest_square(int width);
 };
 
 class BittreeTaskDecomposition: public TreeNode

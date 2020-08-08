@@ -82,6 +82,8 @@ public:
     ReasoningSchemaOptimizer();
 
     vector<Module *> get_modules();
+
+    vector<Module *> get_program_as_vector_of_modules();
 };
 
 #endif //COMPACTPOSET_REASONINGSCHEMAOPTIMIZER_H

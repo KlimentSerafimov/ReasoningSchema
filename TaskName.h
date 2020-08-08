@@ -28,10 +28,36 @@ static const string str_task_name__linear_and_or_nand_nor_expression = "linear_a
 static const string str_task_name__sort_bits = "sort_bits";
 static const string str_task_name__add = "add";
 static const string str_task_name__gene_network = "gene_network";
+static const string str_task_name__biggest_square = "biggest_square";
+static const string str_task_name__biggest_square_with_kernel = "biggest_square_with_kernel";
+
+enum TaskNames {
+    sum,
+    greater,
+    cumulative_binary_operator,
+    bitwise_binary_operator,
+    one_shift_idx,
+    multiply_by,
+    one_shift_idx__rev,
+    count_unary,
+    count_unary__rev,
+    unary_sum,
+    least_set_bit,
+    strech_of_0s,
+    strech_of_0s_w_state,
+    linear_and_or_expression,
+    linear_and_or_nand_nor_expression,
+    sort_bits,
+    add,
+    gene_network,
+    biggest_square,
+    biggest_square_with_kernel
+    };
 
 class TaskName
 {
 public:
+
     string task_name;
 
     bool do__sum = false;
@@ -62,6 +88,11 @@ public:
     bool do__gene_network = false;
     int param__network = -1;
 
+    bool do__biggest_square = false;
+    int param__w = -1;
+
+    bool do__biggest_square_with_kernel = false;
+
     bool num_iter_defined = false;
     int num_iter = -1;
 
@@ -74,6 +105,8 @@ public:
         assert(_task_name != str_task_name__count_unary__reverse_subtask);
         assert(_task_name != str_task_name__add);
         assert(_task_name != str_task_name__gene_network);
+        assert(_task_name != str_task_name__biggest_square);
+        assert(_task_name != str_task_name__biggest_square_with_kernel);
 
         task_name = _task_name;
 
@@ -98,7 +131,8 @@ public:
                 _task_name == str_task_name__one_shift_idx__reverse_subtask ||
                 _task_name == str_task_name__count_unary__reverse_subtask ||
                 _task_name == str_task_name__add ||
-                _task_name == str_task_name__gene_network
+                _task_name == str_task_name__gene_network ||
+                _task_name == str_task_name__biggest_square
         );
         task_name = _task_name;
 
@@ -107,6 +141,7 @@ public:
         do__count_unary__reverse_subtask = task_name == str_task_name__count_unary__reverse_subtask;
         do__add = task_name == str_task_name__add;
         do__gene_network = task_name == str_task_name__gene_network;
+        do__biggest_square = task_name == str_task_name__biggest_square;
 
         if(do__multiply_by)
         {
@@ -126,10 +161,19 @@ public:
         {
             param__network = _param;
         }
+        else if(do__biggest_square)
+        {
+            param__w = _param;
+        }
         else
         {
             assert(false);
         }
+    }
+
+
+    TaskName(string _task_name, int param0, int param1, int param2) {
+        assert(_task_name == str_task_name__biggest_square_with_kernel);
     }
 
     string get_task_name()
@@ -154,10 +198,11 @@ public:
             return task_name;
         }
     }
-
-
 };
 
-
+class Task_Sum : public TaskName
+{
+    Task_Sum();
+};
 
 #endif //COMPACTPOSET_TASKNAME_H

@@ -401,7 +401,8 @@ void BittreeNode::push_back_child(BittreeNode *child) {
     children.push_back(child);
 }
 
-void BittreeNode::populate_leaf_internals_and_bit_ids(vector<pair<BittreeNode *, vector<int> >> & ret) {
+
+void BittreeNode::populate_leaf_internals_and_bit_ids(vector<BittreeNode*> path, vector<pair<BittreeNode *, vector<int> >> & ret) {
     if(node_type == leaf_node)
     {
         assert(leaf_node_type == bit_node);
@@ -409,6 +410,7 @@ void BittreeNode::populate_leaf_internals_and_bit_ids(vector<pair<BittreeNode *,
     }
     else if(node_type == internal_node)
     {
+        path.push_back(this);
         assert(leaf_node_type == not_leaf_node);
         vector<int> ids;
         for(int i = 0;i<children.size();i++)
@@ -422,7 +424,7 @@ void BittreeNode::populate_leaf_internals_and_bit_ids(vector<pair<BittreeNode *,
                     ids.push_back(i);
                 }
             } else{
-                children[i]->populate_leaf_internals_and_bit_ids(ret);
+                children[i]->populate_leaf_internals_and_bit_ids(path,ret);
             }
         }
         if(ids.size()>=1) {
@@ -731,6 +733,94 @@ void BittreeInputOutputType::solve(TaskName task_name)
     {
         solve__gene_network(task_name.param__network);
     }
+
+    if(task_name.do__biggest_square)
+    {
+        solve__do_biggest_square(task_name.param__w);
+    }
+}
+
+
+void BittreeInputOutputType::solve__do_biggest_square(int width)
+{
+    const int num_operands = width;
+    assert(input->children.size() == num_operands);
+    vector<vector<int> > input_grid;
+    vector<vector<int> > output_grid;
+    for(int i = 0;i<num_operands;i++)
+    {
+        input_grid.emplace_back();
+        output_grid.emplace_back();
+        for(int j = 0;j<input->children.at(i)->children.size();j++)
+        {
+            assert(input->children.at(i)->children.at(j)->bit->is_bit_set == true);
+            input_grid[i].push_back(input->children.at(i)->children.at(j)->bit->bit_val);
+            output_grid[i].push_back(0);
+//            cout << input_grid[i][j];
+        }
+//        cout << endl;
+    }
+
+
+    pair<int, pair<pair<int, int>, pair<int, int> >> best =
+            make_pair(-1, make_pair(make_pair(0, 0), make_pair(0, 0)));
+
+    for(int x = 0; x < num_operands; x++)
+    {
+        for(int y = 0; y < input_grid[x].size(); y++)
+        {
+            for(int xx = x; xx <num_operands; xx++)
+            {
+                for(int yy = y; yy < input_grid[xx].size(); yy++)
+                {
+                    int count = 0;
+                    int sum = 0;
+                    for(int xxx = x; xxx<= xx; xxx++)
+                    {
+                        for(int yyy = y; yyy <= min(yy, (int)input_grid[xxx].size()-1); yyy++)
+                        {
+                            count ++;
+                            sum += input_grid[xxx][yyy];
+                        }
+                    }
+                    if(sum == count)
+                    {
+                        if (sum > best.first || best.first == -1)
+                        {
+                            best = make_pair(sum, make_pair(make_pair(x, y), make_pair(xx, yy)));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if(best.first >= 1) {
+        int best_x = best.second.first.first;
+        int best_y = best.second.first.second;
+        int best_xx = best.second.second.first;
+        int best_yy = best.second.second.second;
+
+        for (int x = best_x; x <= best_xx; x++) {
+            for (int y = best_y; y <= min(best_yy, (int) input_grid[x].size() - 1); y++) {
+                output_grid[x][y] = 1;
+            }
+        }
+    }
+
+    for(int i = 0;i<output->children.size(); i++)
+    {
+        for(int j = 0;j<(int)output->children.at(i)->children.size();j++)
+        {
+            assert(output->children.at(i)->children.at(j)->bit->is_bit_set == false);
+            output->children.at(i)->children.at(j)->bit->is_bit_set = true;
+            output->children.at(i)->children.at(j)->bit->bit_val = output_grid[i][j];
+//            cout << output_grid[i][j];
+        }
+//        cout << endl;
+    }
+//    cout << endl;
+//    cout << endl;
 }
 
 void BittreeInputOutputType::solve__gene_network(int network) {
@@ -822,7 +912,6 @@ void BittreeInputOutputType::solve__gene_network(int network) {
         output->children.at(2)->children.at(i)->bit->bit_val = get_bit(intermediate, i);
     }
 }
-
 
 void BittreeInputOutputType::solve__sort_bits()
 {
@@ -1417,8 +1506,8 @@ string BittreeTaskType::to_string__one_line__first_part(int subtask_depth) {
     return ret;
 }
 
-enum Rules {inherit_from_parent, stay, move_right, move_left, move_to_last_copy, copy_right, copy_left};
-int rule_cost[7] = {0, 1, 2, 2, 4, 20, 20};
+enum Rules {inherit_from_parent, stay, move_right, move_left, move_to_last_copy, copy_right, copy_left, move_up, move_down};
+int rule_cost[20] = {0, 1, 2, 2, 100, 100, 100, 2, 2};
 
 bool next_rule(vector<vector<Rules> > & rules, vector<Rules> possible_rules)
 {
@@ -1480,7 +1569,8 @@ vector<Bitvector> BittreeTaskType::generate_variety(int subtask_depth)
 
     vector<pair<BittreeNode*, vector<int> > > leaf_internals_and_bit_ids;
 
-    local_parent->populate_leaf_internals_and_bit_ids(leaf_internals_and_bit_ids);
+    vector<BittreeNode*> path;
+    local_parent->populate_leaf_internals_and_bit_ids(path, leaf_internals_and_bit_ids);
 
     for(int i = 0;i<leaf_internals_and_bit_ids.size();i++)
     {
@@ -1494,6 +1584,8 @@ vector<Bitvector> BittreeTaskType::generate_variety(int subtask_depth)
     possible_rules.push_back(stay);
     possible_rules.push_back(move_right);
     possible_rules.push_back(move_left);
+//    possible_rules.push_back(move_down);
+//    possible_rules.push_back(move_up);
 //    possible_rules.push_back(move_to_last_copy);
 //    possible_rules.push_back(copy_right);
 //    possible_rules.push_back(copy_left);
@@ -1540,9 +1632,6 @@ vector<Bitvector> BittreeTaskType::generate_variety(int subtask_depth)
         for(int i = 0;i<leaf_internals_and_bit_ids.size();i++)
         {
 
-//            for(int j = 0;j<leaf_internals_and_bit_ids[i].second.size();j++) {
-//                cost+=
-//            }
             for(int j = 0;j<leaf_internals_and_bit_ids[i].second.size();j++) {
                 int bit_id = leaf_internals_and_bit_ids[i].second[j];
                 int next_bit_id;
@@ -1582,7 +1671,16 @@ vector<Bitvector> BittreeTaskType::generate_variety(int subtask_depth)
                     cout << "copied_from:"<<copied_from->bit_in_bittree->to_string() << endl;
                     cout << "last_copy:"<<last_copy->to_string() << endl;
                     cout << "last_copy:"<<last_copy->bit_in_bittree->to_string() << endl;
-                } else{
+                }
+//                else if(rules[i][j] == move_down)
+//                {
+//                    assert(leaf_internals_and_bit_ids[i].first->parents.size() == 1);
+//                    assert(leaf_internals_and_bit_ids[i].first->names.size() == 1);
+//                    NodeTemplate* parent = leaf_internals_and_bit_ids[i].first->parents[0];
+//                    int child_id = leaf_internals_and_bit_ids[i].first->names[0].id;
+//                    if(child_id + 1 < parent->children )
+//                }
+                else{
                     assert(rules[i][j] == copy_right || rules[i][j] == copy_left || rules[i][j] == stay);
                     next_bit_id = -1;
                 }

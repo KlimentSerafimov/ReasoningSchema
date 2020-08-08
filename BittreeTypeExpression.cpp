@@ -328,7 +328,6 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
         int delta_output_sizes[] = {0};
 
         build_output_type(num_outputs, init_output_sizes, delta_output_sizes);
-
     }
 
     if(task_name.do__gene_network)
@@ -352,6 +351,34 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
                 new BittreeInputOutputType(NULL,  Name("delta_task_type"), internal_node, internal_node);
 
         build_input_type(num_input_operands, init_input_operand_sizes, delta_input_operand_sizes);
+
+        build_output_type(num_outputs, init_output_sizes, delta_output_sizes);
+
+    }
+
+    if(task_name.do__biggest_square)
+    {
+        assert(!enter);
+        enter = true;
+
+        int init_input_operands[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+        int delta_input_operands[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+
+        int num_input_operands = task_name.param__w;
+        base_task_type = new BittreeTaskType(
+                NULL,  Name("base_task_type"), internal_node, internal_node);
+        init_delta_task_type = new BittreeInputOutputType(
+                NULL,  Name("init_delta_task_type"), internal_node, internal_node);
+        delta_task_type = new BittreeInputOutputType(
+                NULL,  Name("delta_task_type"), internal_node, internal_node);
+
+        build_input_type(num_input_operands, init_input_operands, delta_input_operands);
+
+        int num_outputs = task_name.param__w;
+        int max_w = 8;
+        assert(task_name.param__w <= max_w);
+        int init_output_sizes[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+        int delta_output_sizes[8] = {1, 1, 1, 1, 1, 1, 1, 1};
 
         build_output_type(num_outputs, init_output_sizes, delta_output_sizes);
 
