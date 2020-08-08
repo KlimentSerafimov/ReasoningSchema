@@ -21,7 +21,7 @@ class ReasoningSchemaOptimizer
     vector<MetaExample> meta_examples;
     int init_num_missing_bits;
 
-    vector<vector<Bitvector> > masks;
+    vector<vector<MaskWithCost> > masks;
     int module_id;
     vector<pair<HeuristicScore, pair<int, int> > > mask_ids_by_heuristic;
     vector<vector<HeuristicScore> > heuristic_score_by_bucket_id_by_mask_id;
@@ -54,7 +54,7 @@ public:
 
     ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name);
 
-    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name, vector<vector<Bitvector> > mask,
+    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name, vector<vector<MaskWithCost> > mask,
                              string dir_path, MetricType metric_type);
 
     vector<MetaExample> get_necessary_meta_examples(bool print);

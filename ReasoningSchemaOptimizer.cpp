@@ -321,13 +321,13 @@ void ReasoningSchemaOptimizer::calc_masks(int set_init_mask_size, int set_end_ma
             }
         }
 
-        vector<Bitvector> tmp_masks;
+        vector<MaskWithCost> tmp_masks;
         for (int i = 0; i < masks_by_size.size(); i++) {
             vector<int> reduced;
             if (i >= set_init_mask_size && i <= set_end_mask_size) {
                 for (int j = 0; j < masks_by_size[i].size(); j++) {
                     reduced.push_back(masks_by_size[i][j]);
-                    tmp_masks.push_back(Bitvector(masks_by_size[i][j], function_size));
+                    tmp_masks.push_back(MaskWithCost(0, Bitvector(masks_by_size[i][j], function_size)));
                 }
             }
             masks_by_size[i] = reduced;
@@ -380,12 +380,12 @@ ReasoningSchemaOptimizer::ReasoningSchemaOptimizer(
 
 
 ReasoningSchemaOptimizer::ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name,
-                                                   vector<vector<Bitvector> > _masks,
+                                                   vector<vector<MaskWithCost> > mask,
                                                    string dir_path, MetricType metric_type)
 {
     metric = metric_type;
     parent_pointer = nullptr;
-    masks = _masks;
+    masks = mask;
     fout.open(  dir_path + "/" + ordering_name);
     assert(fout.is_open());
     main__minimal_factoring_schema(_meta_examples);

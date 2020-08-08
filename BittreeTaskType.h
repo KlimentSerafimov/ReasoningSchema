@@ -10,6 +10,7 @@
 #include "DeltaBittreeType.h"
 //#include "BitvectorTasks.h"
 #include "TaskName.h"
+#include "PartialFunction.h"
 
 
 class PartialFunction;
@@ -291,7 +292,7 @@ public:
 
     string to_string__one_line__first_part(int i);
 
-    vector<Bitvector> generate_variety(int subtask_depth);
+    vector<MaskWithCost> generate_variety(int subtask_depth);
 };
 
 //class BittreeTaskTypeDecomposition: public TreeNode

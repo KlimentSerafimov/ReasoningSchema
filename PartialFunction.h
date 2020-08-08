@@ -72,6 +72,33 @@ public:
     string bit_to_string(int i);
 };
 
+class Mask: public Bitvector
+{
+public:
+    Mask(Bitvector _bitvector) : Bitvector(_bitvector) {}
+};
+
+class MaskWithCost: public Mask
+{
+public:
+    int cost;
+    MaskWithCost(int _cost, Bitvector _bitvector) : Mask(_bitvector)
+    {
+        cost = _cost;
+    }
+    bool operator < (const MaskWithCost & other) const
+    {
+        if(cost != other.cost)
+        {
+            return cost < other.cost;
+        }
+        else
+        {
+            return Mask::operator<(other);
+        }
+    }
+};
+
 class BittreeTaskTypeAsPartialFunction : public PartialFunction
 {
 public:
@@ -94,7 +121,8 @@ public:
 
     void update_bitvector();
 
-    vector<Bitvector> generate_variety();
+    vector<MaskWithCost> generate_variety();
 };
+
 
 #endif //COMPACTPOSET_PARTIALFUNCTION_H

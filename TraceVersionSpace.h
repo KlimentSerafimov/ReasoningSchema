@@ -190,7 +190,7 @@ class TraceVersionSpace
 public:
     TraceNode* root;
 
-    TraceVersionSpace(vector<MetaExample> _meta_examples, vector<Bitvector> masks);
+    TraceVersionSpace(vector<MetaExample> _meta_examples, vector<MaskWithCost> masks);
 
 
 //    void main() {

@@ -134,9 +134,9 @@ public:
         return true;
     }
 
-    vector<vector<Bitvector> > get_masks(int min_mask_size, int max_mask_size, int num_first_in_prior);
+    vector<vector<MaskWithCost>> get_masks(int min_mask_size, int max_mask_size, int num_first_in_prior);
 
-    void append_to_masks(int min_mask_size, int max_mask_size, int num_first_in_prior, vector<vector<Bitvector> > & masks_to_append_to);
+    void append_to_masks(int min_mask_size, int max_mask_size, int num_first_in_prior, vector<vector<MaskWithCost> > &ret);
 
 };
 

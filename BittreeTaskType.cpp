@@ -1533,7 +1533,7 @@ bool next_rule(vector<vector<Rules> > & rules, vector<Rules> possible_rules)
     return false;
 }
 
-vector<Bitvector> BittreeTaskType::generate_variety(int subtask_depth)
+vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth)
 {
     BittreeNode* local_parent = new BittreeNode(NULL, Name("local_parent"), internal_node);
     local_parent->push_back_child(io->input);
@@ -1601,7 +1601,7 @@ vector<Bitvector> BittreeTaskType::generate_variety(int subtask_depth)
         }
     }
 
-    set<Bitvector> ret_set;
+    set<MaskWithCost> ret_set;
 
     vector<vector<int> > init_vals;
     for(int i = 0;i<leaf_internals_and_bit_ids.size();i++)
@@ -1631,6 +1631,11 @@ vector<Bitvector> BittreeTaskType::generate_variety(int subtask_depth)
         int cost = 0;
         for(int i = 0;i<leaf_internals_and_bit_ids.size();i++)
         {
+
+
+            for(int j = 0;j<leaf_internals_and_bit_ids[i].second.size();j++) {
+                cost += rule_cost[rules[i][j]];
+            }
 
             for(int j = 0;j<leaf_internals_and_bit_ids[i].second.size();j++) {
                 int bit_id = leaf_internals_and_bit_ids[i].second[j];
@@ -1733,7 +1738,8 @@ vector<Bitvector> BittreeTaskType::generate_variety(int subtask_depth)
 
 //        ret_set.insert(make_pair(cost, BittreeTaskTypeAsPartialFunction(this, subtask_depth).total_function));
 
-        ret_set.insert(BittreeTaskTypeAsPartialFunction(this, subtask_depth).total_function);
+        ret_set.insert(
+                MaskWithCost(cost, BittreeTaskTypeAsPartialFunction(this, subtask_depth).total_function));
 
         for(int i = 0;i<leaf_internals_and_bit_ids.size();i++)
         {
@@ -1747,10 +1753,10 @@ vector<Bitvector> BittreeTaskType::generate_variety(int subtask_depth)
 
     }while(next_rule(rules, possible_rules));
 
-    vector<Bitvector> ret;
-
+    vector<MaskWithCost> ret;
 
     cout << "HOPE: " << endl;
+    int prev = -1;
     for(auto bitvector : ret_set)
     {
         ret.push_back(bitvector);

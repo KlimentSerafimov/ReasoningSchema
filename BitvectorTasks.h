@@ -89,7 +89,7 @@ class BitvectorTasks {
     void populate_ordering_over_boolean_functions_with_small_sum();
     void populate_ordering_over_boolean_functions_with_bitwise_and();
 
-    vector<vector<vector<Bitvector> > >
+    vector<vector<vector<MaskWithCost> > >
     masks_generator(int num_subtasks, int max_masks_size, int min_mask_size, int num_first_in_prior, vector<BittreeTaskType*> multi_task_set);
 
     vector<BittreeTaskType*> get_multi_task_type(BittreeTypeExpression *type_expression, int init_num_iter);
@@ -101,11 +101,11 @@ class BitvectorTasks {
     void set_up_directory();
 
     pair<vector<MetaExample>, ReasoningSchemaOptimizer*>  one_step_of_incremental_meta_generalization(
-            bool is_fist,
+            bool is_first,
             int task_id,
             vector<MetaExample> meta_examples_of_task_id,
-            vector<Bitvector> & next_subdomains,
-            vector<vector<Bitvector> > masks_of_task_id,
+            vector<MaskWithCost> &next_subdomains,
+            vector<vector<MaskWithCost> > masks_of_task_id,
             BittreeTaskType * task_type,
             BittreeTaskType * next_task_type
     );
