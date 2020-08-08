@@ -486,24 +486,31 @@ pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of
         }
         cout << endl;
 
-        int prev_cost = -1;
-        vector<MaskWithCost> local_subdomains;
+        bool more_buckets = false;
+        if(more_buckets) {
+            int prev_cost = -1;
+            vector<MaskWithCost> local_subdomains;
+            for (int i = 0; i < next_subdomains.size(); i++) {
+                if (prev_cost != next_subdomains[i].cost && prev_cost != -1) {
+                    masks_of_task_id.push_back(local_subdomains);
+                    local_subdomains.clear();
+                }
+                local_subdomains.push_back(next_subdomains[i]);
+                prev_cost = next_subdomains[i].cost;
+            }
+        }
+        else
+        {
+            masks_of_task_id.push_back(next_subdomains);
+        }
+
         ofstream out_next_subdomains(dir_path + "/current_subdomains__task_id_"+std::to_string(task_id+1));
         for(int i = 0;i<next_subdomains.size(); i++)
         {
-            if(prev_cost != next_subdomains[i].cost && prev_cost != -1)
-            {
-                masks_of_task_id.push_back(local_subdomains);
-                local_subdomains.clear();
-            }
-            local_subdomains.push_back(next_subdomains[i]);
-            prev_cost = next_subdomains[i].cost;
             out_next_subdomains << next_subdomains[i].to_string() << " " << next_subdomains[i].cost <<endl;
         }
-
         out_next_subdomains.close();
 
-//        masks_of_task_id.push_back(next_subdomains);
 
         next_subdomains.clear();
     }
