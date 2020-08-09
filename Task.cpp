@@ -904,12 +904,12 @@ void Task__gene_network::solve(BittreeInputOutputType *holder) {
     }
 }
 
-void Task__biggest_square::generate_bittree_task_expression(BittreeTypeExpression *holder) {
-
+void grid_in_grid_out(int in_w, int out_w, BittreeTypeExpression *holder)
+{
     int init_input_operands[8] = {1, 1, 1, 1, 1, 1, 1, 1};
     int delta_input_operands[8] = {1, 1, 1, 1, 1, 1, 1, 1};
 
-    int num_input_operands = param__w;
+    int num_input_operands = in_w;
     holder->base_task_type = new BittreeTaskType(
             NULL,  Name("base_task_type"), internal_node, internal_node);
     holder->init_delta_task_type = new BittreeInputOutputType(
@@ -919,67 +919,77 @@ void Task__biggest_square::generate_bittree_task_expression(BittreeTypeExpressio
 
     holder->build_input_type(num_input_operands, init_input_operands, delta_input_operands);
 
-    int num_outputs = param__w;
-    int max_w = 8;
-    assert(param__w <= max_w);
+    int num_outputs = out_w;
+    const int max_w = 8;
+    assert(num_outputs <= max_w);
     int init_output_sizes[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     int delta_output_sizes[8] = {1, 1, 1, 1, 1, 1, 1, 1};
 
     holder->build_output_type(num_outputs, init_output_sizes, delta_output_sizes);
-
 }
 
-void Task__biggest_square::solve(BittreeInputOutputType *holder) {
+void Task__biggest_square::generate_bittree_task_expression(BittreeTypeExpression *holder) {
+    grid_in_grid_out(param__w, param__w, holder);
+}
 
+vector<vector<int> > get_input_grid(int param__w, BittreeInputOutputType *holder)
+{
     const int num_operands = param__w;
     assert(holder->input->children.size() == num_operands);
     vector<vector<int> > input_grid;
-    vector<vector<int> > output_grid;
     for(int i = 0;i<num_operands;i++)
     {
         input_grid.emplace_back();
-        output_grid.emplace_back();
         for(int j = 0;j<holder->input->children.at(i)->children.size();j++)
         {
             assert(holder->input->children.at(i)->children.at(j)->bit->is_bit_set == true);
             input_grid[i].push_back(holder->input->children.at(i)->children.at(j)->bit->bit_val);
-            output_grid[i].push_back(0);
-//            cout << input_grid[i][j];
         }
-//        cout << endl;
     }
 
+    return input_grid;
+}
 
-    pair<int, pair<pair<int, int>, pair<int, int> >> best =
+pair<int, pair<pair<int, int>, pair<int, int> > > largest_rectangle(int param__w, vector<vector<int> > input_grid)
+{
+
+    pair<int, pair<pair<int, int>, pair<int, int> > > best =
             make_pair(-1, make_pair(make_pair(0, 0), make_pair(0, 0)));
 
-    for(int x = 0; x < num_operands; x++)
-    {
-        for(int y = 0; y < input_grid[x].size(); y++)
-        {
-            for(int xx = x; xx <num_operands; xx++)
-            {
-                for(int yy = y; yy < input_grid[xx].size(); yy++)
-                {
+    for(int x = 0; x < input_grid.size(); x++) {
+        for (int y = 0; y < input_grid[x].size(); y++) {
+            for (int xx = x; xx < input_grid.size(); xx++) {
+                for (int yy = y; yy < input_grid[xx].size(); yy++) {
                     int count = 0;
                     int sum = 0;
-                    for(int xxx = x; xxx<= xx; xxx++)
-                    {
-                        for(int yyy = y; yyy <= min(yy, (int)input_grid[xxx].size()-1); yyy++)
-                        {
-                            count ++;
+                    for (int xxx = x; xxx <= xx; xxx++) {
+                        for (int yyy = y; yyy <= min(yy, (int) input_grid[xxx].size() - 1); yyy++) {
+                            count++;
                             sum += input_grid[xxx][yyy];
                         }
                     }
-                    if(sum == count)
-                    {
-                        if (sum > best.first || best.first == -1)
-                        {
+                    if (sum == count) {
+                        if (sum > best.first || best.first == -1) {
                             best = make_pair(sum, make_pair(make_pair(x, y), make_pair(xx, yy)));
                         }
                     }
                 }
             }
+        }
+    }
+    return best;
+}
+
+
+vector<vector<int> > mark_largest_rectangle(vector<vector<int> > input_grid, pair<int, pair<pair<int, int>, pair<int, int> > > best)
+{
+    vector<vector<int> > output_grid;
+    for(int i = 0;i<input_grid.size();i++)
+    {
+        output_grid.emplace_back(vector<int>());
+        for(int j = 0;j<input_grid[i].size();j++)
+        {
+            output_grid[i].push_back(0);
         }
     }
 
@@ -995,6 +1005,18 @@ void Task__biggest_square::solve(BittreeInputOutputType *holder) {
             }
         }
     }
+    return output_grid;
+}
+
+
+void Task__biggest_square::solve(BittreeInputOutputType *holder) {
+
+    vector<vector<int> > input_grid = get_input_grid(param__w, holder);
+
+    pair<int, pair<pair<int, int>, pair<int, int> > > best =
+            largest_rectangle(param__w, input_grid);
+
+    vector<vector<int> > output_grid = mark_largest_rectangle(input_grid, best);
 
     for(int i = 0;i<holder->output->children.size(); i++)
     {
@@ -1008,11 +1030,246 @@ void Task__biggest_square::solve(BittreeInputOutputType *holder) {
 }
 
 void Task__biggest_square_with_kernel::generate_bittree_task_expression(BittreeTypeExpression *holder) {
-
+    grid_in_grid_out(param__w, param__w+param__w-1, holder);
 }
 
 void Task__biggest_square_with_kernel::solve(BittreeInputOutputType *holder) {
+    vector<vector<int> > input_grid = get_input_grid(param__w, holder);
 
+    pair<int, pair<pair<int, int>, pair<int, int> > > best =
+            largest_rectangle(param__w, input_grid);
+
+    vector<vector<int> > output_grid = mark_largest_rectangle(input_grid, best);
+
+    vector<vector<int> > intermediate_state;
+    for (int x = 1; x < input_grid.size(); x++) {
+        intermediate_state.emplace_back(vector<int>());
+        for (int y = 0; y < input_grid[x].size(); y++) {
+            intermediate_state[x-1].push_back(input_grid[x][y] & input_grid[x - 1][y]);
+        }
+    }
+
+    for(int i = 0;i<holder->output->children.size(); i++)
+    {
+        for(int j = 0;j<(int)holder->output->children.at(i)->children.size();j++)
+        {
+            assert(holder->output->children.at(i)->children.at(j)->bit->is_bit_set == false);
+            holder->output->children.at(i)->children.at(j)->bit->is_bit_set = true;
+            if(i < output_grid.size()) {
+                holder->output->children.at(i)->children.at(j)->bit->bit_val = output_grid[i][j];
+            }
+            else
+            {
+                holder->output->children.at(i)->children.at(j)->bit->bit_val = intermediate_state[i - output_grid.size()][j];
+            }
+        }
+    }
 }
 
 
+void Task__biggest_square_w_corners_as_intermediate_state::generate_bittree_task_expression(BittreeTypeExpression *holder) {
+    grid_in_grid_out(param__w, param__w+param__w, holder);
+}
+
+void Task__biggest_square_w_corners_as_intermediate_state::solve(BittreeInputOutputType *holder) {
+    vector<vector<int> > input_grid = get_input_grid(param__w, holder);
+
+    pair<int, pair<pair<int, int>, pair<int, int> > > best =
+            largest_rectangle(param__w, input_grid);
+
+    vector<vector<int> > output_grid = mark_largest_rectangle(input_grid, best);
+
+    int best_x = best.second.first.first;
+    int best_y = best.second.first.second;
+    int best_xx = best.second.second.first;
+    int best_yy = best.second.second.second;
+
+    vector<vector<int> > intermediate_state;
+    for (int x = 0; x < input_grid.size(); x++) {
+        intermediate_state.emplace_back(vector<int>());
+        for (int y = 0; y < input_grid[x].size(); y++) {
+            if(x == best_x && y == best_y)
+            {
+                intermediate_state[x].push_back(1);
+            }
+            else if(x == best_xx && y == best_yy)
+            {
+                intermediate_state[x].push_back(1);
+            }
+            else
+            {
+                intermediate_state[x].push_back(0);
+            }
+        }
+    }
+
+    for(int i = 0;i<holder->output->children.size(); i++)
+    {
+        for(int j = 0;j<(int)holder->output->children.at(i)->children.size();j++)
+        {
+            assert(holder->output->children.at(i)->children.at(j)->bit->is_bit_set == false);
+            holder->output->children.at(i)->children.at(j)->bit->is_bit_set = true;
+            if(i < output_grid.size()) {
+                holder->output->children.at(i)->children.at(j)->bit->bit_val = output_grid[i][j];
+            }
+            else
+            {
+                holder->output->children.at(i)->children.at(j)->bit->bit_val = intermediate_state[i - output_grid.size()][j];
+            }
+        }
+    }
+}
+
+void Task__biggest_square_as_corners::generate_bittree_task_expression(BittreeTypeExpression *holder) {
+    grid_in_grid_out(param__w, param__w, holder);
+}
+
+void Task__biggest_square_as_corners::solve(BittreeInputOutputType *holder) {
+    vector<vector<int> > input_grid = get_input_grid(param__w, holder);
+
+    pair<int, pair<pair<int, int>, pair<int, int> > > best =
+            largest_rectangle(param__w, input_grid);
+
+    int best_x = best.second.first.first;
+    int best_y = best.second.first.second;
+    int best_xx = best.second.second.first;
+    int best_yy = best.second.second.second;
+
+    vector<vector<int> > output_grid;
+    for (int x = 0; x < input_grid.size(); x++) {
+        output_grid.emplace_back(vector<int>());
+        for (int y = 0; y < input_grid[x].size(); y++) {
+            if(x == best_x && y == best_y)
+            {
+                output_grid[x].push_back(1);
+            }
+            else if(x == best_xx && y == best_yy)
+            {
+                output_grid[x].push_back(1);
+            }
+            else
+            {
+                output_grid[x].push_back(0);
+            }
+        }
+    }
+
+    for(int i = 0;i<holder->output->children.size(); i++)
+    {
+        for(int j = 0;j<(int)holder->output->children.at(i)->children.size();j++)
+        {
+            assert(holder->output->children.at(i)->children.at(j)->bit->is_bit_set == false);
+            holder->output->children.at(i)->children.at(j)->bit->is_bit_set = true;
+            holder->output->children.at(i)->children.at(j)->bit->bit_val = output_grid[i][j];
+        }
+    }
+}
+
+void Task__remove_points::generate_bittree_task_expression(BittreeTypeExpression *holder) {
+    grid_in_grid_out(param__w, param__w, holder);
+}
+
+int sum_neighbours(vector<vector<int> > input_grid, int x, int y)
+{
+    int delta[4][2] = {{0, -1}, {-1, 0}, {0, 1}, {1, 0}};
+    int sum = 0;
+    for(int i = 0;i<4;i++)
+    {
+        int next_x = x+delta[i][0];
+        int next_y = y+delta[i][1];
+        if(next_x >= 0 && next_x < input_grid.size() && next_y>=0 && next_y<input_grid[next_x].size())
+        {
+            sum += input_grid[next_x][next_y];
+        }
+    }
+    return sum;
+}
+
+void Task__remove_points::solve(BittreeInputOutputType *holder) {
+    vector<vector<int> > input_grid = get_input_grid(param__w, holder);
+
+    vector<vector<int> > output_grid;
+    for(int i = 0;i<input_grid.size();i++)
+    {
+        output_grid.emplace_back(vector<int>());
+        for(int j = 0;j<input_grid[i].size(); j++)
+        {
+            if(input_grid[i][j] == 1 && sum_neighbours(input_grid, i, j) == 0)
+            {
+                output_grid[i].push_back(0);
+            }
+            else
+            {
+                output_grid[i].push_back(input_grid[i][j]);
+            }
+        }
+    }
+
+    for(int i = 0;i<holder->output->children.size(); i++)
+    {
+        for(int j = 0;j<(int)holder->output->children.at(i)->children.size();j++)
+        {
+            assert(holder->output->children.at(i)->children.at(j)->bit->is_bit_set == false);
+            holder->output->children.at(i)->children.at(j)->bit->is_bit_set = true;
+            holder->output->children.at(i)->children.at(j)->bit->bit_val = output_grid[i][j];
+        }
+    }
+}
+
+void Task__remove_points_and_peninsula::generate_bittree_task_expression(BittreeTypeExpression *holder) {
+    grid_in_grid_out(param__w, 2*param__w, holder);
+}
+
+void Task__remove_points_and_peninsula::solve(BittreeInputOutputType *holder) {
+    vector<vector<int> > input_grid = get_input_grid(param__w, holder);
+
+    vector<vector<int> > output_grid;
+    for(int i = 0;i<input_grid.size();i++)
+    {
+        output_grid.emplace_back(vector<int>());
+        for(int j = 0;j<input_grid[i].size(); j++)
+        {
+            if(input_grid[i][j] == 1 && sum_neighbours(input_grid, i, j) == 0)
+            {
+                output_grid[i].push_back(0);
+            }
+            else
+            {
+                output_grid[i].push_back(input_grid[i][j]);
+            }
+        }
+    }
+
+    vector<vector<int> > second_output;
+    for(int i = 0;i<input_grid.size();i++)
+    {
+        second_output.emplace_back(vector<int>());
+        for(int j = 0;j<input_grid[i].size(); j++)
+        {
+            if(input_grid[i][j] == 1 && sum_neighbours(input_grid, i, j) == 1)
+            {
+                second_output[i].push_back(0);
+            }
+            else
+            {
+                second_output[i].push_back(input_grid[i][j]);
+            }
+        }
+    }
+
+    for(int i = 0;i<holder->output->children.size(); i++)
+    {
+        for(int j = 0;j<(int)holder->output->children.at(i)->children.size();j++)
+        {
+            assert(holder->output->children.at(i)->children.at(j)->bit->is_bit_set == false);
+            holder->output->children.at(i)->children.at(j)->bit->is_bit_set = true;
+            if(i < output_grid.size()) {
+                holder->output->children.at(i)->children.at(j)->bit->bit_val = output_grid[i][j];
+            }
+            else
+            {
+                holder->output->children.at(i)->children.at(j)->bit->bit_val = second_output[i - output_grid.size()][j];
+            }
+        }
+    }
+}

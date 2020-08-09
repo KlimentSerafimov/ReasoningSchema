@@ -215,8 +215,66 @@ public:
 class Task__biggest_square_with_kernel : public Task
 {
     int param__w;
+    int tile_w;
+    int tile_h;
 public:
-    Task__biggest_square_with_kernel(int _param__w) : Task("biggest_square_with_kernel") { param__w = _param__w;}
+    Task__biggest_square_with_kernel(int _param__w, int _tile_w, int _tile_h) : Task("biggest_square_with_kernel") {
+        param__w = _param__w;
+        tile_w = _tile_w;
+        tile_h = _tile_h;
+    }
+    string get_task_name() override
+    {
+        return Task::get_task_name() + "(w=" + std::to_string(param__w) + ")";
+    }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
+};
+
+class Task__biggest_square_w_corners_as_intermediate_state : public Task
+{
+    int param__w;
+public:
+    Task__biggest_square_w_corners_as_intermediate_state(int _param__w) : Task("biggest_square_w_inter_corners") { param__w = _param__w;}
+    string get_task_name() override
+    {
+        return Task::get_task_name() + "(w=" + std::to_string(param__w) + ")";
+    }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
+};
+
+class Task__biggest_square_as_corners : public Task
+{
+    int param__w;
+public:
+    Task__biggest_square_as_corners(int _param__w) : Task("biggest_square_to_corners") { param__w = _param__w;}
+    string get_task_name() override
+    {
+        return Task::get_task_name() + "(w=" + std::to_string(param__w) + ")";
+    }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
+};
+
+class Task__remove_points : public Task
+{
+    int param__w;
+public:
+    Task__remove_points(int _param__w) : Task("remove_points") { param__w = _param__w;}
+    string get_task_name() override
+    {
+        return Task::get_task_name() + "(w=" + std::to_string(param__w) + ")";
+    }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
+};
+
+class Task__remove_points_and_peninsula : public Task
+{
+    int param__w;
+public:
+    Task__remove_points_and_peninsula(int _param__w) : Task("remove_points_and_peninsula") { param__w = _param__w;}
     string get_task_name() override
     {
         return Task::get_task_name() + "(w=" + std::to_string(param__w) + ")";

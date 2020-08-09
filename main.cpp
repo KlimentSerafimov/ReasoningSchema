@@ -358,12 +358,20 @@ void modeling_of_bitvector_functions() {
 //        }
 //        Task * task = new Task__gene_network(network_bits);
 
-        Task * task = new Task__biggest_square(2);
+//        Task * task = new Task__biggest_square(2);
 
-//        Task * task = new Task__biggest_square_with_kernel();
+//        Task * task = new Task__biggest_square_with_kernel(2, 2, 1);
+
+//        Task * task = new Task__biggest_square_w_corners_as_intermediate_state(2);
+
+//        Task * task = new Task__biggest_square_as_corners(2);
+
+//        Task * task = new Task__remove_points(2);
+
+        Task * task = new Task__remove_points_and_peninsula(2);
 
         int init_iter = 2;
-        int num_iter = 4;
+        int num_iter = 7;
         ModeType mode_type = progressive_prior_mode;
         MetricType metric_type = most_progress;
         int recursive_rep_set_depth = 0;
@@ -371,10 +379,10 @@ void modeling_of_bitvector_functions() {
         int max_mask_size = 3;
         int num_prev_subtasks = 1;
         int num_first_in_prior = -1;
-        bool train_set_minimization = false;
-        int seed_train_set = 15;
-        int num_minimization_steps = 3;
-        double minimization_fraction = 19.0/20;
+        bool train_set_minimization = true;
+        int seed_train_set = 20;
+        int num_minimization_steps = 30;
+        double minimization_fraction = 18.5/20;
 
         assert(minimization_fraction != 0);
 

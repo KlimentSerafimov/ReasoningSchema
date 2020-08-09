@@ -475,9 +475,11 @@ pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of
         BittreeTaskType * next_task_type
 )
 {
+    assert(masks_of_task_id.size() == 0);
     vector<MetaExample> ret_train_meta_examples;
     ReasoningSchemaOptimizer* ret_reasoning_schema;
 
+    assert(next_subdomains.size() != 0 || is_first);
     if (mode == progressive_prior_mode && next_subdomains.size() != 0) {
         cout << "with_alternative:" << endl;
 
@@ -510,7 +512,6 @@ pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of
             out_next_subdomains << next_subdomains[i].to_string() << " " << next_subdomains[i].cost <<endl;
         }
         out_next_subdomains.close();
-
 
         next_subdomains.clear();
     }
