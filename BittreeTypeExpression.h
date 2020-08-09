@@ -5,7 +5,7 @@
 #ifndef COMPACTPOSET_BITTREETYPEEXPRESSION_H
 #define COMPACTPOSET_BITTREETYPEEXPRESSION_H
 
-#include "TaskName.h"
+#include "Task.h"
 #include "BittreeTaskType.h"
 
 class BittreeTypeExpression
@@ -16,7 +16,9 @@ public:
     BittreeInputOutputType* init_delta_task_type;
     BittreeInputOutputType* delta_task_type;
 
-    BittreeTypeExpression(TaskName task_name);
+    BittreeTypeExpression() = default;
+
+    BittreeTypeExpression(Task *task_name);
 
     void build_input_type(int num_input_operands, int* init_input_sizes, int* delta_input_sizes);
 

@@ -2,14 +2,18 @@
 // Created by Kliment Serafimov on 1/13/20.
 //
 
-#ifndef COMPACTPOSET_TASKNAME_H
-#define COMPACTPOSET_TASKNAME_H
+#ifndef COMPACTPOSET_TASK_H
+#define COMPACTPOSET_TASK_H
 
 #include <string>
 #include <assert.h>
 
 using namespace std;
 
+class BittreeTypeExpression;
+class BittreeInputOutputType;
+
+/*
 static const string str_task_name__sum = "sum";
 static const string str_task_name__greater = "greater";
 static const string str_task_name__cumulative_binary_operator = "cumulative_binary_operator";
@@ -30,6 +34,7 @@ static const string str_task_name__add = "add";
 static const string str_task_name__gene_network = "gene_network";
 static const string str_task_name__biggest_square = "biggest_square";
 static const string str_task_name__biggest_square_with_kernel = "biggest_square_with_kernel";
+*/
 
 enum TaskNames {
     sum,
@@ -54,13 +59,13 @@ enum TaskNames {
     biggest_square_with_kernel
     };
 
-class TaskName
+class Task
 {
 public:
 
     string task_name;
 
-    bool do__sum = false;
+    /*bool do__sum = false;
     bool do__greater = false;
     bool do__cummulative_binary_operator = false;
     bool do__bitwise_binary_operator = false;
@@ -94,11 +99,25 @@ public:
     bool do__biggest_square_with_kernel = false;
 
     bool num_iter_defined = false;
-    int num_iter = -1;
+    int num_iter = -1;*/
 
-    TaskName() = default;
+    Task() = default;
 
-    TaskName(string _task_name) {
+    Task(string _task_name)
+    {
+        task_name = _task_name;
+    }
+
+    string get_task_name()
+    {
+        return task_name;
+    }
+
+    virtual void generate_bittree_task_expression(BittreeTypeExpression * holder);
+
+    virtual void solve(BittreeInputOutputType * holder);
+
+    /*Task(string _task_name) {
 
         assert(_task_name != str_task_name__multiply_by);
         assert(_task_name != str_task_name__one_shift_idx__reverse_subtask);
@@ -125,7 +144,7 @@ public:
         do__sort_bits = task_name == str_task_name__sort_bits;
     }
 
-    TaskName(string _task_name, int _param) {
+    Task(string _task_name, int _param) {
         assert(
                 _task_name == str_task_name__multiply_by ||
                 _task_name == str_task_name__one_shift_idx__reverse_subtask ||
@@ -172,7 +191,7 @@ public:
     }
 
 
-    TaskName(string _task_name, int param0, int param1, int param2) {
+    Task(string _task_name, int param0, int param1, int param2) {
         assert(_task_name == str_task_name__biggest_square_with_kernel);
     }
 
@@ -197,12 +216,158 @@ public:
         else{
             return task_name;
         }
+    }*/
+};
+
+class Task__sum : public Task
+{
+public:
+    Task__sum() : Task("sum") {}
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
+};
+
+class Task__greater : public Task
+{ public:
+    Task__greater() : Task("greater") { }
+};
+
+class Task__cumulative_binary_operator : public Task
+{public:
+    Task__cumulative_binary_operator() : Task("cumulative_binary_operator") { }
+};
+
+class Task__bitwise_binary_operator : public Task
+{public:
+    Task__bitwise_binary_operator() : Task("bitwise_binary_operator") {}
+};
+
+class Task__one_shift_idx : public Task
+{public:
+    Task__one_shift_idx() : Task("one_shift_idx") { }
+};
+
+class Task__multiply_by : public Task
+{
+    int multiply_by;
+public:
+    Task__multiply_by(int _multiply_by) : Task() {
+        task_name = "multiply_by";
+        multiply_by = _multiply_by;
+    }
+    string get_task_name()
+    {
+        return Task::get_task_name() + "(mul=" + std::to_string(multiply_by) + ")";
     }
 };
 
-class Task_Sum : public TaskName
+class Task__one_shift_idx__rev : public Task
 {
-    Task_Sum();
+    int param__init_size;
+public:
+    Task__one_shift_idx__rev(int _param__init_size) : Task("one_shift_idx__rev") { param__init_size = _param__init_size; }
+
+    string get_task_name()
+    {
+        return Task::get_task_name() + "(init_sz=" + std::to_string(param__init_size) + ")";
+    }
 };
 
-#endif //COMPACTPOSET_TASKNAME_H
+class Task__count_unary : public Task
+{public:
+    Task__count_unary() : Task("count_unary") { }
+};
+
+class Task__count_unary__rev : public Task
+{
+    int param__init_size;
+public:
+    Task__count_unary__rev(int _param__init_size) : Task("count_unary__rev") { param__init_size = _param__init_size ; }
+    string get_task_name()
+    {
+        return Task::get_task_name() + "(init_sz=" + std::to_string(param__init_size) + ")";
+    }
+};
+
+class Task__unary_sum : public Task
+{public:
+    Task__unary_sum() : Task("unary_sum") { }
+};
+
+class Task__least_set_bit : public Task
+{public:
+    Task__least_set_bit() : Task("least_set_bit") { }
+};
+
+class Task__strech_of_0s : public Task
+{public:
+    Task__strech_of_0s() : Task("strech_of_0s") { }
+};
+
+class Task__strech_of_0s_w_state : public Task
+{public:
+    Task__strech_of_0s_w_state() : Task("strech_of_0s_w_state") { }
+};
+
+class Task__linear_and_or_expression : public Task
+{public:
+    Task__linear_and_or_expression() : Task("linear_and_or_expression") { }
+};
+
+class Task__linear_and_or_nand_nor_expression : public Task
+{public:
+    Task__linear_and_or_nand_nor_expression() : Task("linear_and_or_nand_nor_expression") { }
+};
+
+class Task__sort_bits : public Task
+{public:
+    Task__sort_bits() : Task("sort_bits") { }
+};
+
+class Task__add : public Task
+{
+    int add_num;
+public:
+    Task__add(int _add_num) : Task("add") { add_num = _add_num; }
+    string get_task_name()
+    {
+        return Task::get_task_name() + "(num=" + std::to_string(add_num) + ")";
+    }
+};
+
+class Task__gene_network : public Task
+{
+    int param__network;
+public:
+    Task__gene_network(int _param__network) : Task("gene_network") { param__network = _param__network; }
+    string get_task_name()
+    {
+        return Task::get_task_name() + "(net_id=" + std::to_string(param__network) + ")";
+    }
+};
+
+class Task__biggest_square : public Task
+{
+    int param__w;
+public:
+    Task__biggest_square(int _param__w) : Task("biggest_square") { param__w = _param__w;}
+    string get_task_name()
+    {
+        return Task::get_task_name() + "(w=" + std::to_string(param__w) + ")";
+    }
+};
+
+class Task__biggest_square_with_kernel : public Task
+{
+    int param__w;
+public:
+    Task__biggest_square_with_kernel(int _param__w) : Task("biggest_square_with_kernel") { param__w = _param__w;}
+    string get_task_name()
+    {
+        return Task::get_task_name() + "(w=" + std::to_string(param__w) + ")";
+    }
+};
+
+
+
+#endif //COMPACTPOSET_TASK_H

@@ -8,8 +8,10 @@
 
 using namespace std;
 
-BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
+BittreeTypeExpression::BittreeTypeExpression(Task *task_name)
 {
+    task_name->generate_bittree_task_expression(this);
+    /*
     bool enter = false;
     if(task_name.do__sum)
     {
@@ -386,7 +388,9 @@ BittreeTypeExpression::BittreeTypeExpression(TaskName task_name)
 
     assert(enter);
 //    cout << base_task_type->to_string() << endl;
+     */
 }
+
 
 //void BittreeTypeExpression::build_input_type(int num_input_operands, const int init_input_operands[], int delta_input_operands[])
 //{

@@ -625,7 +625,7 @@ BittreeTaskType* BittreeTaskType::get_supertask_type(BittreeInputOutputType* del
     return ret;
 }
 
-void BittreeTaskType::solve(TaskName task_name) {
+void BittreeTaskType::solve(Task *task_name) {
 
     solution = new BittreeTaskType(this, Name("solution"), this, true);
 
@@ -643,8 +643,10 @@ void BittreeTaskType::solve(TaskName task_name) {
     solution->io->solve(task_name);
 }
 
-void BittreeInputOutputType::solve(TaskName task_name)
+void BittreeInputOutputType::solve(Task *task_name)
 {
+    task_name->solve(this);
+    /*
     if(task_name.do__sum){
         solve__sum();
     }
@@ -737,7 +739,7 @@ void BittreeInputOutputType::solve(TaskName task_name)
     if(task_name.do__biggest_square)
     {
         solve__do_biggest_square(task_name.param__w);
-    }
+    }*/
 }
 
 

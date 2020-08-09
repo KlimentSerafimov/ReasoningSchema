@@ -18,7 +18,7 @@ class InstanceTree
 {
 public:
     BittreeTaskType* instance;
-    TaskName task_name;
+    Task * task_name;
 
     bool prepared_for_deepening = false;
     BittreeTaskType* superinstance_type;
@@ -29,7 +29,7 @@ public:
     bool deepened = false;
     vector<InstanceTree*> superinstance_trees;
 
-    InstanceTree(BittreeTaskType* _instance, TaskName _task_name);
+    InstanceTree(BittreeTaskType* _instance, Task *_task_name);
 
     void prepare_for_deepening(BittreeInputOutputType* _delta);
 
@@ -60,7 +60,7 @@ public:
 
 class BitvectorTasks {
 
-    TaskName task_name;
+    Task *task_name;
     int init_iter;
     int num_iter;
     int recursive_rep_set_depth;
@@ -95,7 +95,7 @@ class BitvectorTasks {
     vector<BittreeTaskType*> get_multi_task_type(BittreeTypeExpression *type_expression, int init_num_iter);
 
     vector<vector<MetaExample> >
-    get_meta_examples(BittreeTypeExpression *type_expression, TaskName task_name, int num_iter,
+    get_meta_examples(BittreeTypeExpression *type_expression, Task *task_name, int init_num_iter,
                       int subtask_depth);
 
     void set_up_directory();
@@ -115,7 +115,7 @@ public:
 
     BitvectorTasks(int function_size, int task_id);
 
-    BitvectorTasks(TaskName task_name, int init_iter, int num_iter, int recursive_rep_set_depth,
+    BitvectorTasks(Task *task_name, int init_iter, int num_iter, int recursive_rep_set_depth,
                    MetricType metric, ModeType mode, int min_mask_size, int max_mask_size, int num_prev_subtasks,
                    string dir_path, int num_first_in_prior, bool train_set_minimization, int seed_train_set, int num_minimization_steps, double minimization_fraction);
 };

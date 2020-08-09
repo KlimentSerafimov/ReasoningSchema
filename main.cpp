@@ -313,12 +313,29 @@ void modeling_of_language_over_boolean_functions()
 }
 
 void modeling_of_bitvector_functions() {
+//
+//    ofstream out("refactored_code.txt");
+//    string str;
+//    cin >> str;
+//    while(str!= "-1")
+//    {
+//        out << "Task * task_name = new Task__" + str + "();" << endl;
+////        out << "class Task__" + str + " : public Task" << endl;
+////        out << "{" << endl;
+////        out << "\tTask__" + str + "() { task_name = \"" + str + "\";" + " }" << endl;
+////        out << "};" << endl;
+////        out << endl;
+//        cin >> str;
+//    }
+//
+//    return ;
+
 
     bool is_const = true;
     for(int add_by = is_const*0 + (!is_const)*1; add_by <= is_const*0 + (!is_const)*32; add_by ++) {
         string str_task_name;
 
-        str_task_name = str_task_name__sum;
+//        str_task_name = str_task_name__sum;
 //        str_task_name = str_task_name__greater;
 //        str_task_name = str_task_name__cumulative_binary_operator;
 //        str_task_name = str_task_name__bitwise_binary_operator;
@@ -332,25 +349,47 @@ void modeling_of_bitvector_functions() {
 //        str_task_name = str_task_name__linear_and_or_nand_nor_expression;
 //        str_task_name = str_task_name__sort_bits;
 
-          TaskName task_name = TaskName(str_task_name);
+//          Task task_name = Task(str_task_name);
+
+        Task * task_name = new Task__sum();
+//        Task * task_name = new Task__greater();
+//        Task * task_name = new Task__cumulative_binary_operator();
+//        Task * task_name = new Task__bitwise_binary_operator();
+//        Task * task_name = new Task__one_shift_idx();
+//        Task * task_name = new Task__multiply_by();
+//        Task * task_name = new Task__one_shift_idx__rev();
+//        Task * task_name = new Task__count_unary();
+//        Task * task_name = new Task__count_unary__rev();
+//        Task * task_name = new Task__unary_sum();
+//        Task * task_name = new Task__least_set_bit();
+//        Task * task_name = new Task__strech_of_0s();
+//        Task * task_name = new Task__strech_of_0s_w_state();
+//        Task * task_name = new Task__linear_and_or_expression();
+//        Task * task_name = new Task__linear_and_or_nand_nor_expression();
+//        Task * task_name = new Task__sort_bits();
+//        Task * task_name = new Task__add();
+//        Task * task_name = new Task__gene_network();
+//        Task * task_name = new Task__biggest_square();
+//        Task * task_name = new Task__biggest_square_with_kernel();
+
 
 //        str_task_name = str_task_name__multiply_by;
 //        str_task_name = str_task_name__add;
 //        str_task_name = str_task_name__biggest_square;
 //        int param = 3;
 
-//        TaskName task_name = TaskName(str_task_name, param);
+//        Task task_name = Task(str_task_name, param);
 
 //        str_task_name = str_task_name__biggest_square_with_kernel;
 //        int width = 2;
 //        int kernel_w = 1;
 //        int kernel_h = width;
-//        TaskName task_name = TaskName(str_task_name, param, kernel_w, kernel_h);
+//        Task task_name = Task(str_task_name, param, kernel_w, kernel_h);
 
 //        str_task_name = str_task_name__one_shift_idx__reverse_subtask;
 //        str_task_name = str_task_name__count_unary__reverse_subtask;
 //        int init_size = 3;
-//        TaskName task_name = TaskName(str_task_name, init_size);
+//        Task task_name = Task(str_task_name, init_size);
 
 //        str_task_name = str_task_name__gene_network;
 
@@ -377,10 +416,10 @@ void modeling_of_bitvector_functions() {
 //            }
 //        }
 //
-//        TaskName task_name = TaskName(str_task_name, network_bits);
+//        Task task_name = Task(str_task_name, network_bits);
 
-        int init_iter = 3;
-        int num_iter = 6;
+        int init_iter = 1;
+        int num_iter = 5;
         ModeType mode_type = progressive_prior_mode;
         MetricType metric_type = most_progress;
         int recursive_rep_set_depth = 0;

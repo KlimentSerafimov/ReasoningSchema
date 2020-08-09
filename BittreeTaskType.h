@@ -9,7 +9,7 @@
 #include "BitInBittree.h"
 #include "DeltaBittreeType.h"
 //#include "BitvectorTasks.h"
-#include "TaskName.h"
+#include "Task.h"
 #include "PartialFunction.h"
 
 
@@ -95,12 +95,9 @@ public:
     BittreeNode* input = NULL;
     BittreeNode* output = NULL;
 
-//    BittreeInputOutputType();
-
     BittreeInputOutputType(TreeNode *_parent, Name name, NodeType input_node_type, NodeType output_node_type);
 
     BittreeInputOutputType(TreeNode *_parent, Name name, BittreeInputOutputType *to_copy, bool all_new_bits);
-
 
     void append_bits(vector<BitInBittree*>& bits)
     {
@@ -146,7 +143,7 @@ public:
 
     BittreeNode * add_output_child(NodeType child_type, BitInBittreeType bit_in_bittree_type);
 
-    void solve(TaskName task_name);
+    void solve(Task *task_name);
 
     void solve__sum();
 
@@ -228,7 +225,7 @@ public:
 
     BittreeTaskType(TreeNode *_parent, Name name, BittreeTaskType *to_copy, bool all_new_bits, bool copy_all);
 
-    void solve(TaskName task_name);
+    void solve(Task *task_name);
 
     void append_bits(vector<BitInBittree*>& bits);
 

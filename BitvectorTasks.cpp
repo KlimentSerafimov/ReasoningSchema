@@ -102,7 +102,7 @@ BitvectorTasks::BitvectorTasks(int _function_size, int task_id) {
     }
 }
 
-InstanceTree::InstanceTree(BittreeTaskType* _instance, TaskName _task_name) {
+InstanceTree::InstanceTree(BittreeTaskType* _instance, Task *_task_name) {
     instance = _instance;
     task_name = _task_name;
 }
@@ -306,7 +306,7 @@ BitvectorTasks::masks_generator(int num_subtasks, int max_masks_size, int min_ma
 }
 
 vector<vector<MetaExample> >
-BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, TaskName task_name, int init_num_iter,
+BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, Task *task_name, int init_num_iter,
                                   int subtask_depth)
 {
     int num_iter = init_num_iter;
@@ -441,7 +441,7 @@ vector<MaskWithCost> get_next_subdomains(
 }
 
 
-void run_bittree_program(TaskName task_name)
+void run_bittree_program(Task * task_name)
 {
 
     int num_subtasks = 1;
@@ -738,7 +738,7 @@ pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of
     return make_pair(ret_train_meta_examples, ret_reasoning_schema);
 }
 
-BitvectorTasks::BitvectorTasks(TaskName _task_name,
+BitvectorTasks::BitvectorTasks(Task *_task_name,
                                int _init_iter,
                                int _num_iter,
                                int _recursive_rep_set_depth,
@@ -773,11 +773,6 @@ BitvectorTasks::BitvectorTasks(TaskName _task_name,
     //set up type expression
     BittreeTypeExpression type_expression_for_meta_examples = BittreeTypeExpression(task_name);
     BittreeTypeExpression type_expression_for_multi_task_set = BittreeTypeExpression(task_name);
-
-    if(task_name.num_iter_defined)
-    {
-        num_iter = task_name.num_iter;
-    }
 
     vector<BittreeTaskType *> multi_task_type = get_multi_task_type(&type_expression_for_multi_task_set, num_iter);
 
@@ -878,8 +873,8 @@ BitvectorTasks::BitvectorTasks(TaskName _task_name,
 void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
-            "task_name=" + task_name.get_task_name() +
-            "-gen=54-init_iter=" + std::to_string(init_iter) +
+            "task_name=" + task_name->get_task_name() +
+            "-gen=55-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +
