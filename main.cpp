@@ -313,33 +313,10 @@ void modeling_of_language_over_boolean_functions()
 }
 
 void modeling_of_bitvector_functions() {
-//
-//    ofstream out("refactored_code.txt");
-//    string str;
-//    cin >> str;
-//    while(str!= "-1")
-//    {
-//
-//        out << "void Task__" + str + "::generate_bittree_task_expression(BittreeTypeExpression *holder) { " << endl << endl << "} " << endl << endl ;
-//        out << "void Task__" + str + "::solve(BittreeInputOutputType *holder) { " << endl << endl << "} " << endl << endl ;
-//
-////        out << "Task * task_name = new Task__" + str + "();" << endl;
-//
-////        out << "class Task__" + str + " : public Task" << endl;
-////        out << "{" << endl;
-////        out << "\tTask__" + str + "() { task_name = \"" + str + "\";" + " }" << endl;
-////        out << "};" << endl;
-////        out << endl;
-//        cin >> str;
-//    }
-//
-//    return ;
-
 
     bool is_const = true;
     for(int param = is_const * 0 + (!is_const) * 1; param <= is_const * 0 + (!is_const) * 31; param ++) {
         string str_task_name;
-
 
 //        Task * task = new Task__sum();
 //        Task * task = new Task__greater();
@@ -384,48 +361,6 @@ void modeling_of_bitvector_functions() {
         Task * task = new Task__biggest_square(2);
 
 //        Task * task = new Task__biggest_square_with_kernel();
-
-        {
-
-//        str_task_name = str_task_name__sum;
-//        str_task_name = str_task_name__greater;
-//        str_task_name = str_task_name__cumulative_binary_operator;
-//        str_task_name = str_task_name__bitwise_binary_operator;
-//        str_task_name = str_task_name__one_shift_idx; // requires double_node
-//        str_task_name = str_task_name__count_unary; // requires double_node
-//        str_task_name = str_task_name__unary_sum; // requires double_node
-//        str_task_name = str_task_name__least_set_bit;
-//        str_task_name = str_task_name__max_window_between_bits;
-//        str_task_name = str_task_name__max_window_between_bits_with_state;
-//        str_task_name = str_task_name__linear_and_or_expression;
-//        str_task_name = str_task_name__linear_and_or_nand_nor_expression;
-//        str_task_name = str_task_name__sort_bits;
-
-//          Task task_name = Task(str_task_name);
-
-//        str_task_name = str_task_name__multiply_by;
-//        str_task_name = str_task_name__add;
-//        str_task_name = str_task_name__biggest_square;
-//        int param = 3;
-
-//        Task task_name = Task(str_task_name, param);
-
-//        str_task_name = str_task_name__biggest_square_with_kernel;
-//        int width = 2;
-//        int kernel_w = 1;
-//        int kernel_h = width;
-//        Task task_name = Task(str_task_name, param, kernel_w, kernel_h);
-
-//        str_task_name = str_task_name__one_shift_idx__reverse_subtask;
-//        str_task_name = str_task_name__count_unary__reverse_subtask;
-//        int init_size = 3;
-//        Task task_name = Task(str_task_name, init_size);
-
-//        str_task_name = str_task_name__gene_network;
-
-//        Task task_name = Task(str_task_name, network_bits);
-
-        }
 
         int init_iter = 2;
         int num_iter = 4;
@@ -477,3 +412,73 @@ int main() {
     cout << "op_counter: " << get_op_counter() << endl;
     return 0;
 }
+
+
+
+//FOSSILS:
+
+
+//{
+
+//        str_task_name = str_task_name__sum;
+//        str_task_name = str_task_name__greater;
+//        str_task_name = str_task_name__cumulative_binary_operator;
+//        str_task_name = str_task_name__bitwise_binary_operator;
+//        str_task_name = str_task_name__one_shift_idx; // requires double_node
+//        str_task_name = str_task_name__count_unary; // requires double_node
+//        str_task_name = str_task_name__unary_sum; // requires double_node
+//        str_task_name = str_task_name__least_set_bit;
+//        str_task_name = str_task_name__max_window_between_bits;
+//        str_task_name = str_task_name__max_window_between_bits_with_state;
+//        str_task_name = str_task_name__linear_and_or_expression;
+//        str_task_name = str_task_name__linear_and_or_nand_nor_expression;
+//        str_task_name = str_task_name__sort_bits;
+
+//          Task task_name = Task(str_task_name);
+
+//        str_task_name = str_task_name__multiply_by;
+//        str_task_name = str_task_name__add;
+//        str_task_name = str_task_name__biggest_square;
+//        int param = 3;
+
+//        Task task_name = Task(str_task_name, param);
+
+//        str_task_name = str_task_name__biggest_square_with_kernel;
+//        int width = 2;
+//        int kernel_w = 1;
+//        int kernel_h = width;
+//        Task task_name = Task(str_task_name, param, kernel_w, kernel_h);
+
+//        str_task_name = str_task_name__one_shift_idx__reverse_subtask;
+//        str_task_name = str_task_name__count_unary__reverse_subtask;
+//        int init_size = 3;
+//        Task task_name = Task(str_task_name, init_size);
+
+//        str_task_name = str_task_name__gene_network;
+
+//        Task task_name = Task(str_task_name, network_bits);
+
+//}
+
+//
+//    ofstream out("refactored_code.txt");
+//    string str;
+//    cin >> str;
+//    while(str!= "-1")
+//    {
+//
+//        out << "void Task__" + str + "::generate_bittree_task_expression(BittreeTypeExpression *holder) { " << endl << endl << "} " << endl << endl ;
+//        out << "void Task__" + str + "::solve(BittreeInputOutputType *holder) { " << endl << endl << "} " << endl << endl ;
+//
+////        out << "Task * task_name = new Task__" + str + "();" << endl;
+//
+////        out << "class Task__" + str + " : public Task" << endl;
+////        out << "{" << endl;
+////        out << "\tTask__" + str + "() { task_name = \"" + str + "\";" + " }" << endl;
+////        out << "};" << endl;
+////        out << endl;
+//        cin >> str;
+//    }
+//
+//    return ;
+

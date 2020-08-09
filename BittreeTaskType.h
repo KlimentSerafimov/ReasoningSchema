@@ -145,43 +145,6 @@ public:
 
     void solve(Task *task_name);
 
-    void solve__sum();
-
-    void solve__greater();
-
-    void solve__cumulative_binary_operator();
-
-    void solve__bitwise_binary_operator();
-
-    void solve__multiply_by(int multiply_by);
-
-    void solve__add_by(int add_by);
-
-    void solve__one_shift_idx();
-
-    void solve__count_unary();
-
-    void solve__unary_sum();
-
-    void solve__least_set_bit();
-
-    void solve__max_window_between_bits();
-
-    void solve__max_window_between_bits_with_state();
-
-    void solve__linear_and_or_expresson();
-
-    void solve__linear_and_or_nand_nor__expression();
-
-    void solve__sort_bits();
-
-    void solve__one_shift_idx__reverse_subtask(int init_size);
-
-    void solve__count_unary__reverse_subtask(int init_size);
-
-    void solve__gene_network(int network);
-
-    void solve__do_biggest_square(int width);
 };
 
 class BittreeTaskDecomposition: public TreeNode
@@ -338,7 +301,46 @@ public:
 
 };
 
-
-
-
 #endif //COMPACTPOSET_BITTREETASKTYPE_H
+
+// FOSSILS:
+
+/*
+    void solve__sum();
+
+    void solve__greater();
+
+    void solve__cumulative_binary_operator();
+
+    void solve__bitwise_binary_operator();
+
+    void solve__multiply_by(int multiply_by);
+
+    void solve__add_by(int add_by);
+
+    void solve__one_shift_idx();
+
+    void solve__count_unary();
+
+    void solve__unary_sum();
+
+    void solve__least_set_bit();
+
+    void solve__max_window_between_bits();
+
+    void solve__max_window_between_bits_with_state();
+
+    void solve__linear_and_or_expresson();
+
+    void solve__linear_and_or_nand_nor__expression();
+
+    void solve__sort_bits();
+
+    void solve__one_shift_idx__reverse_subtask(int init_size);
+
+    void solve__count_unary__reverse_subtask(int init_size);
+
+    void solve__gene_network(int network);
+
+    void solve__do_biggest_square(int width);*/
+
