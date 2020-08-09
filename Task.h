@@ -36,28 +36,51 @@ static const string str_task_name__biggest_square = "biggest_square";
 static const string str_task_name__biggest_square_with_kernel = "biggest_square_with_kernel";
 */
 
-enum TaskNames {
-    sum,
-    greater,
-    cumulative_binary_operator,
-    bitwise_binary_operator,
-    one_shift_idx,
-    multiply_by,
-    one_shift_idx__rev,
-    count_unary,
-    count_unary__rev,
-    unary_sum,
-    least_set_bit,
-    strech_of_0s,
-    strech_of_0s_w_state,
-    linear_and_or_expression,
-    linear_and_or_nand_nor_expression,
-    sort_bits,
-    add,
-    gene_network,
-    biggest_square,
-    biggest_square_with_kernel
-    };
+//enum TaskNames {
+//    sum,
+//    greater,
+//    cumulative_binary_operator,
+//    bitwise_binary_operator,
+//    one_shift_idx,
+//    multiply_by,
+//    one_shift_idx__rev,
+//    count_unary,
+//    count_unary__rev,
+//    unary_sum,
+//    least_set_bit,
+//    strech_of_0s,
+//    strech_of_0s_w_state,
+//    linear_and_or_expression,
+//    linear_and_or_nand_nor_expression,
+//    sort_bits,
+//    add,
+//    gene_network,
+//    biggest_square,
+//    biggest_square_with_kernel
+//    };
+
+//enum TaskNames {
+//sum
+//greater
+//cumulative_binary_operator
+//bitwise_binary_operator
+//one_shift_idx
+//multiply_by
+//one_shift_idx__rev
+//count_unary
+//count_unary__rev
+//unary_sum
+//least_set_bit
+//strech_of_0s
+//strech_of_0s_w_state
+//linear_and_or_expression
+//linear_and_or_nand_nor_expression
+//sort_bits
+//add
+//gene_network
+//biggest_square
+//biggest_square_with_kernel
+//};
 
 class Task
 {
@@ -230,21 +253,29 @@ public:
 class Task__greater : public Task
 { public:
     Task__greater() : Task("greater") { }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__cumulative_binary_operator : public Task
 {public:
     Task__cumulative_binary_operator() : Task("cumulative_binary_operator") { }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__bitwise_binary_operator : public Task
 {public:
     Task__bitwise_binary_operator() : Task("bitwise_binary_operator") {}
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__one_shift_idx : public Task
 {public:
     Task__one_shift_idx() : Task("one_shift_idx") { }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__multiply_by : public Task
@@ -259,6 +290,8 @@ public:
     {
         return Task::get_task_name() + "(mul=" + std::to_string(multiply_by) + ")";
     }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__one_shift_idx__rev : public Task
@@ -271,11 +304,15 @@ public:
     {
         return Task::get_task_name() + "(init_sz=" + std::to_string(param__init_size) + ")";
     }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__count_unary : public Task
 {public:
     Task__count_unary() : Task("count_unary") { }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__count_unary__rev : public Task
@@ -287,41 +324,57 @@ public:
     {
         return Task::get_task_name() + "(init_sz=" + std::to_string(param__init_size) + ")";
     }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__unary_sum : public Task
 {public:
     Task__unary_sum() : Task("unary_sum") { }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__least_set_bit : public Task
 {public:
     Task__least_set_bit() : Task("least_set_bit") { }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__strech_of_0s : public Task
 {public:
     Task__strech_of_0s() : Task("strech_of_0s") { }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__strech_of_0s_w_state : public Task
 {public:
     Task__strech_of_0s_w_state() : Task("strech_of_0s_w_state") { }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__linear_and_or_expression : public Task
 {public:
     Task__linear_and_or_expression() : Task("linear_and_or_expression") { }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__linear_and_or_nand_nor_expression : public Task
 {public:
     Task__linear_and_or_nand_nor_expression() : Task("linear_and_or_nand_nor_expression") { }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__sort_bits : public Task
 {public:
     Task__sort_bits() : Task("sort_bits") { }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__add : public Task
@@ -333,6 +386,8 @@ public:
     {
         return Task::get_task_name() + "(num=" + std::to_string(add_num) + ")";
     }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__gene_network : public Task
@@ -344,6 +399,8 @@ public:
     {
         return Task::get_task_name() + "(net_id=" + std::to_string(param__network) + ")";
     }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__biggest_square : public Task
@@ -355,6 +412,8 @@ public:
     {
         return Task::get_task_name() + "(w=" + std::to_string(param__w) + ")";
     }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 class Task__biggest_square_with_kernel : public Task
@@ -366,6 +425,8 @@ public:
     {
         return Task::get_task_name() + "(w=" + std::to_string(param__w) + ")";
     }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
 };
 
 

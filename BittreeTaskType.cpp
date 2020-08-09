@@ -1029,7 +1029,6 @@ void BittreeInputOutputType::solve__linear_and_or_expresson()
     }
 }
 
-
 void BittreeInputOutputType::solve__max_window_between_bits_with_state()
 {
     const int num_operands = 1;
@@ -1090,7 +1089,6 @@ void BittreeInputOutputType::solve__max_window_between_bits_with_state()
         output->children.at(1)->children.at(i)->bit->bit_val = get_bit(sum_counting, i);
     }
 }
-
 
 void BittreeInputOutputType::solve__max_window_between_bits()
 {
@@ -1308,7 +1306,6 @@ void BittreeInputOutputType::solve__one_shift_idx()
         output->children.at(i)->bit->bit_val = get_bit(sum, i);
     }
 }
-
 
 void BittreeInputOutputType::solve__add_by(int add_by)
 {
