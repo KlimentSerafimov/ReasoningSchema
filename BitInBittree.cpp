@@ -32,21 +32,13 @@ BitInBittree::BitInBittree(BittreeNode* _parent, Name name, BitInBittreeType _bi
 
 string BitInBittree::to_string() {
     if (!is_bit_set) {
-        string copied_from_str = "";
-        if(copied_from != NULL){
-            BitInBittree* copied_from_bit = copied_from->bit_in_bittree;
-            if(copied_from_bit->bit_type == new_machine_bit || copied_from_bit->bit_type == shared_machine_bit)
-            {
-                copied_from_str = ", "+std::to_string(copied_from_bit->bit_id) + ": original_id";
-            }
-        }
         string bit_id_str;
         if (bit_type == new_machine_bit || bit_type == shared_machine_bit) {
             bit_id_str =  std::to_string(bit_id) +": bit_id";
         } else {
             bit_id_str =  "_ : bit_id";
         }
-        return "[" + bit_id_str + copied_from_str + "]";
+        return "[" + bit_id_str + "]";
 
     } else {
         return std::to_string(bit_val);

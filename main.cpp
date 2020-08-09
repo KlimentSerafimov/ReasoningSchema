@@ -337,19 +337,19 @@ void modeling_of_bitvector_functions() {
 
 
     bool is_const = true;
-    for(int add_by = is_const*0 + (!is_const)*1; add_by <= is_const*0 + (!is_const)*32; add_by ++) {
+    for(int param = is_const * 0 + (!is_const) * 1; param <= is_const * 0 + (!is_const) * 31; param ++) {
         string str_task_name;
 
 
 //        Task * task = new Task__sum();
-        Task * task = new Task__greater();
+//        Task * task = new Task__greater();
 //        Task * task = new Task__cumulative_binary_operator();
 //        Task * task = new Task__bitwise_binary_operator();
 //        Task * task = new Task__one_shift_idx();
-//        Task * task = new Task__multiply_by();
-//        Task * task = new Task__one_shift_idx__rev();
+//        Task * task = new Task__multiply_by(param);
+//        Task * task = new Task__one_shift_idx__rev(4);
 //        Task * task = new Task__count_unary();
-//        Task * task = new Task__count_unary__rev();
+//        Task * task = new Task__count_unary__rev(4);
 //        Task * task = new Task__unary_sum();
 //        Task * task = new Task__least_set_bit();
 //        Task * task = new Task__strech_of_0s();
@@ -357,9 +357,32 @@ void modeling_of_bitvector_functions() {
 //        Task * task = new Task__linear_and_or_expression();
 //        Task * task = new Task__linear_and_or_nand_nor_expression();
 //        Task * task = new Task__sort_bits();
-//        Task * task = new Task__add();
-//        Task * task = new Task__gene_network();
-//        Task * task = new Task__biggest_square();
+//        Task * task = new Task__add(param);
+
+//        int network[4][4] = {
+//                {1, 1, 1, 1},
+//                {0, 1, 1, 1},
+//                {0, 0, 1, 1},
+//                {0, 0, 0, 1},
+//        };
+//        int network[4][4] = {
+//                {1, 0, 0, 0},
+//                {0, 1, 0, 0},
+//                {0, 0, 1, 0},
+//                {0, 0, 0, 1},
+//        };
+//        int pow = 1;
+//        int network_bits = 0;
+//        for(int i = 0;i<4;i++){
+//            for(int j = 0;j<4;j++){
+//                network_bits+=pow*network[i][j];
+//                pow*=2;
+//            }
+//        }
+//        Task * task = new Task__gene_network(network_bits);
+
+        Task * task = new Task__biggest_square(2);
+
 //        Task * task = new Task__biggest_square_with_kernel();
 
         {
@@ -400,35 +423,12 @@ void modeling_of_bitvector_functions() {
 
 //        str_task_name = str_task_name__gene_network;
 
-//        int network[4][4] = {
-//                {1, 1, 1, 1},
-//                {0, 1, 1, 1},
-//                {0, 0, 1, 1},
-//                {0, 0, 0, 1},
-//        };
-
-//        int network[4][4] = {
-//                {1, 0, 0, 0},
-//                {0, 1, 0, 0},
-//                {0, 0, 1, 0},
-//                {0, 0, 0, 1},
-//        };
-
-//        int pow = 1;
-//        int network_bits = 0;
-//        for(int i = 0;i<4;i++){
-//            for(int j = 0;j<4;j++){
-//                network_bits+=pow*network[i][j];
-//                pow*=2;
-//            }
-//        }
-//
 //        Task task_name = Task(str_task_name, network_bits);
 
         }
 
-        int init_iter = 1;
-        int num_iter = 5;
+        int init_iter = 2;
+        int num_iter = 4;
         ModeType mode_type = progressive_prior_mode;
         MetricType metric_type = most_progress;
         int recursive_rep_set_depth = 0;
@@ -436,14 +436,14 @@ void modeling_of_bitvector_functions() {
         int max_mask_size = 3;
         int num_prev_subtasks = 1;
         int num_first_in_prior = -1;
-        bool train_set_minimization = true;
+        bool train_set_minimization = false;
         int seed_train_set = 15;
         int num_minimization_steps = 3;
         double minimization_fraction = 19.0/20;
 
         assert(minimization_fraction != 0);
 
-        BitvectorTasks bitvecbtor_tasks =
+        BitvectorTasks bitvector_tasks =
                 BitvectorTasks(
                         task, init_iter, num_iter, recursive_rep_set_depth,
                         metric_type, mode_type, min_mask_size, max_mask_size, num_prev_subtasks, (string) "",

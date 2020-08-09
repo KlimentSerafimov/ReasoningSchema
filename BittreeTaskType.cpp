@@ -6,6 +6,7 @@
 #include "MetaExample.h"
 #include <iostream>
 #include <set>
+#include <utility>
 
 using namespace std;
 
@@ -13,7 +14,7 @@ void BittreeNode::init()
 {
 }
 
-BittreeNode::BittreeNode(TreeNode *parent, Name name, NodeType _node_type) : TreeNode(parent, name, this)
+BittreeNode::BittreeNode(TreeNode *parent, Name name, NodeType _node_type) : TreeNode(parent, std::move(name), this)
 {
 //    assert(_node_type == internal_node);
     init();

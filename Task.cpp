@@ -153,6 +153,8 @@ void Task__one_shift_idx::generate_bittree_task_expression(BittreeTypeExpression
 
     holder->base_task_type->io->add_output_child(leaf_node, new_machine_bit);
 
+    holder->init_delta_task_type->output->set_delta(internal_node, 0, new_machine_bit);
+
     holder->delta_task_type->output->set_delta(leaf_node, double_node);
 
 }
@@ -272,6 +274,8 @@ void Task__count_unary::generate_bittree_task_expression(BittreeTypeExpression *
 
     BittreeNode* base_task_type__output_child =
             holder->base_task_type->io->add_output_child(leaf_node, new_machine_bit);
+
+    holder->init_delta_task_type->output->set_delta(internal_node, 0, new_machine_bit);
 
     BittreeNode* delta_task_type__output_delta =
             holder->delta_task_type->output->set_delta(leaf_node, double_node);
@@ -755,6 +759,7 @@ void Task__add::generate_bittree_task_expression(BittreeTypeExpression *holder) 
     else if(add_num <= 4) init_output_size = 3;
     else if(add_num <= 8) init_output_size = 4;
     else if(add_num <= 16) init_output_size = 5;
+    else if(add_num <= 32) init_output_size = 6;
     else assert(false);
 
     assert(init_output_size != -1);

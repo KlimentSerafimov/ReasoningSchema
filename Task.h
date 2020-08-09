@@ -6,7 +6,7 @@
 #define COMPACTPOSET_TASK_H
 
 #include <string>
-#include <assert.h>
+#include <cassert>
 
 using namespace std;
 
@@ -131,7 +131,7 @@ public:
         task_name = _task_name;
     }
 
-    string get_task_name()
+    virtual string get_task_name()
     {
         return task_name;
     }
@@ -218,7 +218,7 @@ public:
         assert(_task_name == str_task_name__biggest_square_with_kernel);
     }
 
-    string get_task_name()
+    string get_task_name() override
     {
         if(do__multiply_by)
         {
@@ -286,7 +286,7 @@ public:
         task_name = "multiply_by";
         multiply_by = _multiply_by;
     }
-    string get_task_name()
+    string get_task_name() override
     {
         return Task::get_task_name() + "(mul=" + std::to_string(multiply_by) + ")";
     }
@@ -300,7 +300,7 @@ class Task__one_shift_idx__rev : public Task
 public:
     Task__one_shift_idx__rev(int _param__init_size) : Task("one_shift_idx__rev") { param__init_size = _param__init_size; }
 
-    string get_task_name()
+    string get_task_name() override
     {
         return Task::get_task_name() + "(init_sz=" + std::to_string(param__init_size) + ")";
     }
@@ -320,7 +320,7 @@ class Task__count_unary__rev : public Task
     int param__init_size;
 public:
     Task__count_unary__rev(int _param__init_size) : Task("count_unary__rev") { param__init_size = _param__init_size ; }
-    string get_task_name()
+    string get_task_name() override
     {
         return Task::get_task_name() + "(init_sz=" + std::to_string(param__init_size) + ")";
     }
@@ -382,7 +382,7 @@ class Task__add : public Task
     int add_num;
 public:
     Task__add(int _add_num) : Task("add") { add_num = _add_num; }
-    string get_task_name()
+    string get_task_name() override
     {
         return Task::get_task_name() + "(num=" + std::to_string(add_num) + ")";
     }
@@ -395,7 +395,7 @@ class Task__gene_network : public Task
     int param__network;
 public:
     Task__gene_network(int _param__network) : Task("gene_network") { param__network = _param__network; }
-    string get_task_name()
+    string get_task_name() override
     {
         return Task::get_task_name() + "(net_id=" + std::to_string(param__network) + ")";
     }
@@ -408,7 +408,7 @@ class Task__biggest_square : public Task
     int param__w;
 public:
     Task__biggest_square(int _param__w) : Task("biggest_square") { param__w = _param__w;}
-    string get_task_name()
+    string get_task_name() override
     {
         return Task::get_task_name() + "(w=" + std::to_string(param__w) + ")";
     }
@@ -421,7 +421,7 @@ class Task__biggest_square_with_kernel : public Task
     int param__w;
 public:
     Task__biggest_square_with_kernel(int _param__w) : Task("biggest_square_with_kernel") { param__w = _param__w;}
-    string get_task_name()
+    string get_task_name() override
     {
         return Task::get_task_name() + "(w=" + std::to_string(param__w) + ")";
     }
