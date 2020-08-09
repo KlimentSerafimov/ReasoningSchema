@@ -283,6 +283,19 @@ public:
     void solve(BittreeInputOutputType* holder) override;
 };
 
+class Task__game_of_life : public Task
+{
+    int param__w;
+public:
+    Task__game_of_life(int _param__w) : Task("game_of_life") { param__w = _param__w;}
+    string get_task_name() override
+    {
+        return Task::get_task_name() + "(w=" + std::to_string(param__w) + ")";
+    }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
+};
+
 
 
 #endif //COMPACTPOSET_TASK_H

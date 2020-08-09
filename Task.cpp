@@ -1008,6 +1008,18 @@ vector<vector<int> > mark_largest_rectangle(vector<vector<int> > input_grid, pai
     return output_grid;
 }
 
+void project_output_grid(BittreeInputOutputType *holder, vector<vector<int> > output_grid)
+{
+    for(int i = 0;i<holder->output->children.size(); i++)
+    {
+        for(int j = 0;j<(int)holder->output->children.at(i)->children.size();j++)
+        {
+            assert(holder->output->children.at(i)->children.at(j)->bit->is_bit_set == false);
+            holder->output->children.at(i)->children.at(j)->bit->is_bit_set = true;
+            holder->output->children.at(i)->children.at(j)->bit->bit_val = output_grid[i][j];
+        }
+    }
+}
 
 void Task__biggest_square::solve(BittreeInputOutputType *holder) {
 
@@ -1018,15 +1030,7 @@ void Task__biggest_square::solve(BittreeInputOutputType *holder) {
 
     vector<vector<int> > output_grid = mark_largest_rectangle(input_grid, best);
 
-    for(int i = 0;i<holder->output->children.size(); i++)
-    {
-        for(int j = 0;j<(int)holder->output->children.at(i)->children.size();j++)
-        {
-            assert(holder->output->children.at(i)->children.at(j)->bit->is_bit_set == false);
-            holder->output->children.at(i)->children.at(j)->bit->is_bit_set = true;
-            holder->output->children.at(i)->children.at(j)->bit->bit_val = output_grid[i][j];
-        }
-    }
+    project_output_grid(holder, output_grid);
 }
 
 void Task__biggest_square_with_kernel::generate_bittree_task_expression(BittreeTypeExpression *holder) {
@@ -1154,26 +1158,36 @@ void Task__biggest_square_as_corners::solve(BittreeInputOutputType *holder) {
         }
     }
 
-    for(int i = 0;i<holder->output->children.size(); i++)
-    {
-        for(int j = 0;j<(int)holder->output->children.at(i)->children.size();j++)
-        {
-            assert(holder->output->children.at(i)->children.at(j)->bit->is_bit_set == false);
-            holder->output->children.at(i)->children.at(j)->bit->is_bit_set = true;
-            holder->output->children.at(i)->children.at(j)->bit->bit_val = output_grid[i][j];
-        }
-    }
+    project_output_grid(holder, output_grid);
 }
 
 void Task__remove_points::generate_bittree_task_expression(BittreeTypeExpression *holder) {
     grid_in_grid_out(param__w, param__w, holder);
 }
 
-int sum_neighbours(vector<vector<int> > input_grid, int x, int y)
+int sum_four_neighbours(vector<vector<int> > input_grid, int x, int y)
 {
-    int delta[4][2] = {{0, -1}, {-1, 0}, {0, 1}, {1, 0}};
+    const int num_neighbours = 4;
+    int delta[num_neighbours][2] = {{0, -1}, {-1, 0}, {0, 1}, {1, 0}};
     int sum = 0;
-    for(int i = 0;i<4;i++)
+    for(int i = 0;i<num_neighbours;i++)
+    {
+        int next_x = x+delta[i][0];
+        int next_y = y+delta[i][1];
+        if(next_x >= 0 && next_x < input_grid.size() && next_y>=0 && next_y<input_grid[next_x].size())
+        {
+            sum += input_grid[next_x][next_y];
+        }
+    }
+    return sum;
+}
+
+int sum_eight_neighbours(vector<vector<int> > input_grid, int x, int y)
+{
+    const int num_neighbours = 8;
+    int delta[num_neighbours][2] = {{0, -1}, {-1, 0}, {0, 1}, {1, 0}, {-1, -1}, {1, -1}, {-1, 1}, {1, 1}};
+    int sum = 0;
+    for(int i = 0;i<num_neighbours;i++)
     {
         int next_x = x+delta[i][0];
         int next_y = y+delta[i][1];
@@ -1194,7 +1208,7 @@ void Task__remove_points::solve(BittreeInputOutputType *holder) {
         output_grid.emplace_back(vector<int>());
         for(int j = 0;j<input_grid[i].size(); j++)
         {
-            if(input_grid[i][j] == 1 && sum_neighbours(input_grid, i, j) == 0)
+            if(input_grid[i][j] == 1 && sum_four_neighbours(input_grid, i, j) == 0)
             {
                 output_grid[i].push_back(0);
             }
@@ -1205,15 +1219,7 @@ void Task__remove_points::solve(BittreeInputOutputType *holder) {
         }
     }
 
-    for(int i = 0;i<holder->output->children.size(); i++)
-    {
-        for(int j = 0;j<(int)holder->output->children.at(i)->children.size();j++)
-        {
-            assert(holder->output->children.at(i)->children.at(j)->bit->is_bit_set == false);
-            holder->output->children.at(i)->children.at(j)->bit->is_bit_set = true;
-            holder->output->children.at(i)->children.at(j)->bit->bit_val = output_grid[i][j];
-        }
-    }
+    project_output_grid(holder, output_grid);
 }
 
 void Task__remove_points_and_peninsula::generate_bittree_task_expression(BittreeTypeExpression *holder) {
@@ -1229,7 +1235,7 @@ void Task__remove_points_and_peninsula::solve(BittreeInputOutputType *holder) {
         output_grid.emplace_back(vector<int>());
         for(int j = 0;j<input_grid[i].size(); j++)
         {
-            if(input_grid[i][j] == 1 && sum_neighbours(input_grid, i, j) == 0)
+            if(input_grid[i][j] == 1 && sum_four_neighbours(input_grid, i, j) == 0)
             {
                 output_grid[i].push_back(0);
             }
@@ -1246,7 +1252,7 @@ void Task__remove_points_and_peninsula::solve(BittreeInputOutputType *holder) {
         second_output.emplace_back(vector<int>());
         for(int j = 0;j<input_grid[i].size(); j++)
         {
-            if(input_grid[i][j] == 1 && sum_neighbours(input_grid, i, j) == 1)
+            if(input_grid[i][j] == 1 && sum_four_neighbours(input_grid, i, j) == 1)
             {
                 second_output[i].push_back(0);
             }
@@ -1272,4 +1278,63 @@ void Task__remove_points_and_peninsula::solve(BittreeInputOutputType *holder) {
             }
         }
     }
+}
+
+void Task__game_of_life::generate_bittree_task_expression(BittreeTypeExpression *holder) {
+    grid_in_grid_out(param__w, param__w, holder);
+}
+
+vector<vector<int> > produce_new_grid_with_same_shape_and_all_0s(vector<vector<int> > input_grid)
+{
+    vector<vector<int> > output_grid;
+    for(int i = 0;i<input_grid.size();i++)
+    {
+        output_grid.emplace_back(vector<int>());
+        for(int j = 0;j<input_grid[i].size(); j++)
+        {
+            output_grid[i].push_back(0);
+        }
+    }
+
+    return output_grid;
+}
+
+void Task__game_of_life::solve(BittreeInputOutputType *holder) {
+    vector<vector<int> > input_grid = get_input_grid(param__w, holder);
+    vector<vector<int> > output_grid = produce_new_grid_with_same_shape_and_all_0s(input_grid);
+//    For a space that is 'populated':
+//    Each cell with one or no neighbors dies, as if by solitude.
+//            Each cell with four or more neighbors dies, as if by overpopulation.
+//            Each cell with two or three neighbors survives.
+//    For a space that is 'empty' or 'unpopulated'
+//            Each cell with three neighbors becomes populated.
+
+    for(int i = 0;i<input_grid.size();i++)
+    {
+        for(int j = 0;j<input_grid[i].size();j++)
+        {
+            if(input_grid[i][j] == 1)
+            {
+                if(sum_eight_neighbours(input_grid, i, j) <= 1)
+                {
+
+                } else if(sum_eight_neighbours(input_grid, i, j) >= 4)
+                {
+
+                }
+                else
+                {
+                    output_grid[i][j] = 1;
+                }
+            }
+            else
+            {
+                if(sum_eight_neighbours(input_grid, i, j) == 3) {
+                    output_grid[i][j] = 1;
+                }
+            }
+        }
+    }
+
+    project_output_grid(holder, output_grid);
 }

@@ -748,7 +748,6 @@ vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth)
         while(subtask_depth>0)
         {
             local_parent->push_back_child(at_subtask->io->output);
-
             if(at_subtask->decomposition != NULL)
             {
                 assert(at_subtask->decomposition->subtask != NULL);
@@ -782,7 +781,8 @@ vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth)
     vector<Rules> possible_rules;
     possible_rules.push_back(stay);
     possible_rules.push_back(move_right);
-    possible_rules.push_back(move_left);
+//    possible_rules.push_back(move_left);
+
 //    possible_rules.push_back(move_down);
 //    possible_rules.push_back(move_up);
 //    possible_rules.push_back(move_to_last_copy);
@@ -830,7 +830,6 @@ vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth)
         int cost = 0;
         for(int i = 0;i<leaf_internals_and_bit_ids.size();i++)
         {
-
 
             for(int j = 0;j<leaf_internals_and_bit_ids[i].second.size();j++) {
                 cost += rule_cost[rules[i][j]];
