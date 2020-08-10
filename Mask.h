@@ -19,8 +19,8 @@ public:
 
 class MaskAndCost: public Mask
 {
-    vector<MaskAndCost> local_variety;
 public:
+    vector<MaskAndCost> local_variety;
     int cost;
     MaskAndCost() = default;
     MaskAndCost(int _cost, Bitvector _bitvector) : Mask(_bitvector)
