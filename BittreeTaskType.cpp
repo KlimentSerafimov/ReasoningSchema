@@ -1079,9 +1079,9 @@ vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth, ofstre
     local_parent->calc_subtree_sums();
     vector<int> new_path;
     vector<CanvasAndBittreeProgram*> all_programs;
-    local_parent->populate_programs(&possible_rules, new CanvasAndBittreeProgram(canvas), -1, &new_path, 0);
+    local_parent->populate_programs(&possible_rules, new CanvasAndBittreeProgram(canvas), -1, &new_path, &all_programs);
     assert(new_path.size() == 0);
-    local_parent->populate_programs(&possible_rules, new CanvasAndBittreeProgram(canvas), 0, &new_path, 0);
+    local_parent->populate_programs(&possible_rules, new CanvasAndBittreeProgram(canvas), 0, &new_path, &all_programs);
 
     for(int i = 0;i<all_programs.size();i++)
     {
