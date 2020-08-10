@@ -2734,7 +2734,7 @@ CanvasAndBittreeProgram::CanvasAndBittreeProgram(CanvasAndBittreeProgram *to_cop
     cout << canvas->slim_tree_to_string(0) << endl;
     cout << "subtree = " << endl;
     cout << next_pointer_on_canvas->slim_tree_to_string(0) << endl;
-    to_copy->canvas->apply_rule(
+    to_copy->canvas->get_node(path)->apply_rule(
             rule,
             next_pointer_on_canvas->get_self_as_child_id(),
             next_pointer_on_canvas);
