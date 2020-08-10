@@ -353,7 +353,7 @@ vector<MaskWithCost> get_next_subdomains(
         MetricType metric, string dir_path, string init_language_name,
         vector<Bitvector> subdomains, BittreeTaskType * current_bittree, BittreeTaskType * next_bittree, int num_prev_subtasks)
 {
-    static ofstream fout;
+    ofstream fout;
 
     string fout_name = "subdomains__metric=" + metric_type_name[metric];
     fout.open(dir_path + "/" + fout_name + init_language_name);
@@ -416,7 +416,7 @@ vector<MaskWithCost> get_next_subdomains(
 
             next_bittree_as_partial.update_bitvector();
 
-            vector<MaskWithCost> local_variety = next_bittree_as_partial.generate_variety();
+            vector<MaskWithCost> local_variety = next_bittree_as_partial.generate_variety(&fout);
 
             for (int i = 0; i < local_variety.size(); i++) {
                 next_subdomain_set.insert(local_variety[i]);
@@ -875,7 +875,7 @@ void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
             "task_name=" + task_name->get_task_name() +
-            "-gen=57-init_iter=" + std::to_string(init_iter) +
+            "-gen=58-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +

@@ -942,16 +942,17 @@ bool next_rule(vector<vector<Rule> > & rules, vector<Rule> possible_rules)
     return false;
 }
 
-BittreeNode* copy_bittree(string name, BittreeNode* to_copy)
+BittreeNode* copy_bittree(BittreeNode* parent, Name name, BittreeNode* to_copy)
 {
-    return new BittreeNode(nullptr, Name(std::move(name)), to_copy, true);
+    return new BittreeNode(parent, name, to_copy, true);
 }
 
-vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth)
+vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth, ofstream * fout)
 {
     BittreeNode* local_parent = new BittreeNode(nullptr, Name("local_parent"), internal_node);
-    local_parent->push_back_child(copy_bittree("copy_input", io->input));
-    local_parent->push_back_child(copy_bittree("copy_output", io->output));
+    int child_id = 0;
+    local_parent->push_back_child(copy_bittree(local_parent, Name("copy_input", child_id++), io->input));
+    local_parent->push_back_child(copy_bittree(local_parent, Name("copy_output", child_id++), io->output));
 
     int init_subtask_depth = subtask_depth;
     if(subtask_depth > 0) {
@@ -962,7 +963,7 @@ vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth)
         }
         while(subtask_depth>0)
         {
-            local_parent->push_back_child(copy_bittree("copy_subtask_output", at_subtask->io->output));
+            local_parent->push_back_child(copy_bittree(local_parent, Name("copy_subtask_output", child_id++), at_subtask->io->output));
             if(at_subtask->decomposition != nullptr)
             {
                 assert(at_subtask->decomposition->subtask != nullptr);
@@ -985,8 +986,8 @@ vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth)
     vector<pair<BittreeNode*, vector<int> > > leaf_internals_and_bit_ids;
 
     vector<BittreeNode*> path;
-    cout << "LOCAL_PARENT: " << endl;
-    cout << local_parent->slim_tree_to_string(0) << endl << endl;
+    (*fout) << "LOCAL_PARENT: " << endl;
+    (*fout) << local_parent->slim_tree_to_string(0) << endl << endl;
 
 //    local_parent->generate_programs();
 

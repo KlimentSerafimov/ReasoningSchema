@@ -267,7 +267,7 @@ public:
 
     string to_string__one_line__first_part(int i);
 
-    vector<MaskWithCost> generate_variety(int subtask_depth);
+    vector<MaskWithCost> generate_variety(int subtask_depth, ofstream * fout);
 };
 
 //class BittreeTaskTypeDecomposition: public TreeNode

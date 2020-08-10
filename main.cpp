@@ -378,7 +378,7 @@ void modeling_of_bitvector_functions() {
         MetricType metric_type = most_progress; //min_imp_set;
         int recursive_rep_set_depth = 0;
         int min_mask_size = 1;
-        int max_mask_size = 4;
+        int max_mask_size = 3;
         int num_prev_subtasks = 0;
         int num_first_in_prior = -1;
         bool train_set_minimization = true;

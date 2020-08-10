@@ -121,7 +121,7 @@ public:
 
     void update_bitvector();
 
-    vector<MaskWithCost> generate_variety();
+    vector<MaskWithCost> generate_variety(ofstream * fout);
 };
 
 

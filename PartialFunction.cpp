@@ -7,6 +7,7 @@
 #include "util.h"
 #include <set>
 #include "BittreeTaskType.h"
+#include <fstream>
 
 PartialFunction::PartialFunction() = default;
 
@@ -354,8 +355,8 @@ void BittreeTaskTypeAsPartialFunction::update_bitvector() {
     init_via_bits(bits);
 }
 
-vector<MaskWithCost> BittreeTaskTypeAsPartialFunction::generate_variety() {
+vector<MaskWithCost> BittreeTaskTypeAsPartialFunction::generate_variety(ofstream * fout) {
 
-    return bittree_task_type->generate_variety(subtask_depth);
+    return bittree_task_type->generate_variety(subtask_depth, fout);
 
 }
