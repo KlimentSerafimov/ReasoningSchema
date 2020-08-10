@@ -513,7 +513,6 @@ pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of
         }
         out_next_subdomains.close();
 
-        next_subdomains.clear();
     }
 //            else {
     task_type->to_meta_example(-1, num_prev_subtasks).append_to_masks(
@@ -660,6 +659,8 @@ pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of
             train_meta_examples = new_train_set;
         }
 
+        next_subdomains.clear();
+
         next_subdomains = get_next_subdomains(
                 metric, dir_path, init_language_name,
                 subdomains, task_type, next_task_type, num_prev_subtasks);
@@ -711,7 +712,7 @@ pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of
                 }
             } while (now_meta_examples_size != prev_meta_examples_size);
 
-            ofstream mask_propagation_fout("mask_propagation_model__task_id"+std::to_string(task_id+1));
+            ofstream mask_propagation_fout(dir_path+"mask_propagation_model__task_id_"+std::to_string(task_id+1));
 
             for(int i = 0;i<next_subdomains.size();i++)
             {
@@ -896,7 +897,7 @@ void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
             "task_name=" + task_name->get_task_name() +
-            "-gen=62.11-init_iter=" + std::to_string(init_iter) +
+            "-gen=62.12-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +
