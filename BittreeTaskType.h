@@ -24,6 +24,60 @@ static const string rule_names[20] =
         {"inherit_from_parent", "stay", "move_right", "move_left", "move_to_last_copy", "copy_right", "copy_left", "move_up", "move_down"};
 static const int rule_cost[20] = {0, 1, 2, 2, 100, 100, 100, 2, 2};
 
+class PathAndRule
+{
+    vector<int> path;
+    Rule rule;
+public:
+    PathAndRule() = default;
+    PathAndRule(vector<int> _path, Rule _rule)
+    {
+        path = _path;
+        rule = _rule;
+    }
+    string to_string()
+    {
+        string ret = rule_names[rule] + " ";
+        for(int i = 0;i<path.size();i++)
+        {
+            ret += std::to_string(path[i]);
+        }
+        return ret;
+    }
+};
+
+class AutomatonRule
+{
+protected:
+    vector<PathAndRule> code;
+public:
+    void push_back(PathAndRule new_path_and_rule);
+    AutomatonRule() = default;
+    AutomatonRule(AutomatonRule * to_copy)
+    {
+        code = to_copy->code;
+    }
+};
+
+class CanvasAndBittreeProgram : public AutomatonRule
+{
+public:
+    BittreeNode* canvas;
+    CanvasAndBittreeProgram(BittreeNode* _canvas)
+    {
+        canvas = _canvas;
+    }
+    CanvasAndBittreeProgram(CanvasAndBittreeProgram* to_copy, Rule rule, vector<int> * path);
+    BittreeNode* get_canvas()
+    {
+        return canvas;
+    }
+
+    CanvasAndBittreeProgram * produce(Rule rule, vector<int> * path);
+
+    string to_string();
+};
+
 enum BittreeTypeLeafNodeType {not_leaf_node, bit_node, double_node, delta_node};
 
 class BittreeNode: public TreeNode
@@ -56,8 +110,7 @@ public:
 
     BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool all_new_bits);
 
-    BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool all_new_bits,
-                bool hard_pointer_assign_bits);
+    BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool all_new_bits, bool hard_pointer_assign_bits);
 
     void copy_leaf_node(BittreeNode *to_copy, bool all_new_bits);
 
@@ -65,19 +118,11 @@ public:
 
     void init();
 
-//    string to_string();
-
     string to_string(int num_tabs);
 
     string bits_to_string(int num_tabs);
 
     void apply_delta(BittreeNode *delta_bittree_type);
-
-//    void assign_bittree_type_node(BittreeNode* new_value) {
-//        node_type = new_value->node_type;
-//        children->clear();
-//        append_children_from(new_value);
-//    }
 
     void append_children_from(BittreeNode* new_value);
 
@@ -97,10 +142,10 @@ public:
 
     string slim_tree_to_string(int tab) const;
 
-    vector<BittreeNode *>
-    generate_programs(vector<Rule> *rules, BittreeNode *canvas, int next_child, vector<int> *path) const;
+    vector<CanvasAndBittreeProgram* >
+    generate_programs(vector<Rule> *rules, CanvasAndBittreeProgram *canvas, int next_child, vector<int> *path) const;
 
-    BittreeNode* produce_subtre_from_rule(Rule rule);
+    BittreeNode* produce_subtree_from_rule(Rule rule, vector<int> path);
 
     void apply_rule(Rule rule, int child_id, const BittreeNode *canvas) const;
 
