@@ -457,15 +457,6 @@ string BittreeNode::slim_tree_to_string(int tab) const {
 
     string ret;
 
-    if(get_parent() == nullptr)
-    {
-        ret += "ROOT ";
-    }
-    else
-    {
-        ret += "HAS_PARENT ";
-    }
-
     if(node_type == internal_node)
     {
         ret += tabs(tab) + "width = " + std::to_string(children.size()) + "\n";
