@@ -2741,4 +2741,5 @@ string CanvasAndBittreeProgram::to_string() {
     }
     ret += "\n";
     ret += canvas->slim_tree_to_string(0);
+    return ret;
 }

@@ -887,7 +887,6 @@ void BitvectorTasks::set_up_directory() {
             "-num_minimize_steps="+std::to_string(num_minimization_steps)+
             "-minimize_fraction="+std::to_string(minimization_fraction);
 
-
     char charstr_dir_path[dir_path.length()+1];
 
     int check_mkdir = mkdir( dir_path.c_str(), 0777);
