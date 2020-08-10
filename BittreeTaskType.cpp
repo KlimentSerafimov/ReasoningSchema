@@ -2720,6 +2720,7 @@ void AutomatonRule::push_back(PathAndRule new_path_and_rule) {
 }
 
 CanvasAndBittreeProgram* CanvasAndBittreeProgram::produce(Rule rule, vector<int> * path) {
+    cout << "IN PRODUCE" << endl << to_string() << endl;
     return new CanvasAndBittreeProgram(this, rule, path);
 }
 
