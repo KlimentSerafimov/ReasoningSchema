@@ -44,6 +44,10 @@ public:
         }
         return ret;
     }
+    Rule get_rule()
+    {
+        return rule;
+    }
 };
 
 class AutomatonRule
@@ -76,6 +80,8 @@ public:
     CanvasAndBittreeProgram * produce(Rule rule, vector<int> * path);
 
     string to_string();
+
+    int get_cost();
 };
 
 enum BittreeTypeLeafNodeType {not_leaf_node, bit_node, double_node, delta_node};
@@ -142,8 +148,9 @@ public:
 
     string slim_tree_to_string(int tab) const;
 
-    vector<CanvasAndBittreeProgram* >
-    generate_programs(vector<Rule> *rules, CanvasAndBittreeProgram *canvas, int next_child, vector<int> *path) const;
+    void populate_programs(
+            vector<Rule> *rules, CanvasAndBittreeProgram *canvas, int next_child, vector<int> *path,
+            vector<CanvasAndBittreeProgram*> * all_programs) const;
 
     BittreeNode* produce_subtree_from_rule(Rule rule, vector<int> path);
 

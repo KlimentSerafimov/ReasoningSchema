@@ -11,6 +11,7 @@
 #include "Bitvector.h"
 
 class BittreeTaskType;
+class BittreeNode;
 
 using namespace std;
 
@@ -122,6 +123,15 @@ public:
     void update_bitvector();
 
     vector<MaskWithCost> generate_variety(ofstream * fout);
+};
+
+class CanvasAsPartialFunction: public PartialFunction
+{
+public:
+    BittreeNode* canvas;
+
+    CanvasAsPartialFunction(BittreeNode* _canvas);
+
 };
 
 

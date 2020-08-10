@@ -360,3 +360,14 @@ vector<MaskWithCost> BittreeTaskTypeAsPartialFunction::generate_variety(ofstream
     return bittree_task_type->generate_variety(subtask_depth, fout);
 
 }
+
+CanvasAsPartialFunction::CanvasAsPartialFunction(BittreeNode *_canvas)
+{
+    canvas = _canvas;
+    vector<BitInBittree*> partial_bits;
+
+    memset_visited(vis_bits);
+    canvas->append_bits(partial_bits);
+
+    init_via_bits(partial_bits);
+}
