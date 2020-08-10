@@ -136,12 +136,12 @@ float MetaExample::cost(Bitvector mask)
             cout << endl;*/
             TreeNode* at = partial_function.bits[i]->get_last_parent();
             vector<int> coord;
-            while(at->get_last_name().is_child)
+            while(at->get_last_name().get_is_child())
             {
 //                cout << at->get_last_name()s.back().id <<" ";
-                coord.push_back(at->get_last_name().id);
+                coord.push_back(at->get_last_name().get_id());
                 at = at->get_last_parent();
-                if(!at->get_last_name().is_child)
+                if(!at->get_last_name().get_is_child())
                 {
                     if(at->get_last_name().to_string() == "input")
                     {

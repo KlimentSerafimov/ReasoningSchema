@@ -29,9 +29,10 @@ class Name
     NameType name_type;
     string name;
 
-public:
-    int id;
+    int id = -1;
     bool is_child = false;
+
+public:
 
     Name() = default;
 
@@ -64,6 +65,15 @@ public:
         assert(_name != "children");
         name_type = str_name;
         name = _name;
+    }
+
+    int get_id()
+    {
+        return id;
+    }
+
+    bool get_is_child() {
+        return is_child;
     }
 };
 

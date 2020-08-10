@@ -336,12 +336,12 @@ vector<string> BittreeTaskTypeAsPartialFunction::get_path_of_bit_id(int bit_id) 
     vector<int> coord;
 //    cout << at->get_last_name().to_string() <<" ";
     path.push_back(at->get_last_name().to_string());
-    while (at->get_last_name().is_child) {
-        coord.push_back(at->get_last_name().id);
+    while (at->get_last_name().get_is_child()) {
+        coord.push_back(at->get_last_name().get_id());
         at = at->get_last_parent();
         path.push_back(at->get_last_name().to_string());
 //        cout << at->get_last_name().to_string() <<" ";
-        if (!at->get_last_name().is_child) {
+        if (!at->get_last_name().get_is_child()) {
             if (at->get_last_name().to_string() == "input") {
             }
         }

@@ -70,16 +70,16 @@ string BitInBittree::to_string__one_line() {
 }
 
 string BitInBittree::slim_bit_to_string(int tab) {
-    return tabs(tab) + to_string__one_line();
+    return tabs(tab) + to_string__one_line() + " " + bit_in_bittree_type_name[bit_type];
 }
 
 void TreeNode::append_bits(vector<BitInBittree*>& bits) {
 
     bool enter = false;
-    if(bittree_type_node != nullptr)
+    if(bittree_node != nullptr)
     {
         enter = true;
-        bittree_type_node->append_bits(bits);
+        bittree_node->append_bits(bits);
     }
     if(bittree_task_type != nullptr)
     {

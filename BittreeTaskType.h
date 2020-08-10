@@ -44,6 +44,8 @@ public:
     //if leaf_nod_type == delta_node;
     BittreeNode* delta = nullptr;
 
+    int subtree_sum = -1;
+
     BittreeNode(TreeNode *parent, Name name, NodeType _node_type);
 
     BittreeNode(TreeNode *parent, Name name, NodeType _node_type, BitInBittreeType bit_type);
@@ -93,15 +95,22 @@ public:
 
     string slim_tree_to_string(int tab);
 
-    void generate_programs(vector<Rule> rules);
+    vector<BittreeNode *>
+    generate_programs(vector<Rule> *rules, BittreeNode *canvas, int next_child, vector<int> *path) const;
 
     BittreeNode* produce_subtre_from_rule(Rule rule);
 
-    void apply_rule(Rule rule, BittreeNode* parent, int child_id);
+    void apply_rule(Rule rule, const BittreeNode* parent, int child_id);
 
     void initialize_special_parents(BittreeNode *parent);
 
-    void get_root_to_node_path();
+    vector<int> get_root_to_node_path(BittreeNode* canvas);
+
+    BittreeNode * get_node(const vector<int> * path, int depth);
+
+    BittreeNode * get_node(const vector<int> * path);
+
+    int calc_subtree_sums();
 };
 
 class BittreeInputOutputType: public TreeNode

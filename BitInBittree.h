@@ -31,7 +31,26 @@ class TreeNode: public Visitable
 
 public:
 
-    BittreeNode* bittree_type_node = nullptr;
+    int get_self_as_child_id()
+    {
+        assert(has_unique_name());
+        return name.get_id();
+    }
+
+    BittreeNode* get_parent()
+    {
+        assert(parents.size() == 1);
+        assert(parents[0] == parent);
+        if(parent == nullptr)
+        {
+            return nullptr;
+        }
+        else {
+            return parent->bittree_node;
+        }
+    }
+
+    BittreeNode* bittree_node = nullptr;
     BittreeInputOutputType* bittree_io_type = nullptr;
     BittreeTaskType* bittree_task_type = nullptr;
     BitInBittree* bit_in_bittree = nullptr;
@@ -54,7 +73,7 @@ public:
     TreeNode(TreeNode* _parent, Name name, BittreeNode* _subclass_instance)
     {
         init(_parent, std::move(name));
-        bittree_type_node = _subclass_instance;
+        bittree_node = _subclass_instance;
     }
 
     TreeNode(TreeNode* _parent, Name name, BittreeTaskType* _subclass_instance)
@@ -86,9 +105,9 @@ public:
     string to_string()
     {
         string ret;
-        if(bittree_type_node != nullptr)
+        if(bittree_node != nullptr)
         {
-            ret += "bittree_type_node";
+            ret += "bittree_node";
         }
         else if(bittree_io_type != nullptr)
         {
@@ -144,6 +163,7 @@ static int global_bit_id = 0;
 
 
 enum BitInBittreeType {new_machine_bit, shared_machine_bit, shared_blanko_bit, new_blanko_bit};
+static const string bit_in_bittree_type_name[4] = {"new_machine_bit", "shared_machine_bit", "shared_blanko_bit", "new_blanko_bit"};
 
 class BitInBittree: public TreeNode
 {
