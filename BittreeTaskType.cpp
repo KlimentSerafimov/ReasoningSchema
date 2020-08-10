@@ -457,6 +457,15 @@ string BittreeNode::slim_tree_to_string(int tab) const {
 
     string ret;
 
+    if(get_parent() == nullptr)
+    {
+        ret += "ROOT ";
+    }
+    else
+    {
+        ret += "HAS_PARENT ";
+    }
+
     if(node_type == internal_node)
     {
         ret += tabs(tab) + "width = " + std::to_string(children.size()) + "\n";
@@ -2735,11 +2744,12 @@ CanvasAndBittreeProgram::CanvasAndBittreeProgram(CanvasAndBittreeProgram *to_cop
 
 string CanvasAndBittreeProgram::to_string() {
     string ret;
+    ret += "code = ";
     for(int i = 0;i<code.size();i++)
     {
-        ret += code[i].to_string() + " ";
+        ret += code[i].to_string() + ", ";
     }
-    ret += "\n";
+    ret += ";\n";
     ret += canvas->slim_tree_to_string(0);
     return ret;
 }
