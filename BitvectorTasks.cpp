@@ -530,7 +530,9 @@ pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of
     int len_mask = masks_of_task_id[0][0].get_size();
 
     cout << meta_examples_of_task_id[0].partial_function.to_string__one_line() << endl;
-
+    cout << meta_examples_of_task_id[0].partial_function.to_string() << endl;
+    cout << meta_examples_of_task_id[0].to_string() << endl;
+    cout << masks_of_task_id[0][0].to_string() << endl;
     assert(len_domain_of_meta_example == len_mask);
 
 //            vector<Bitvector> masks =
@@ -875,7 +877,7 @@ void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
             "task_name=" + task_name->get_task_name() +
-            "-gen=61.2-init_iter=" + std::to_string(init_iter) +
+            "-gen=62.3-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +

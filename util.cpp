@@ -89,9 +89,10 @@ Bitvector::Bitvector(bitset<MAX_BITVECTOR_SIZE> _bitset)//: bitset<MAX_BITVECTOR
         set(i, _bitset[i]);
     }
 
-    control = _bitset;
 
     if(CONTROL) {
+        assert(false); //        untoggle;
+//        control = _bitset;
         for(int i = 0;i<size;i++)
         {
             get_bit(i);
@@ -124,7 +125,7 @@ Bitvector::Bitvector(unsigned long long num)//: bitset<MAX_BITVECTOR_SIZE>(num)
     }
 
     if(CONTROL) {
-        control = bitset<MAX_BITVECTOR_SIZE>(num);
+        control = bitset<CONTROL_BITVECTOR_SIZE>(num);
         for(int i = 0;i<size;i++)
         {
             get_bit(i);
@@ -198,7 +199,7 @@ Bitvector::Bitvector(unsigned long long bits, int _size)// : bitset<MAX_BITVECTO
     }
 
     if(CONTROL) {
-        control = bitset<MAX_BITVECTOR_SIZE>(bits);
+        control = bitset<CONTROL_BITVECTOR_SIZE>(bits);
         for(int i = 0;i<size;i++)
         {
             get_bit(i);

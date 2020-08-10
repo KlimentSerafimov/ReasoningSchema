@@ -11,6 +11,7 @@
 #include <iostream>
 
 #define CONTROL false
+#define CONTROL_BITVECTOR_SIZE 0
 
 using namespace std;
 
@@ -38,7 +39,7 @@ class Bitvector//: public bitset<MAX_BITVECTOR_SIZE>
 
     int size;
 
-    bitset<MAX_BITVECTOR_SIZE> control;
+    bitset<CONTROL_BITVECTOR_SIZE> control;
 
 //    LabeledGraph labeled_hypergraph;
 
@@ -48,7 +49,7 @@ public:
     {
         set_size(MAX_BITVECTOR_SIZE);
         if(CONTROL) {
-            control = bitset<MAX_BITVECTOR_SIZE>(0);
+            control = bitset<CONTROL_BITVECTOR_SIZE>(0);
             for (int i = 0; i < size; i++) {
                 get_bit(i);
             }
