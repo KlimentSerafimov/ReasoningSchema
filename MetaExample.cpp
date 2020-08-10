@@ -197,10 +197,10 @@ float MetaExample::cost(Bitvector mask)
     return (float)sum_sum+custom_cost;
 }
 
-vector<vector<MaskWithCost>> MetaExample::get_masks(int min_mask_size, int max_mask_size, int num_first_in_prior)
+vector<vector<MaskAndCost>> MetaExample::get_masks(int min_mask_size, int max_mask_size, int num_first_in_prior)
 {
 
-    vector<vector<MaskWithCost> > ret;
+    vector<vector<MaskAndCost> > ret;
 
     append_to_masks(min_mask_size, max_mask_size, num_first_in_prior, ret);
 
@@ -275,14 +275,14 @@ vector<vector<MaskWithCost>> MetaExample::get_masks(int min_mask_size, int max_m
 
 void MetaExample::append_to_masks(
         int min_mask_size, int max_mask_size,
-        int num_first_in_prior, vector<vector<MaskWithCost> > &ret) {
+        int num_first_in_prior, vector<vector<MaskAndCost> > &ret) {
 
     if(get_function_size() == 0)
     {
         return ;
     }
 
-    vector<pair<float, MaskWithCost> > ret_with_cost;
+    vector<pair<float, MaskAndCost> > ret_with_cost;
 
     cout << "MASKS: " << endl;
 
@@ -310,7 +310,7 @@ void MetaExample::append_to_masks(
         }
 
         do{
-            ret_with_cost.emplace_back(make_pair(cost(local_mask), MaskWithCost(0, local_mask)));
+            ret_with_cost.emplace_back(make_pair(cost(local_mask), MaskAndCost(0, local_mask)));
 //            ret.push_back(local_mask);
             cout << bitvector_to_str(local_mask, get_function_size()) << endl;
         }while(next_mask(local_mask, i));
@@ -320,7 +320,7 @@ void MetaExample::append_to_masks(
     //reverse(ret_with_cost.begin(), ret_with_cost.end());
 
 
-    vector<MaskWithCost> ret_bucket;
+    vector<MaskAndCost> ret_bucket;
 
     int bucket_id = 0;
     for(int i = 0;i<ret_with_cost.size();i++)

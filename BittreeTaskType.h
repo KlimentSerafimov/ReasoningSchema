@@ -84,6 +84,8 @@ public:
     int get_cost();
 };
 
+enum BitTypeOverride {};
+
 enum BittreeTypeLeafNodeType {not_leaf_node, bit_node, double_node, delta_node};
 
 class BittreeNode: public TreeNode
@@ -118,9 +120,12 @@ public:
 
     BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool all_new_bits, bool hard_pointer_assign_bits);
 
+    BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool all_new_bits, bool hard_pointer_assign_bits, bool hard_all_new_bits);
+
     void copy_leaf_node(BittreeNode *to_copy, bool all_new_bits);
 
-    void copy_leaf_node(BittreeNode *to_copy, bool all_new_bits, bool hard_pointer_assign_bits);
+    void copy_leaf_node(BittreeNode *to_copy, bool all_new_bits, bool hard_pointer_assign_bits,
+                        bool hard_all_new_bits);
 
     void init();
 
@@ -330,7 +335,7 @@ public:
 
     string to_string__one_line__first_part(int i);
 
-    vector<MaskWithCost> generate_variety(int subtask_depth, ofstream * fout);
+    vector<MaskAndCost> generate_variety(int subtask_depth, ofstream * fout);
 };
 
 //class BittreeTaskTypeDecomposition: public TreeNode

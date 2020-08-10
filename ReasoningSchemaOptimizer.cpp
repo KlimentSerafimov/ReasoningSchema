@@ -11,7 +11,7 @@
 #include "PartialFunction.h"
 
 bool ReasoningSchemaOptimizer::test_compact_poset_for_consistency_with_all_meta_examples(
-        Bitvector subdomain_mask, CompactPoset *compact_poset) {
+        MaskAndCost subdomain_mask, CompactPoset *compact_poset) {
 
     bool is_consistent = true;
     for (int test_meta_example_id = 0; test_meta_example_id < meta_examples.size(); test_meta_example_id++) {
@@ -321,13 +321,13 @@ void ReasoningSchemaOptimizer::calc_masks(int set_init_mask_size, int set_end_ma
             }
         }
 
-        vector<MaskWithCost> tmp_masks;
+        vector<MaskAndCost> tmp_masks;
         for (int i = 0; i < masks_by_size.size(); i++) {
             vector<int> reduced;
             if (i >= set_init_mask_size && i <= set_end_mask_size) {
                 for (int j = 0; j < masks_by_size[i].size(); j++) {
                     reduced.push_back(masks_by_size[i][j]);
-                    tmp_masks.push_back(MaskWithCost(0, Bitvector(masks_by_size[i][j], function_size)));
+                    tmp_masks.push_back(MaskAndCost(0, Bitvector(masks_by_size[i][j], function_size)));
                 }
             }
             masks_by_size[i] = reduced;
@@ -380,7 +380,7 @@ ReasoningSchemaOptimizer::ReasoningSchemaOptimizer(
 
 
 ReasoningSchemaOptimizer::ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name,
-                                                   vector<vector<MaskWithCost> > mask,
+                                                   vector<vector<MaskAndCost> > mask,
                                                    string dir_path, MetricType metric_type)
 {
     metric = metric_type;
@@ -392,7 +392,7 @@ ReasoningSchemaOptimizer::ReasoningSchemaOptimizer(vector<MetaExample> _meta_exa
     fout.close();
 }
 
-void ReasoningSchemaOptimizer::calc_module(Bitvector subdomain_mask, Module *module)
+void ReasoningSchemaOptimizer::calc_module(MaskAndCost subdomain_mask, Module *module)
 {
 
     module->function_size = function_size;
@@ -456,7 +456,7 @@ void ReasoningSchemaOptimizer::calc_module(Bitvector subdomain_mask, Module *mod
 }
 
 
-bool ReasoningSchemaOptimizer::skip_mask(Bitvector subdomain_mask)
+bool ReasoningSchemaOptimizer::skip_mask(MaskAndCost subdomain_mask)
 {
     if(parent_pointer == nullptr)
     {
@@ -864,7 +864,7 @@ BittreeTaskTypeAsPartialFunction *ReasoningSchemaOptimizer::get_copy_of_bottree_
     return partial_function;
 }
 
-string ReasoningSchemaOptimizer::bitvector_to_string__one_line(Bitvector bitvector) {
+string ReasoningSchemaOptimizer::bitvector_to_string__one_line(MaskAndCost bitvector) {
     assert(meta_examples.size() >= 1);
     BittreeTaskType *to_copy = meta_examples[0].partial_function.bittree_task_type;
 //    auto *local_bittree_task_type = new BittreeTaskType(nullptr, Name("copy_type"), to_copy, true, true);
@@ -915,9 +915,9 @@ string ReasoningSchemaOptimizer::meta_example_to_string__one_line(MetaExample me
 //    return meta_example.partial_function.to_string__one_line()
 }
 
-vector<Bitvector> ReasoningSchemaOptimizer::get_subdomains() {
+vector<MaskAndCost> ReasoningSchemaOptimizer::get_subdomains() {
     ReasoningSchemaOptimizer* at = root_pointer;
-    vector<Bitvector> subdomains;
+    vector<MaskAndCost> subdomains;
     while(at!=nullptr)
     {
         if(at->next != nullptr) {

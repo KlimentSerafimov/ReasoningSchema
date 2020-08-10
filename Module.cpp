@@ -7,7 +7,7 @@
 #include "util.h"
 #include <iostream>
 
-string Module::subdomain_mask_to_string(Bitvector local_subdomain_mask)
+string Module::subdomain_mask_to_string(MaskAndCost local_subdomain_mask)
 {
     return parent_minimal_factoring_schema->root_pointer->bitvector_to_string__one_line(local_subdomain_mask);
 }

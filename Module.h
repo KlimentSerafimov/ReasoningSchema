@@ -67,7 +67,7 @@ class Module
 {
 public:
     int function_size;
-    Bitvector subdomain_mask;
+    MaskAndCost subdomain_mask;
     HeuristicScore heuristic_score;
 
     Module* parent_module;
@@ -103,7 +103,7 @@ public:
         parent_minimal_factoring_schema = _minimal_factoring_schema;
     }
 
-    string subdomain_mask_to_string(Bitvector subdomain_mask);
+    string subdomain_mask_to_string(MaskAndCost subdomain_mask);
 
     string meta_example_to_string(MetaExample meta_example);
 };

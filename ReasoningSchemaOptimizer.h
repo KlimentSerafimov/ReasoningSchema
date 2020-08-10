@@ -6,7 +6,6 @@
 #define COMPACTPOSET_REASONINGSCHEMAOPTIMIZER_H
 
 #include "Module.h"
-#include "BitvectorTasks.h"
 #include "MetricType.h"
 
 class ReasoningSchemaOptimizer
@@ -21,7 +20,7 @@ class ReasoningSchemaOptimizer
     vector<MetaExample> meta_examples;
     int init_num_missing_bits;
 
-    vector<vector<MaskWithCost> > masks;
+    vector<vector<MaskAndCost> > masks;
     int module_id;
     vector<pair<HeuristicScore, pair<int, int> > > mask_ids_by_heuristic;
     vector<vector<HeuristicScore> > heuristic_score_by_bucket_id_by_mask_id;
@@ -30,7 +29,7 @@ class ReasoningSchemaOptimizer
 
     void calc_function_size();
 
-    bool test_compact_poset_for_consistency_with_all_meta_examples(Bitvector subdomain_mask, CompactPoset *compact_poset);
+    bool test_compact_poset_for_consistency_with_all_meta_examples(MaskAndCost subdomain_mask, CompactPoset *compact_poset);
 
     HeuristicScore calculate_heuristic(Module* module);
 
@@ -38,11 +37,11 @@ class ReasoningSchemaOptimizer
 
     void calc_masks(int set_init_masks_size, int set_end_masks_size);
 
-    void calc_module(Bitvector subdomain_mask, Module *module);
+    void calc_module(MaskAndCost subdomain_mask, Module *module);
 
     void main__minimal_factoring_schema(vector<MetaExample> _meta_examples);
 
-    bool skip_mask(Bitvector subdomain_mask);
+    bool skip_mask(MaskAndCost subdomain_mask);
 
 public:
 
@@ -54,12 +53,12 @@ public:
 
     ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name);
 
-    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name, vector<vector<MaskWithCost> > mask,
+    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name, vector<vector<MaskAndCost> > mask,
                              string dir_path, MetricType metric_type);
 
     vector<MetaExample> get_necessary_meta_examples(bool print);
 
-    vector<Bitvector> get_subdomains();
+    vector<MaskAndCost> get_subdomains();
 
     PartialFunction query(PartialFunction partial_function);
 
@@ -73,7 +72,7 @@ public:
 
     BittreeTaskTypeAsPartialFunction *get_copy_of_bottree_task_type();
 
-    string bitvector_to_string__one_line(Bitvector bitvector);
+    string bitvector_to_string__one_line(MaskAndCost MaskAndCost);
 
     string partial_function_to_string__one_line(PartialFunction partial_function);
 

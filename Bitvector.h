@@ -757,4 +757,5 @@ public:
 };
 
 
+
 #endif //COMPACTPOSET_BITVECTOR_H

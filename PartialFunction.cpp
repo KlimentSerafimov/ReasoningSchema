@@ -355,10 +355,8 @@ void BittreeTaskTypeAsPartialFunction::update_bitvector() {
     init_via_bits(bits);
 }
 
-vector<MaskWithCost> BittreeTaskTypeAsPartialFunction::generate_variety(ofstream * fout) {
-
+vector<MaskAndCost> BittreeTaskTypeAsPartialFunction::generate_variety(ofstream * fout) {
     return bittree_task_type->generate_variety(subtask_depth, fout);
-
 }
 
 CanvasAsPartialFunction::CanvasAsPartialFunction(BittreeNode *_canvas)

@@ -48,10 +48,11 @@ BittreeNode::BittreeNode(TreeNode *parent, Name name, NodeType _node_type,
 
 void BittreeNode::copy_leaf_node(BittreeNode *to_copy, bool all_new_bits)
 {
-    copy_leaf_node(to_copy, all_new_bits, false);
+    copy_leaf_node(to_copy, all_new_bits, false, false);
 }
 
-void BittreeNode::copy_leaf_node(BittreeNode *to_copy, bool all_new_bits, bool hard_pointer_assign_bits)
+void BittreeNode::copy_leaf_node(BittreeNode *to_copy, bool all_new_bits, bool hard_pointer_assign_bits,
+                                 bool hard_all_new_bits)
 {
     if(to_copy->bit != nullptr) {
         if(hard_pointer_assign_bits)
@@ -61,10 +62,17 @@ void BittreeNode::copy_leaf_node(BittreeNode *to_copy, bool all_new_bits, bool h
             bit->push_back_name(Name("bit"));
         }
         else {
-            if (!all_new_bits && to_copy->bit->is_bit_set && to_copy->bit->bit_type == shared_machine_bit) {
-                bit = to_copy->bit;
-                bit->push_back_parent(this);
-                bit->push_back_name(Name("bit"));
+            if (to_copy->bit->is_bit_set && to_copy->bit->bit_type == shared_machine_bit) {
+                if(!hard_all_new_bits)
+                {
+                    bit = to_copy->bit;
+                    bit->push_back_parent(this);
+                    bit->push_back_name(Name("bit"));
+                }
+                else
+                {
+                    bit = new BitInBittree(this, Name("bit"), shared_machine_bit, to_copy->bit);
+                }
             } else {
                 if (to_copy->bit->bit_type == new_blanko_bit || to_copy->bit->bit_type == new_machine_bit) {
                     bit = new BitInBittree(this, Name("bit"), new_machine_bit, to_copy->bit);
@@ -132,7 +140,7 @@ BittreeNode::BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool
     leaf_node_type = to_copy->leaf_node_type;
     if(node_type == leaf_node)
     {
-        copy_leaf_node(to_copy, all_new_bits, hard_pointer_assign_bits);
+        copy_leaf_node(to_copy, all_new_bits, hard_pointer_assign_bits, false);
     }
     else if(node_type == internal_node)
     {
@@ -140,7 +148,7 @@ BittreeNode::BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool
         {
             children.push_back(
                     new BittreeNode(
-                            this, Name("children", children.size()), to_copy->children.at(i), all_new_bits));
+                            this, Name("children", children.size()), to_copy->children.at(i), all_new_bits, hard_pointer_assign_bits));
         }
     }
     else
@@ -148,6 +156,34 @@ BittreeNode::BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool
         assert(false);
     }
 };
+
+BittreeNode::BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool all_new_bits,
+                         bool hard_pointer_assign_bits, bool hard_all_new_bits) : TreeNode(parent, name, this)
+{
+    init();
+    copied_from = to_copy;
+    to_copy->copies.push_back(this);
+    node_type = to_copy->node_type;
+    leaf_node_type = to_copy->leaf_node_type;
+    if(node_type == leaf_node)
+    {
+        copy_leaf_node(to_copy, all_new_bits, hard_pointer_assign_bits, hard_all_new_bits);
+    }
+    else if(node_type == internal_node)
+    {
+        for (int i = 0; i < to_copy->children.size(); i++)
+        {
+            children.push_back(
+                    new BittreeNode(
+                            this, Name("children", children.size()), to_copy->children.at(i), all_new_bits, hard_pointer_assign_bits, hard_all_new_bits));
+        }
+    }
+    else
+    {
+        assert(false);
+    }
+};
+
 
 string BittreeNode::to_string(int num_tabs)
 {
@@ -577,6 +613,7 @@ void BittreeNode::apply_rule(Rule rule, int child_id, const BittreeNode *canvas)
                     canvas->bit->bit_val = max(0, canvas->bit->bit_val-1);
                     assert(get_parent()->children.size() == canvas->get_parent()->children.size());
                     assert(0 <= next_id && next_id < get_parent()->children.size());
+                    cout << "prev_id = " << child_id << endl;
                     cout << "next_id = " << next_id << endl;
                     BittreeNode* sibling = canvas->get_parent()->children[next_id];
                     assert(sibling->node_type == leaf_node && sibling->leaf_node_type == bit_node && sibling->bit->is_bit_set);
@@ -1025,7 +1062,7 @@ BittreeNode* copy_bittree(BittreeNode* parent, Name name, BittreeNode* to_copy)
     return new BittreeNode(parent, name, to_copy, true);
 }
 
-vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth, ofstream * fout)
+vector<MaskAndCost> BittreeTaskType::generate_variety(int subtask_depth, ofstream * fout)
 {
     BittreeNode* local_parent = new BittreeNode(nullptr, Name("local_parent"), internal_node);
     int child_id = 0;
@@ -1089,11 +1126,11 @@ vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth, ofstre
         (*fout) << all_programs[i]->to_string() << endl;
     }
 
-    set<MaskWithCost> ret_set;
+    set<MaskAndCost> ret_set;
 
     for(int i = 0;i<all_programs.size();i++)
     {
-        ret_set.insert(MaskWithCost(all_programs[i]->get_cost(), CanvasAsPartialFunction(all_programs[i]->get_canvas()).total_function));
+        ret_set.insert(MaskAndCost(all_programs[i]->get_cost(), CanvasAsPartialFunction(all_programs[i]->get_canvas()).total_function));
     }
 
     /*
@@ -1254,7 +1291,7 @@ vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth, ofstre
 //        ret_set.insert(make_pair(cost, BittreeTaskTypeAsPartialFunction(this, subtask_depth).total_function));
 
         ret_set.insert(
-                MaskWithCost(cost, BittreeTaskTypeAsPartialFunction(this, subtask_depth).total_function));
+                MaskAndCost(cost, BittreeTaskTypeAsPartialFunction(this, subtask_depth).total_function));
 
         for(int i = 0;i<leaf_internals_and_bit_ids.size();i++)
         {
@@ -1270,7 +1307,7 @@ vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth, ofstre
 
     */
 
-    vector<MaskWithCost> ret;
+    vector<MaskAndCost> ret;
 
     cout << "HOPE: " << endl;
     int prev = -1;
@@ -1284,7 +1321,7 @@ vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth, ofstre
 }
 
 
-//vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth)
+//vector<MaskAndCost> BittreeTaskType::generate_variety(int subtask_depth)
 //{
 //    BittreeNode* local_parent = new BittreeNode(nullptr, Name("local_parent"), internal_node);
 //    local_parent->push_back_child(io->input);
@@ -1357,7 +1394,7 @@ vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth, ofstre
 //        }
 //    }
 //
-//    set<MaskWithCost> ret_set;
+//    set<MaskAndCost> ret_set;
 //
 //    vector<vector<int> > init_vals;
 //    for(int i = 0;i<leaf_internals_and_bit_ids.size();i++)
@@ -1494,7 +1531,7 @@ vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth, ofstre
 ////        ret_set.insert(make_pair(cost, BittreeTaskTypeAsPartialFunction(this, subtask_depth).total_function));
 //
 //        ret_set.insert(
-//                MaskWithCost(cost, BittreeTaskTypeAsPartialFunction(this, subtask_depth).total_function));
+//                MaskAndCost(cost, BittreeTaskTypeAsPartialFunction(this, subtask_depth).total_function));
 //
 //        for(int i = 0;i<leaf_internals_and_bit_ids.size();i++)
 //        {
@@ -1508,7 +1545,7 @@ vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth, ofstre
 //
 //    }while(next_rule(rules, possible_rules));
 //
-//    vector<MaskWithCost> ret;
+//    vector<MaskAndCost> ret;
 //
 //    cout << "HOPE: " << endl;
 //    int prev = -1;
@@ -2709,9 +2746,11 @@ CanvasAndBittreeProgram* CanvasAndBittreeProgram::produce(Rule rule, vector<int>
 CanvasAndBittreeProgram::CanvasAndBittreeProgram(CanvasAndBittreeProgram *to_copy, Rule rule, vector<int> *path) :
     AutomatonRule(to_copy)
 {
-    canvas = new BittreeNode(nullptr, Name("next_canvas"), to_copy->canvas, true);
+    canvas = new BittreeNode(
+            nullptr, Name("next_canvas"), to_copy->canvas, true, false, true);
     const BittreeNode *next_pointer_on_canvas = canvas->get_node(path);
 
+    cout << "START APPLY_RULE" << endl;
     cout << rule_names[rule] << endl;
     cout << canvas->slim_tree_to_string(0) << endl;
     cout << "subtree = " << endl;

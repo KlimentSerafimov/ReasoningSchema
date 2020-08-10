@@ -261,12 +261,12 @@ BitvectorTasks::get_multi_task_type(BittreeTypeExpression *type_expression, int 
 
 }
 
-vector<vector<vector<MaskWithCost> > >
+vector<vector<vector<MaskAndCost> > >
 BitvectorTasks::masks_generator(int num_subtasks, int max_masks_size, int min_mask_size, int num_first_in_prior, vector<BittreeTaskType*> multi_task_type)
 {
     if(true)
     {
-        vector<vector<vector<MaskWithCost> > > masks;
+        vector<vector<vector<MaskAndCost> > > masks;
         for (int i = 0; i < multi_task_type.size(); i++) {
             masks.push_back(multi_task_type[i]->to_meta_example(-1, num_subtasks).get_masks(min_mask_size, max_masks_size, num_first_in_prior));
         }
@@ -349,9 +349,9 @@ BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, Task *
     return meta_examples;
 }
 
-vector<MaskWithCost> get_next_subdomains(
+vector<MaskAndCost> get_next_subdomains(
         MetricType metric, string dir_path, string init_language_name,
-        vector<Bitvector> subdomains, BittreeTaskType * current_bittree, BittreeTaskType * next_bittree, int num_prev_subtasks)
+        vector<MaskAndCost> & subdomains, BittreeTaskType * current_bittree, BittreeTaskType * next_bittree, int num_prev_subtasks)
 {
     ofstream fout;
 
@@ -371,15 +371,14 @@ vector<MaskWithCost> get_next_subdomains(
         fout << bittree_as_partial.to_string__one_line() << endl;
     }
 
-    vector<MaskWithCost> next_subdomains;
+    vector<MaskAndCost> next_subdomains;
     if (next_bittree != nullptr) {
 
-        set<MaskWithCost> next_subdomain_set;
+        set<MaskAndCost> next_subdomain_set;
 
         for (int subdomain_id = 0; subdomain_id < subdomains.size(); subdomain_id++) {
             BittreeTaskTypeAsPartialFunction bittree_as_partial = BittreeTaskTypeAsPartialFunction(
                     current_bittree, num_prev_subtasks);
-
 
             BittreeTaskTypeAsPartialFunction next_bittree_as_partial = BittreeTaskTypeAsPartialFunction(
                     next_bittree, num_prev_subtasks);
@@ -411,12 +410,13 @@ vector<MaskWithCost> get_next_subdomains(
                     next_bittree_as_partial.bits[next_bit_id]->bit_val = 0;
                     next_bit_id++;
                 }
-
             }
 
             next_bittree_as_partial.update_bitvector();
 
-            vector<MaskWithCost> local_variety = next_bittree_as_partial.generate_variety(&fout);
+            vector<MaskAndCost> local_variety = next_bittree_as_partial.generate_variety(&fout);
+
+            subdomains[subdomain_id].set_local_variety(local_variety);
 
             for (int i = 0; i < local_variety.size(); i++) {
                 next_subdomain_set.insert(local_variety[i]);
@@ -469,8 +469,8 @@ pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of
         bool is_first,
         int task_id,
         vector<MetaExample> meta_examples_of_task_id,
-        vector<MaskWithCost> &next_subdomains,
-        vector<vector<MaskWithCost > > masks_of_task_id,
+        vector<MaskAndCost> &next_subdomains,
+        vector<vector<MaskAndCost > > masks_of_task_id,
         BittreeTaskType * task_type,
         BittreeTaskType * next_task_type
 )
@@ -491,7 +491,7 @@ pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of
         bool more_buckets = false;
         if(more_buckets) {
             int prev_cost = -1;
-            vector<MaskWithCost> local_subdomains;
+            vector<MaskAndCost> local_subdomains;
             for (int i = 0; i < next_subdomains.size(); i++) {
                 if (prev_cost != next_subdomains[i].cost && prev_cost != -1) {
                     masks_of_task_id.push_back(local_subdomains);
@@ -582,7 +582,7 @@ pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of
 
         string init_language_name = language_name;
 
-        vector<Bitvector> subdomains;
+        vector<MaskAndCost> subdomains;
         int min_train_set_size = test_meta_examples.size();
         vector<MetaExample> min_train_meta_examples;
 
@@ -591,7 +591,7 @@ pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of
 
         for (int minimization_step = 0; minimization_step < num_minimization_steps; minimization_step++) {
             bool all_solved = false;
-            vector<Bitvector> local_subdomains;
+            vector<MaskAndCost> local_subdomains;
             while (!all_solved) {
                 language_name = init_language_name + "__min_step=" + std::to_string(minimization_step) +
                                 "__size_of_train_set=" +
@@ -672,7 +672,7 @@ pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of
             int now_meta_examples_size = (int) local_meta_examples.size();
             int rec_id = 0;
 
-            vector<Bitvector> subdomains;
+            vector<MaskAndCost> subdomains;
 
             string init_language_name = language_name;
 
@@ -782,10 +782,10 @@ BitvectorTasks::BitvectorTasks(Task *_task_name,
     vector<vector<MetaExample> > meta_examples = get_meta_examples(
             &type_expression_for_meta_examples, task_name, num_iter, num_prev_subtasks);
 
-    vector<MaskWithCost> next_subdomains;
+    vector<MaskAndCost> next_subdomains;
 
-    vector<vector<vector<MaskWithCost> > > masks =
-            vector<vector<vector<MaskWithCost> > >(meta_examples.size(), vector<vector<MaskWithCost> >());
+    vector<vector<vector<MaskAndCost> > > masks =
+            vector<vector<vector<MaskAndCost> > >(meta_examples.size(), vector<vector<MaskAndCost> >());
 //
 //    masks.reserve(init_iter);
 //    for(int task_id = 0; task_id < init_iter;task_id++)
@@ -877,7 +877,7 @@ void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
             "task_name=" + task_name->get_task_name() +
-            "-gen=62.3-init_iter=" + std::to_string(init_iter) +
+            "-gen=62.10-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +

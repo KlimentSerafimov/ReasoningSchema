@@ -407,7 +407,7 @@ TraceNode::TraceNode(TraceOperation *parent, vector<MetaExample> meta_examples)
 }
 
 
-TraceVersionSpace::TraceVersionSpace(vector<MetaExample> _meta_examples, vector<MaskWithCost> masks)
+TraceVersionSpace::TraceVersionSpace(vector<MetaExample> _meta_examples, vector<MaskAndCost> masks)
 {
     cout << endl;
     cout << "meta_examples" << endl;
