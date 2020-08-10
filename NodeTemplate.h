@@ -67,7 +67,7 @@ public:
         name = _name;
     }
 
-    int get_id()
+    int get_id() const
     {
         return id;
     }

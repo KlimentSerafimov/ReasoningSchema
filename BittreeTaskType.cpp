@@ -61,7 +61,7 @@ void BittreeNode::copy_leaf_node(BittreeNode *to_copy, bool all_new_bits, bool h
             bit->push_back_name(Name("bit"));
         }
         else {
-            if (to_copy->bit->is_bit_set && to_copy->bit->bit_type == shared_machine_bit) {
+            if (!all_new_bits && to_copy->bit->is_bit_set && to_copy->bit->bit_type == shared_machine_bit) {
                 bit = to_copy->bit;
                 bit->push_back_parent(this);
                 bit->push_back_name(Name("bit"));
@@ -438,7 +438,7 @@ void BittreeNode::populate_leaf_internals_and_bit_ids(vector<BittreeNode*> path,
     }
 }
 
-string BittreeNode::slim_tree_to_string(int tab) {
+string BittreeNode::slim_tree_to_string(int tab) const {
 //    NodeType node_type;
 //
 //    //if internal_node
@@ -460,16 +460,33 @@ string BittreeNode::slim_tree_to_string(int tab) {
     if(node_type == internal_node)
     {
         ret += tabs(tab) + "width = " + std::to_string(children.size()) + "\n";
+        int count_bits = 0;
+        for(int i = 0;i<children.size();i++)
+        {
+            if(children[i]->node_type == leaf_node && children[i]->leaf_node_type == bit_node)
+            {
+                count_bits++;
+            }
+        }
+        assert(count_bits == 0 || count_bits == children.size());
+        if(count_bits == children.size())
+        {
+            ret += tabs(tab);
+        }
         for(int i = 0;i<children.size();i++)
         {
             ret += children[i]->slim_tree_to_string(tab+1);
+        }
+        if(ret[ret.size()-1]!='\n')
+        {
+            ret+="\n";
         }
     }
     else if (node_type == leaf_node)
     {
         if(leaf_node_type == bit_node)
         {
-            ret += bit -> slim_bit_to_string(tab) + "\n";
+            ret += bit->slim_bit_to_string();
         }
         else if(leaf_node_type == double_node)
         {
@@ -502,29 +519,42 @@ string BittreeNode::slim_tree_to_string(int tab) {
 //
 //}
 
-void BittreeNode::apply_rule(Rule rule, const BittreeNode* parent, int child_id) {
+void BittreeNode::apply_rule(Rule rule, int child_id, const BittreeNode *canvas) const {
+    if(child_id != -1) {
+        if (get_parent() != nullptr) {
+            assert(canvas->get_parent()->children[child_id] == canvas);
+        } else {
+            assert(false);
+        }
+    }
     if(node_type == internal_node)
     {
+        assert(canvas->node_type == internal_node);
+        assert(canvas->children.size() == children.size());
         for(int i = 0;i<children.size();i++)
         {
-            children[i]->apply_rule(rule, this, i);
+            children[i]->apply_rule(rule, i, canvas->children[i]);
         }
     }
     else if (node_type == leaf_node)
     {
+        assert(canvas->node_type == leaf_node);
         if(leaf_node_type == bit_node)
         {
+            assert(canvas->leaf_node_type == bit_node);
             assert(bit->is_bit_set);
             if(bit->bit_val)
             {
-                if(parent!=nullptr)
+                if(get_parent()!=nullptr)
                 {
+                    assert(canvas->get_parent() != nullptr);
                     int next_id;
                     if(rule == move_left)
                     {
                         if(child_id == 0)
                         {
-                            next_id = (int) parent->children.size()-1;
+                            assert(get_parent()->children.size() == canvas->get_parent()->children.size());
+                            next_id = (int) get_parent()->children.size()-1;
                         }
                         else
                         {
@@ -533,7 +563,8 @@ void BittreeNode::apply_rule(Rule rule, const BittreeNode* parent, int child_id)
                     }
                     else if(rule == move_right)
                     {
-                        if(child_id == parent->children.size()-1)
+                        assert(get_parent()->children.size() == canvas->get_parent()->children.size());
+                        if(child_id == (int)get_parent()->children.size()-1)
                         {
                             next_id = 0;
                         }
@@ -551,11 +582,19 @@ void BittreeNode::apply_rule(Rule rule, const BittreeNode* parent, int child_id)
                         assert(false);
                     }
 
-                    bit->bit_val = false;
-
-                    BittreeNode* sibling = parent->children[next_id];
+                    canvas->bit->bit_val = max(0, canvas->bit->bit_val-1);
+                    assert(get_parent()->children.size() == canvas->get_parent()->children.size());
+                    assert(0 <= next_id && next_id < get_parent()->children.size());
+                    cout << "next_id = " << next_id << endl;
+                    BittreeNode* sibling = canvas->get_parent()->children[next_id];
                     assert(sibling->node_type == leaf_node && sibling->leaf_node_type == bit_node && sibling->bit->is_bit_set);
-                    sibling->bit->bit_val = true;
+                    sibling->bit->bit_val++;
+
+                }
+                else
+                {
+                    assert(canvas->get_parent() == nullptr);
+                    assert(false);
                 }
             }
         }
@@ -622,7 +661,7 @@ BittreeNode::generate_programs(vector<Rule> *rules, BittreeNode *canvas, int nex
     assert(subtree_sum != -1);
     if(subtree_sum == 0)
     {
-        ret.push_back(canvas);
+
     }
     else {
         if (next_child == -1 || node_type == leaf_node) {
@@ -631,27 +670,37 @@ BittreeNode::generate_programs(vector<Rule> *rules, BittreeNode *canvas, int nex
             }
             for (int i = 0; i < rules->size(); i++) {
                 BittreeNode *next_canvas = new BittreeNode(nullptr, Name("next_canvas"), canvas, true);
-                BittreeNode *next_pointer_on_canvas = next_canvas->get_node(path);
+                const BittreeNode *next_pointer_on_canvas = next_canvas->get_node(path);
 
-                next_pointer_on_canvas->apply_rule(rules->at(i), next_pointer_on_canvas->get_parent(), next_pointer_on_canvas->get_self_as_child_id());
+                cout << rule_names[rules->at(i)] << endl;
+                cout << next_canvas->slim_tree_to_string(0) << endl;
+                cout << "subtree = " << endl;
+                cout << next_pointer_on_canvas->slim_tree_to_string(0) << endl;
+                apply_rule(
+                        rules->at(i),
+                        next_pointer_on_canvas->get_self_as_child_id(),
+                        next_pointer_on_canvas);
+                cout << next_canvas->slim_tree_to_string(0) << endl;
 
                 ret.push_back(next_canvas);
             }
         } else {
             if (node_type == internal_node) {
-                for (int i = 0; i < children.size(); i++) {
-                    assert(next_child >= 0);
-                    if (next_child == children.size()) {
-                        ret.push_back(canvas);
-                    } else {
-                        assert(next_child < children.size());
+                assert(next_child >= 0);
+                if (next_child == children.size()) {
+                    ret.push_back(canvas);
+                } else {
+                    assert(next_child < children.size());
+                    if(children[next_child]->subtree_sum >= 1) {
                         path->push_back(next_child);
                         vector<BittreeNode *> programs_with_next_primitive =
                                 children[next_child]->generate_programs(rules, canvas, -1, path);
                         path->pop_back();
-                        for (int i = 0; i < programs_with_next_primitive.size(); i++) {
+                        for (int new_program_id = 0;
+                             new_program_id < programs_with_next_primitive.size(); new_program_id++) {
                             vector<BittreeNode *> local_final_programs =
-                                    generate_programs(rules, programs_with_next_primitive[i], next_child + 1, path);
+                                    generate_programs(rules, programs_with_next_primitive[new_program_id],
+                                                      next_child + 1, path);
                             for (int j = 0; j < local_final_programs.size(); j++) {
                                 ret.push_back(local_final_programs[j]);
                             }
@@ -667,8 +716,8 @@ BittreeNode::generate_programs(vector<Rule> *rules, BittreeNode *canvas, int nex
 }
 
 BittreeNode *BittreeNode::get_node(const vector<int> * path, int depth) {
-    assert(depth < path->size());
-    if(depth == path->size()-1)
+    assert(depth <= path->size());
+    if(depth == path->size())
     {
         return this;
     }
@@ -1061,7 +1110,9 @@ vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth, ofstre
     local_parent->calc_subtree_sums();
     vector<int> new_path;
     vector<BittreeNode*> first_programs = local_parent->generate_programs(&possible_rules, canvas, -1, &new_path);
+    assert(new_path.size() == 0);
     vector<BittreeNode*> all_programs = local_parent->generate_programs(&possible_rules, canvas, 0, &new_path);
+
 
     for(int i = 0;i<first_programs.size();i++)
     {

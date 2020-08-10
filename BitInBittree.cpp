@@ -69,8 +69,8 @@ string BitInBittree::to_string__one_line() {
     }
 }
 
-string BitInBittree::slim_bit_to_string(int tab) {
-    return tabs(tab) + to_string__one_line() + " " + bit_in_bittree_type_name[bit_type];
+string BitInBittree::slim_bit_to_string() {
+    return to_string__one_line();// + " " + bit_in_bittree_type_name[bit_type];
 }
 
 void TreeNode::append_bits(vector<BitInBittree*>& bits) {

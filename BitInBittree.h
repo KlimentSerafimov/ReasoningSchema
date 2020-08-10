@@ -31,13 +31,13 @@ class TreeNode: public Visitable
 
 public:
 
-    int get_self_as_child_id()
+    int get_self_as_child_id() const
     {
         assert(has_unique_name());
         return name.get_id();
     }
 
-    BittreeNode* get_parent()
+    BittreeNode* get_parent() const
     {
         assert(parents.size() == 1);
         assert(parents[0] == parent);
@@ -152,7 +152,7 @@ public:
         names.push_back(new_name);
     }
 
-    bool has_unique_name()
+    bool has_unique_name() const
     {
         return names.size() == 1;
     }
@@ -197,7 +197,7 @@ public:
 
     string to_string__one_line();
 
-    string slim_bit_to_string(int tab);
+    string slim_bit_to_string();
 };
 
 #endif //COMPACTPOSET_BITINBITTREE_H

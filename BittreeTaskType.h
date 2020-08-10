@@ -20,6 +20,8 @@ class BittreeNode;
 class BittreeTaskType;
 
 enum Rule {inherit_from_parent, stay, move_right, move_left, move_to_last_copy, copy_right, copy_left, move_up, move_down};
+static const string rule_names[20] =
+        {"inherit_from_parent", "stay", "move_right", "move_left", "move_to_last_copy", "copy_right", "copy_left", "move_up", "move_down"};
 static const int rule_cost[20] = {0, 1, 2, 2, 100, 100, 100, 2, 2};
 
 enum BittreeTypeLeafNodeType {not_leaf_node, bit_node, double_node, delta_node};
@@ -93,14 +95,14 @@ public:
 
     void populate_leaf_internals_and_bit_ids(vector<BittreeNode*> path, vector<pair<BittreeNode *, vector<int> > > & vector);
 
-    string slim_tree_to_string(int tab);
+    string slim_tree_to_string(int tab) const;
 
     vector<BittreeNode *>
     generate_programs(vector<Rule> *rules, BittreeNode *canvas, int next_child, vector<int> *path) const;
 
     BittreeNode* produce_subtre_from_rule(Rule rule);
 
-    void apply_rule(Rule rule, const BittreeNode* parent, int child_id);
+    void apply_rule(Rule rule, int child_id, const BittreeNode *canvas) const;
 
     void initialize_special_parents(BittreeNode *parent);
 
