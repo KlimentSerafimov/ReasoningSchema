@@ -1093,9 +1093,7 @@ vector<MaskWithCost> BittreeTaskType::generate_variety(int subtask_depth, ofstre
 
     for(int i = 0;i<all_programs.size();i++)
     {
-
         ret_set.insert(MaskWithCost(all_programs[i]->get_cost(), CanvasAsPartialFunction(all_programs[i]->get_canvas()).total_function));
-
     }
 
     /*
