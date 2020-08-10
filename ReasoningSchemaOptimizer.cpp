@@ -277,7 +277,7 @@ HeuristicScore ReasoningSchemaOptimizer::calculate_heuristic(Module* module) {
 
     bool minimize_num_necessary_meta_examples;
 
-    if (metric == min_rep_set) {
+    if (metric == min_imp_set) {
         return HeuristicScore(
                 module->subdomain_mask.count(),
                 delta_ratio);
@@ -853,7 +853,7 @@ void ReasoningSchemaOptimizer::calc_function_size() {
 BittreeTaskTypeAsPartialFunction *ReasoningSchemaOptimizer::get_copy_of_bottree_task_type() {
     assert(meta_examples.size() >= 1);
     BittreeTaskType *to_copy = meta_examples[0].partial_function.bittree_task_type;
-    auto *local_bittree_task_type = new BittreeTaskType(NULL, Name("copy_type"), to_copy, true, true);
+    auto *local_bittree_task_type = new BittreeTaskType(nullptr, Name("copy_type"), to_copy, true, true);
 
     cout << "to_copy: " << to_copy->to_string__one_line(meta_examples[0].partial_function.subtask_depth) << endl;
     cout << "copy   : " << local_bittree_task_type->to_string__one_line(meta_examples[0].partial_function.subtask_depth) << endl;
@@ -867,7 +867,7 @@ BittreeTaskTypeAsPartialFunction *ReasoningSchemaOptimizer::get_copy_of_bottree_
 string ReasoningSchemaOptimizer::bitvector_to_string__one_line(Bitvector bitvector) {
     assert(meta_examples.size() >= 1);
     BittreeTaskType *to_copy = meta_examples[0].partial_function.bittree_task_type;
-//    auto *local_bittree_task_type = new BittreeTaskType(NULL, Name("copy_type"), to_copy, true, true);
+//    auto *local_bittree_task_type = new BittreeTaskType(nullptr, Name("copy_type"), to_copy, true, true);
 
     string temp = to_copy->to_string__one_line__first_part(meta_examples[0].partial_function.subtask_depth);// << endl;
 
@@ -935,7 +935,7 @@ ReasoningSchemaOptimizer::ReasoningSchemaOptimizer() {
 vector<Module *> ReasoningSchemaOptimizer::get_modules() {
     vector<Module * > ret;
     ReasoningSchemaOptimizer* at = this;
-    while(at != NULL)
+    while(at != nullptr)
     {
         ret.push_back(&at->best_module);
         at = at->next;
@@ -946,7 +946,7 @@ vector<Module *> ReasoningSchemaOptimizer::get_modules() {
 vector<Module *> ReasoningSchemaOptimizer::get_program_as_vector_of_modules() {
     vector<Module * > ret;
     ReasoningSchemaOptimizer* at = this;
-    while(at != NULL)
+    while(at != nullptr)
     {
         ret.push_back(&at->best_module);
         for(int i = 0;i<at->best_module.repeats_module_pointers.size(); i++)

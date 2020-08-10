@@ -19,7 +19,7 @@ public:
     NodeType node_type;
 
     //if node_type == internal_node
-    DecisionTreeNode* branches[2] = {NULL, NULL};
+    DecisionTreeNode* branches[2] = {nullptr, nullptr};
     int idx;
 
     //if node_type == leaf_node
@@ -47,7 +47,7 @@ public:
 };
 
 class DecisionTree {
-    DecisionTreeNode* root = NULL;
+    DecisionTreeNode* root = nullptr;
 
     void init(PartialFunction partial_function);
 

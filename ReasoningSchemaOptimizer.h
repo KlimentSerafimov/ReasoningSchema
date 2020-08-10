@@ -11,7 +11,7 @@
 
 class ReasoningSchemaOptimizer
 {
-    ReasoningSchemaOptimizer* parent_pointer = NULL;
+    ReasoningSchemaOptimizer* parent_pointer = nullptr;
     int function_size;
     MetricType metric;
 

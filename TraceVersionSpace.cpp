@@ -8,7 +8,7 @@ pair<TraceOperation*, bool> get_trace_operation(TraceOperationType type, TraceNo
 {
     for(int i = 0;i<operand->is_operand_for.size();i++)
     {
-        if(operand->is_operand_for[i] != NULL) {
+        if(operand->is_operand_for[i] != nullptr) {
             if (operand->is_operand_for[i]->subdomain_mask == _subdomain_mask) {
                 return make_pair(operand->is_operand_for[i], false);
             }
@@ -22,26 +22,26 @@ void TraceOperation::possible_refactor_into_union()
 {
     assert(operation_type == compact_poset_operation);
     assert(operands.size() == 1);
-    if (get_output() != NULL)
+    if (get_output() != nullptr)
     {
         bool found_union;
-        TraceOperation* best_union_alternative = NULL;
-        pair<TraceOperation*, bool> best_skip_union_pre_operand; //make_pair(NULL, false);
-        best_skip_union_pre_operand.first = NULL;
+        TraceOperation* best_union_alternative = nullptr;
+        pair<TraceOperation*, bool> best_skip_union_pre_operand; //make_pair(nullptr, false);
+        best_skip_union_pre_operand.first = nullptr;
         best_skip_union_pre_operand.second = false;
         TraceNode *at_operand = operands[0];
         int count = 0;
         do {
             found_union = false;
             if (at_operand->is_result_from.size() == 1) {
-                if (at_operand->is_result_from[0] != NULL) {
+                if (at_operand->is_result_from[0] != nullptr) {
 
                     TraceNode *operand_pre_operand = at_operand->init_find_origin(
                             0, 0);
                     pair<TraceOperation *, bool> skip_operation_pre_operand =
                             get_trace_operation(compact_poset_operation, operand_pre_operand, subdomain_mask, false);
 //                            new TraceOperation(type, operand_pre_operand, subdomain_mask);
-                    if (skip_operation_pre_operand.first->get_output() != NULL) {
+                    if (skip_operation_pre_operand.first->get_output() != nullptr) {
                         TraceOperation *local_union_alternative =
                                 new TraceOperation(
                                         trace_union_operation, operands[0],
@@ -89,18 +89,18 @@ void TraceOperation::possible_refactor_into_union()
 //            cout << "here" << endl;
         } while (found_union);
 
-        if (best_union_alternative != NULL) {
+        if (best_union_alternative != nullptr) {
             can_be_turned_into_union = true;
             union_alternative = best_union_alternative;
 
-            if(best_skip_union_pre_operand.first != NULL)
+            if(best_skip_union_pre_operand.first != nullptr)
             {
                 can_replace_with_head_only = true;
                 head_only_alternative = best_skip_union_pre_operand;
             }
         } else
         {
-            assert(best_skip_union_pre_operand.first == NULL);
+            assert(best_skip_union_pre_operand.first == nullptr);
         }
     }
 }
@@ -145,7 +145,7 @@ TraceOperation::TraceOperation(TraceOperationType type, TraceNode *operand, Bitv
 }
 
 TraceNode* TraceOperation::get_output(){
-    if(output == NULL && !has_empty_output)
+    if(output == nullptr && !has_empty_output)
     {
         bool enter = false;
         if(operation_type == compact_poset_operation) {
@@ -228,7 +228,7 @@ TraceOperation::~TraceOperation() {
         assert(enter);
     }
     operands.clear();
-    if(compact_poset != NULL)
+    if(compact_poset != nullptr)
     {
         compact_poset->clear();
     }
@@ -259,7 +259,7 @@ void TraceNode::get_leafs(vector<TraceNode *>& ret_leafs) {
 
 TraceNode * TraceNode::init_find_origin(int parent_id, int depth)
 {
-    if(origin_per_is_result_from[parent_id] == NULL) {
+    if(origin_per_is_result_from[parent_id] == nullptr) {
         vector<TraceNode *> operands = is_result_from[parent_id]->operands;
         memset_visited(vis_origin, depth);
         origin_per_is_result_from[parent_id] = find_origin(operands, depth);
@@ -277,11 +277,11 @@ TraceNode* TraceNode::find_origin(vector<TraceNode*> operands, int depth)
     {
         return operands[0];
     }
-    TraceNode* origin = NULL;
+    TraceNode* origin = nullptr;
     for(int i = 0;i<operands.size();i++)
     {
         TraceNode* at = operands[i];
-        while(at != NULL)
+        while(at != nullptr)
         {
             at->mark(depth);
             assert(at->num_markers[depth] <= operands.size());
@@ -290,7 +290,7 @@ TraceNode* TraceNode::find_origin(vector<TraceNode*> operands, int depth)
                 return at;
             }
             assert(at->is_result_from.size() == 1);
-            if(at->is_result_from[0] != NULL) {
+            if(at->is_result_from[0] != nullptr) {
                 assert(at->is_result_from[0]->get_output() == at);
                 if (at->is_result_from[0]->operands.size() == 1) {
 //                where_enter = "First";
@@ -304,7 +304,7 @@ TraceNode* TraceNode::find_origin(vector<TraceNode*> operands, int depth)
             }
             else
             {
-                at = NULL;
+                at = nullptr;
             }
         }
     }
@@ -367,7 +367,7 @@ string TraceNode::string__of__path_from_root_to_this()
     TraceNode* at = this;
     assert(at->is_result_from.size() == 1);
     TraceOperation* operation = at->is_result_from[0];
-    if(operation != NULL) {
+    if(operation != nullptr) {
 //        parents.push_back(operation);
         assert(operation->get_output() == at);
         if(operation->operands.size() == 1)
@@ -401,7 +401,7 @@ string TraceNode::string__of__path_from_root_to_this()
 TraceNode::TraceNode(TraceOperation *parent, vector<MetaExample> meta_examples)
 {
     is_result_from.push_back(parent);
-    origin_per_is_result_from.push_back(NULL);
+    origin_per_is_result_from.push_back(nullptr);
 //    origin_per_is_result_from[origin_per_is_result_from.size()-1] = init_find_origin(0, 0);
     init(meta_examples);
 }
@@ -516,7 +516,7 @@ TraceVersionSpace::TraceVersionSpace(vector<MetaExample> _meta_examples, vector<
         if(!skip)
         {
             TraceNode *output = operation->get_output();
-            if(output == NULL)
+            if(output == nullptr)
             {
                 skip = true;
             }
@@ -530,7 +530,7 @@ TraceVersionSpace::TraceVersionSpace(vector<MetaExample> _meta_examples, vector<
         }
         if(!skip) {
             TraceNode *output = operation->get_output();
-            if (output != NULL) {
+            if (output != nullptr) {
                 for (int i = 0; i < masks.size(); i++) {
                     fronteer.insert(
                             HeuristicScoreAndSolution(

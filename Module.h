@@ -77,7 +77,7 @@ public:
     vector<MetaExample> module_meta_examples;
     vector<vector<int> > equivalent_ids;
 
-    CompactPoset* compact_poset = NULL;
+    CompactPoset* compact_poset = nullptr;
     int intermediate_num_missing_bits;
     vector<MetaExample> meta_examples_after_query;
 

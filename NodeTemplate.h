@@ -33,6 +33,8 @@ public:
     int id;
     bool is_child = false;
 
+    Name() = default;
+
     Name(string _name, int _id)
     {
         is_child = _name == "children";
@@ -104,46 +106,48 @@ public:
     }
 };
 
-static int global_node_id = 0;
-
-class NodeTemplate: public Visitable
-{
-public:
-    vector<NodeTemplate*> parents;
-    vector<Name> names;
-
-    int node_id = -1;
-
-    void init(NodeTemplate* _parent, Name name)
-    {
-        parents.push_back(_parent);
-        names.push_back(name);
-        node_id = global_node_id++;
-    }
-
-    string to_string()
-    {
-        string parent_str;
-        for(int i = 0;i<parents.size();i++)
-        {
-            if(i!=0)
-            {
-                parent_str+=", ";
-            }
-            if(parents[i] != NULL)
-            {
-                parent_str += std::to_string(parents[i]->node_id);
-            }
-            else
-            {
-                parent_str += "_";
-            }
-        }
-        return "["+std::to_string(node_id)+": id"+"; "+parent_str+": parent_ids"+"]";
-    }
-
-    string root_to_node_path__to__string();
-};
+//static int global_node_id = 0;
+//
+//class NodeTemplate: public Visitable
+//{
+//public:
+//    vector<NodeTemplate*> parents;
+//    vector<Name> names;
+//
+//    int node_id = -1;
+//
+//    void init(NodeTemplate* _parent, Name name)
+//    {
+//        parents.push_back(_parent);
+//        names.push_back(name);
+//        node_id = global_node_id++;
+//    }
+//
+//    string to_string()
+//    {
+//        string parent_str;
+//        for(int i = 0;i<parents.size();i++)
+//        {
+//            if(i!=0)
+//            {
+//                parent_str+=", ";
+//            }
+//            if(parents[i] != nullptr)
+//            {
+//                parent_str += std::to_string(parents[i]->node_id);
+//            }
+//            else
+//            {
+//                parent_str += "_";
+//            }
+//        }
+//        return "["+std::to_string(node_id)+": id"+"; "+parent_str+": parent_ids"+"]";
+//    }
+//
+//    string root_to_node_path__to__string();
+//
+//
+//};
 
 
 

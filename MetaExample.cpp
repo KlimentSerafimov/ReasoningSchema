@@ -129,21 +129,21 @@ float MetaExample::cost(Bitvector mask)
     {
         if(get_bit(mask, i))
         {
-            /*for(int j = 0;j<partial_function.bits[i]->names.size(); j++)
+            /*for(int j = 0;j<partial_function.bits[i]->get_last_name()s.size(); j++)
             {
-                cout << partial_function.bits[i]->names[j].to_string() << " " << partial_function.bits[i]->names[j].id <<"  ";
+                cout << partial_function.bits[i]->get_last_name()s[j].to_string() << " " << partial_function.bits[i]->get_last_name()s[j].id <<"  ";
             }
             cout << endl;*/
-            NodeTemplate* at = partial_function.bits[i]->parents.back();
+            TreeNode* at = partial_function.bits[i]->get_last_parent();
             vector<int> coord;
-            while(at->names.back().is_child)
+            while(at->get_last_name().is_child)
             {
-//                cout << at->names.back().id <<" ";
-                coord.push_back(at->names.back().id);
-                at = at->parents.back();
-                if(!at->names.back().is_child)
+//                cout << at->get_last_name()s.back().id <<" ";
+                coord.push_back(at->get_last_name().id);
+                at = at->get_last_parent();
+                if(!at->get_last_name().is_child)
                 {
-                    if(at->names.back().to_string() == "input")
+                    if(at->get_last_name().to_string() == "input")
                     {
                         custom_cost += 100;
                     }
@@ -154,21 +154,21 @@ float MetaExample::cost(Bitvector mask)
             custom_cost += 1000;
 //            cout << "-- ";
 
-//            cout << partial_function.bits[i]->names.back().to_string() << " ";
-//            cout << partial_function.bits[i]->parents.back()->names.back().to_string() << " ";
-//            cout << partial_function.bits[i]->parents.back()->parents.back()->names.back().to_string() << " ";
-//            cout << partial_function.bits[i]->parents.back()->parents.back()->parents.back()->names.back().to_string() << " ";
-//            cout << partial_function.bits[i]->parents.back()->parents.back()->parents.back()->parents.back()->names.back().to_string() << " ";
-//            cout << partial_function.bits[i]->parents.back()->parents.back()->parents.back()->parents.back()->parents.back()->names.back().to_string() << " ";
-//            NodeTemplate* at = partial_function.bits[i]->parents.back()->parents.back()->parents.back()->parents.back()->parents.back();
-//            while (at->names.back().to_string() == "subtask")
+//            cout << partial_function.bits[i]->get_last_name()s.back().to_string() << " ";
+//            cout << partial_function.bits[i]->get_last_parent()s.back()->get_last_name()s.back().to_string() << " ";
+//            cout << partial_function.bits[i]->get_last_parent()s.back()->get_last_parent()s.back()->get_last_name()s.back().to_string() << " ";
+//            cout << partial_function.bits[i]->get_last_parent()s.back()->get_last_parent()s.back()->get_last_parent()s.back()->get_last_name()s.back().to_string() << " ";
+//            cout << partial_function.bits[i]->get_last_parent()s.back()->get_last_parent()s.back()->get_last_parent()s.back()->get_last_parent()s.back()->get_last_name()s.back().to_string() << " ";
+//            cout << partial_function.bits[i]->get_last_parent()s.back()->get_last_parent()s.back()->get_last_parent()s.back()->get_last_parent()s.back()->get_last_parent()s.back()->get_last_name()s.back().to_string() << " ";
+//            NodeTemplate* at = partial_function.bits[i]->get_last_parent()s.back()->get_last_parent()s.back()->get_last_parent()s.back()->get_last_parent()s.back()->get_last_parent()s.back();
+//            while (at->get_last_name()s.back().to_string() == "subtask")
 //            {
-//                cout << at->parents.back()->names.back().to_string() << " ";
-//                cout << at->parents.back()->parents.back()->names.back().to_string() << " ";
-//                at = at->parents.back()->parents.back();
+//                cout << at->get_last_parent()s.back()->get_last_name()s.back().to_string() << " ";
+//                cout << at->get_last_parent()s.back()->get_last_parent()s.back()->get_last_name()s.back().to_string() << " ";
+//                at = at->get_last_parent()s.back()->get_last_parent()s.back();
 //            }
 //            cout << " -- ";
-//            ret += partial_function.bits[i]->names.back().id;
+//            ret += partial_function.bits[i]->get_last_name()s.back().id;
 //            count++;
         }
     }

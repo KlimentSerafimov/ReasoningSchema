@@ -245,9 +245,9 @@ BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(BittreeTaskTy
     vector<BitInBittree*> partial_bits;
     BittreeTaskType* local_subtask = bittree_task_type;
     int num_prev_subtasks = 0;
-    while(local_subtask != NULL)
+    while(local_subtask != nullptr)
     {
-        if(num_prev_subtasks < subtask_depth || subtask_depth == -1 || subtask_depth == 0 || local_subtask->solution == NULL)
+        if(num_prev_subtasks < subtask_depth || subtask_depth == -1 || subtask_depth == 0 || local_subtask->solution == nullptr)
         {
             memset_visited(vis_bits);
             local_subtask->append_IO_bits(partial_bits);
@@ -257,25 +257,25 @@ BittreeTaskTypeAsPartialFunction::BittreeTaskTypeAsPartialFunction(BittreeTaskTy
                 break;
             }
 
-            if(local_subtask->decomposition != NULL)
+            if(local_subtask->decomposition != nullptr)
             {
                 local_subtask = local_subtask->decomposition->subtask;
             }
             else
             {
-                local_subtask = NULL;
+                local_subtask = nullptr;
             }
         } else
         {
             memset_visited(vis_bits);
             local_subtask->solution->append_IO_bits(partial_bits);
-            if(local_subtask->decomposition != NULL)
+            if(local_subtask->decomposition != nullptr)
             {
                 local_subtask = local_subtask->decomposition->subtask;
             }
             else
             {
-                local_subtask = NULL;
+                local_subtask = nullptr;
             }
         }
         if(num_prev_subtasks == subtask_depth && subtask_depth != -1)
@@ -327,22 +327,21 @@ void BittreeTaskTypeAsPartialFunction::assign_bits(Bitvector &bitvector) {
 }
 
 vector<string> BittreeTaskTypeAsPartialFunction::get_path_of_bit_id(int bit_id) {
-
-
-    NodeTemplate *at = bits[bit_id]->parents.back();
+    
+    TreeNode *at = bits[bit_id]->get_last_parent();
 
     vector<string> path;
 
     vector<int> coord;
-//    cout << at->names.back().to_string() <<" ";
-    path.push_back(at->names.back().to_string());
-    while (at->names.back().is_child) {
-        coord.push_back(at->names.back().id);
-        at = at->parents.back();
-        path.push_back(at->names.back().to_string());
-//        cout << at->names.back().to_string() <<" ";
-        if (!at->names.back().is_child) {
-            if (at->names.back().to_string() == "input") {
+//    cout << at->get_last_name().to_string() <<" ";
+    path.push_back(at->get_last_name().to_string());
+    while (at->get_last_name().is_child) {
+        coord.push_back(at->get_last_name().id);
+        at = at->get_last_parent();
+        path.push_back(at->get_last_name().to_string());
+//        cout << at->get_last_name().to_string() <<" ";
+        if (!at->get_last_name().is_child) {
+            if (at->get_last_name().to_string() == "input") {
             }
         }
     }

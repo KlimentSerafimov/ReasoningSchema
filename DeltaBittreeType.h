@@ -19,7 +19,7 @@
 //    vector<DeltaBittreeType*>* children;
 //
 //    //if node_type == leaf_node;
-//    BittreeNode* delta = NULL;
+//    BittreeNode* delta = nullptr;
 //
 //    DeltaBittreeType(NodeType delta_node_type);
 //};

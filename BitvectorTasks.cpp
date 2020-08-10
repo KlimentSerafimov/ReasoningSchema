@@ -132,11 +132,11 @@ void InstanceTree::prepare_for_deepening(BittreeInputOutputType* delta)
     for(int i = 0; i < num_superinstances; i++)
     {
         superinstances[i] = new BittreeTaskType(
-                NULL, Name("superinstances", i), superinstance_type, true);
-        if(superinstance_type->decomposition->subtask != NULL)
+                nullptr, Name("superinstances", i), superinstance_type, true);
+        if(superinstance_type->decomposition->subtask != nullptr)
         {
             superinstances[i]->decomposition = new BittreeTaskDecomposition(
-                    superinstances[i], Name("decomposition"), NULL, superinstance_type->decomposition->subtask);
+                    superinstances[i], Name("decomposition"), nullptr, superinstance_type->decomposition->subtask);
         }
 
 //        cout << "---------------------------------------------------" << endl;
@@ -229,7 +229,7 @@ BittreeTaskInstance::BittreeTaskInstance(BittreeTaskType* _bittree_task_type)
     int num_instances = (1<<num_input_bits);
     for(int i = 0; i<num_instances; i++)
     {
-        instances.push_back(BittreeTaskType(NULL, Name("instances", instances.size()), bittree_task_type, true));
+        instances.push_back(BittreeTaskType(nullptr, Name("instances", instances.size()), bittree_task_type, true));
         vector<BitInBittree*> local_input_bits;
         memset_visited(vis_bits);
         instances[i].io->input->append_bits(local_input_bits);
@@ -284,14 +284,14 @@ BitvectorTasks::masks_generator(int num_subtasks, int max_masks_size, int min_ma
 //        curriculum.push_back(type_expression->base_task_type);
 //
 ////        memset_visited(vis_type, num_subtree_markers);
-////        BittreeProgram program = BittreeProgram(curriculum[0], NULL, num_subtree_markers);
+////        BittreeProgram program = BittreeProgram(curriculum[0], nullptr, num_subtree_markers);
 ////        masks.push_back(program.all_bittree_masks_as_bitvectors);
 ////        num_iter--;
 //        for (int i = 0; i < num_iter; i++) {
 //            curriculum.push_back(curriculum[i]->get_supertask_type(type_expression->delta_task_type));
 ////            cout << curriculum[i + 1]->to_string() << endl;
 //            memset_visited(vis_type, num_subtree_markers);
-//            BittreeProgram program = BittreeProgram(curriculum[i + 1], NULL, num_subtree_markers, max_mask_type_depth, num_subtasks);
+//            BittreeProgram program = BittreeProgram(curriculum[i + 1], nullptr, num_subtree_markers, max_mask_type_depth, num_subtasks);
 //            masks.push_back(program.all_bittree_masks_as_bitvectors);
 //        }
 //
@@ -372,7 +372,7 @@ vector<MaskWithCost> get_next_subdomains(
     }
 
     vector<MaskWithCost> next_subdomains;
-    if (next_bittree != NULL) {
+    if (next_bittree != nullptr) {
 
         set<MaskWithCost> next_subdomain_set;
 
@@ -453,12 +453,12 @@ void run_bittree_program(Task * task_name)
     curriculum.push_back(type_expression_for_masks.base_task_type);
 
     memset_visited(vis_type, num_subtree_markers);
-    BittreeProgram program = BittreeProgram(curriculum[0], NULL, num_subtree_markers, max_mask_type_depth, num_subtasks);
+    BittreeProgram program = BittreeProgram(curriculum[0], nullptr, num_subtree_markers, max_mask_type_depth, num_subtasks);
     for (int i = 0; i < num_iter; i++) {
         curriculum.push_back(curriculum[i]->get_supertask_type(type_expression_for_masks.delta_task_type));
         cout << curriculum[i + 1]->to_string() << endl;
         memset_visited(vis_type, num_subtree_markers);
-        BittreeProgram program = BittreeProgram(curriculum[i + 1], NULL, num_subtree_markers, max_mask_type_depth, num_subtasks);
+        BittreeProgram program = BittreeProgram(curriculum[i + 1], nullptr, num_subtree_markers, max_mask_type_depth, num_subtasks);
     }
 
 //      BittreeTaskInstance instances = BittreeTaskInstance(curriculum[4]);
@@ -799,7 +799,7 @@ BitvectorTasks::BitvectorTasks(Task *_task_name,
     init_time = time(nullptr);
 
     for(int task_id = init_iter, is_first = true; task_id < meta_examples.size(); task_id++, is_first = false) {
-        BittreeTaskType * next_task_type = NULL;
+        BittreeTaskType * next_task_type = nullptr;
         if(task_id + 1 < multi_task_type.size())
         {
             next_task_type = multi_task_type[task_id+1];
@@ -875,7 +875,7 @@ void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
             "task_name=" + task_name->get_task_name() +
-            "-gen=56-init_iter=" + std::to_string(init_iter) +
+            "-gen=57-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +

@@ -69,33 +69,37 @@ string BitInBittree::to_string__one_line() {
     }
 }
 
+string BitInBittree::slim_bit_to_string(int tab) {
+    return tabs(tab) + to_string__one_line();
+}
+
 void TreeNode::append_bits(vector<BitInBittree*>& bits) {
 
     bool enter = false;
-    if(bittree_type_node != NULL)
+    if(bittree_type_node != nullptr)
     {
         enter = true;
         bittree_type_node->append_bits(bits);
     }
-    if(bittree_task_type != NULL)
+    if(bittree_task_type != nullptr)
     {
         assert(!enter);
         enter = true;
         bittree_task_type->append_bits(bits);
     }
-    if(bit_in_bittree != NULL)
+    if(bit_in_bittree != nullptr)
     {
         assert(!enter);
         enter = true;
         bit_in_bittree->append_bits(bits);
     }
-    if(bittree_io_type != NULL)
+    if(bittree_io_type != nullptr)
     {
         assert(!enter);
         enter = true;
         bittree_io_type->append_bits(bits);
     }
-    if(bittree_task_decomposition != NULL)
+    if(bittree_task_decomposition != nullptr)
     {
         assert(!enter);
         enter = true;

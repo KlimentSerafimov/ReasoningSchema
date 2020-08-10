@@ -28,25 +28,26 @@ void memset_visited(VisitedType type, int int_idx)
         global_vis_ids[idx]++;
     }
 }
-string NodeTemplate::root_to_node_path__to__string()
-{
-    string ret;
-    assert(parents.size() == names.size());
-    for(int i = 0;i<parents.size();i++)
-    {
-        if(i>=1)
-        {
-            ret += " | ";
-        }
-        ret += names[i].to_string();
-        if(parents[i]!=NULL)
-        {
-            ret += " <- {" + parents[i]->root_to_node_path__to__string() + "}";
-        }
-        else
-        {
-            ret += " <- end";
-        }
-    }
-    return ret;
-}
+
+//string NodeTemplate::root_to_node_path__to__string()
+//{
+//    string ret;
+//    assert(parents.size() == names.size());
+//    for(int i = 0;i<parents.size();i++)
+//    {
+//        if(i>=1)
+//        {
+//            ret += " | ";
+//        }
+//        ret += names[i].to_string();
+//        if(parents[i]!=nullptr)
+//        {
+//            ret += " <- {" + parents[i]->root_to_node_path__to__string() + "}";
+//        }
+//        else
+//        {
+//            ret += " <- end";
+//        }
+//    }
+//    return ret;
+//}

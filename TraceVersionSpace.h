@@ -13,9 +13,10 @@
 
 using namespace std;
 
-class VersionSpaceNode: public NodeTemplate
+class VersionSpaceNode: public TreeNode
 {
-
+public:
+    VersionSpaceNode() = default;
 };
 
 class TaskType: public BittreeTaskType
@@ -59,8 +60,8 @@ public:
 
     TraceNode(vector<MetaExample> meta_examples)
     {
-        is_result_from.push_back(NULL);
-        origin_per_is_result_from.push_back(NULL);
+        is_result_from.push_back(nullptr);
+        origin_per_is_result_from.push_back(nullptr);
         init(meta_examples);
     }
 
@@ -101,12 +102,12 @@ class TraceOperation
     TraceOperationType operation_type;
 
     //if compact_poset
-    CompactPoset* compact_poset = NULL;
+    CompactPoset* compact_poset = nullptr;
 
     void add_operand(TraceNode* operand);
 
     bool has_empty_output = false;
-    TraceNode* output = NULL;
+    TraceNode* output = nullptr;
 
 public:
     Bitvector subdomain_mask;
@@ -114,7 +115,7 @@ public:
     vector<TraceNode*> operands;
 
     bool can_be_turned_into_union = false;
-    TraceOperation* union_alternative = NULL;
+    TraceOperation* union_alternative = nullptr;
 
     bool can_replace_with_head_only = false;
     pair<TraceOperation*, bool> head_only_alternative;

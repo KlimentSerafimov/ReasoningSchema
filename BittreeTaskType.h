@@ -19,11 +19,14 @@ class MetaExample;
 class BittreeNode;
 class BittreeTaskType;
 
-enum BittreeTypeLeafNodeType {not_leaf_node, bit_node, double_node, delta_node};
+enum Rule {inherit_from_parent, stay, move_right, move_left, move_to_last_copy, copy_right, copy_left, move_up, move_down};
+static const int rule_cost[20] = {0, 1, 2, 2, 100, 100, 100, 2, 2};
 
+enum BittreeTypeLeafNodeType {not_leaf_node, bit_node, double_node, delta_node};
 
 class BittreeNode: public TreeNode
 {
+
 public:
     NodeType node_type;
 
@@ -34,12 +37,12 @@ public:
     BittreeTypeLeafNodeType leaf_node_type;
 
     //if leaf_node_type == bit_node;
-    BitInBittree *bit = NULL;
+    BitInBittree *bit = nullptr;
 
     //if leaf_node_type == double_node;
 
     //if leaf_nod_type == delta_node;
-    BittreeNode* delta = NULL;
+    BittreeNode* delta = nullptr;
 
     BittreeNode(TreeNode *parent, Name name, NodeType _node_type);
 
@@ -87,13 +90,25 @@ public:
     string to_string__one_line();
 
     void populate_leaf_internals_and_bit_ids(vector<BittreeNode*> path, vector<pair<BittreeNode *, vector<int> > > & vector);
+
+    string slim_tree_to_string(int tab);
+
+    void generate_programs(vector<Rule> rules);
+
+    BittreeNode* produce_subtre_from_rule(Rule rule);
+
+    void apply_rule(Rule rule, BittreeNode* parent, int child_id);
+
+    void initialize_special_parents(BittreeNode *parent);
+
+    void get_root_to_node_path();
 };
 
 class BittreeInputOutputType: public TreeNode
 {
 public:
-    BittreeNode* input = NULL;
-    BittreeNode* output = NULL;
+    BittreeNode* input = nullptr;
+    BittreeNode* output = nullptr;
 
     BittreeInputOutputType(TreeNode *_parent, Name name, NodeType input_node_type, NodeType output_node_type);
 
@@ -151,8 +166,8 @@ class BittreeTaskDecomposition: public TreeNode
 {
 public:
 
-    BittreeInputOutputType* delta = NULL;
-    BittreeTaskType* subtask = NULL;
+    BittreeInputOutputType* delta = nullptr;
+    BittreeTaskType* subtask = nullptr;
 
     BittreeTaskDecomposition(
             TreeNode *parent, Name name, BittreeInputOutputType *delta_to_copy, BittreeTaskType *subtask);
@@ -174,11 +189,11 @@ class BittreeTaskType: public TreeNode
 {
 public:
 
-    BittreeInputOutputType* io = NULL;
+    BittreeInputOutputType* io = nullptr;
 
-    BittreeTaskDecomposition* decomposition = NULL;
+    BittreeTaskDecomposition* decomposition = nullptr;
 
-    BittreeTaskType* solution = NULL;
+    BittreeTaskType* solution = nullptr;
 
     BittreeTaskType();
 
@@ -219,7 +234,7 @@ public:
         int init_subtask_depth = subtask_depth;
         if(subtask_depth > 0) {
             BittreeTaskType* at_subtask = decomposition->subtask->solution;
-            if(at_subtask == NULL)
+            if(at_subtask == nullptr)
             {
                 at_subtask = decomposition->subtask;
             }
@@ -228,16 +243,16 @@ public:
                 ret += " ";
                 ret += at_subtask->io->output->to_string__one_line();
 
-                if(at_subtask->decomposition != NULL)
+                if(at_subtask->decomposition != nullptr)
                 {
-                    assert(at_subtask->decomposition->subtask != NULL);
+                    assert(at_subtask->decomposition->subtask != nullptr);
                     at_subtask = at_subtask->decomposition->subtask;
                 }
                 subtask_depth-=1;
             }
         }
 
-        if(solution != NULL) {
+        if(solution != nullptr) {
             subtask_depth = init_subtask_depth;
             ret += "  -->  ";
             ret += solution->to_string__one_line(subtask_depth);
@@ -257,8 +272,8 @@ public:
 
 //class BittreeTaskTypeDecomposition: public TreeNode
 //{
-//    BittreeTaskInputOutputType* delta = NULL;
-//    BittreeTaskInputOutputType* subtask = NULL;
+//    BittreeTaskInputOutputType* delta = nullptr;
+//    BittreeTaskInputOutputType* subtask = nullptr;
 //};
 //
 //class BittreeTaskType: public TreeNode
@@ -279,7 +294,7 @@ public:
     int max_mask_type_depth;
     int num_subtasks;
 
-    TreeNode* node = NULL;
+    TreeNode* node = nullptr;
     vector<Bitvector> bittree_masks_as_bitvectors;
     vector<BittreeProgram*> bittree_programs;
     vector<BittreeProgram*> next_rec_programs;

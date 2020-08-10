@@ -143,11 +143,11 @@ void Task__one_shift_idx::generate_bittree_task_expression(BittreeTypeExpression
     int num_input_operands = 1;
 
     holder->base_task_type = new BittreeTaskType(
-            NULL,  Name("base_task_type"), internal_node, internal_node);
+            nullptr,  Name("base_task_type"), internal_node, internal_node);
     holder->init_delta_task_type = new BittreeInputOutputType(
-            NULL,  Name("init_delta_task_type"), internal_node, leaf_node);
+            nullptr,  Name("init_delta_task_type"), internal_node, leaf_node);
     holder->delta_task_type = new BittreeInputOutputType(
-            NULL,  Name("delta_task_type"), internal_node, leaf_node);
+            nullptr,  Name("delta_task_type"), internal_node, leaf_node);
 
     holder->build_input_type(num_input_operands);
 
@@ -264,11 +264,11 @@ void Task__count_unary::generate_bittree_task_expression(BittreeTypeExpression *
     int num_input_operands = 1;
 
     holder->base_task_type = new BittreeTaskType(
-            NULL,  Name("base_task_type"), internal_node, internal_node);
+            nullptr,  Name("base_task_type"), internal_node, internal_node);
     holder->init_delta_task_type = new BittreeInputOutputType(
-            NULL,  Name("init_delta_task_type"), internal_node, leaf_node);
+            nullptr,  Name("init_delta_task_type"), internal_node, leaf_node);
     holder->delta_task_type = new BittreeInputOutputType(
-            NULL,  Name("delta_task_type"), internal_node, leaf_node);
+            nullptr,  Name("delta_task_type"), internal_node, leaf_node);
 
     holder->build_input_type(num_input_operands);
 
@@ -348,13 +348,13 @@ void Task__unary_sum::generate_bittree_task_expression(BittreeTypeExpression *ho
 
     holder->base_task_type =
             new BittreeTaskType(
-                    NULL,  Name("base_task_type"), internal_node, internal_node);
+                    nullptr,  Name("base_task_type"), internal_node, internal_node);
     holder->init_delta_task_type =
             new BittreeInputOutputType(
-                    NULL,  Name("init_delta_task_type"), internal_node, leaf_node);
+                    nullptr,  Name("init_delta_task_type"), internal_node, leaf_node);
     holder->delta_task_type =
             new BittreeInputOutputType(
-                    NULL,  Name("delta_task_type"), internal_node, leaf_node);
+                    nullptr,  Name("delta_task_type"), internal_node, leaf_node);
 
     holder-> build_input_type(num_input_operands);
 
@@ -400,11 +400,11 @@ void Task__least_set_bit::generate_bittree_task_expression(BittreeTypeExpression
     int delta_output_sizes[2] = {0, 1};
 
     holder->base_task_type = new BittreeTaskType(
-            NULL,  Name("base_task_type"), internal_node, internal_node);
+            nullptr,  Name("base_task_type"), internal_node, internal_node);
     holder->init_delta_task_type = new BittreeInputOutputType(
-            NULL,  Name("init_delta_task_type"), internal_node, internal_node);
+            nullptr,  Name("init_delta_task_type"), internal_node, internal_node);
     holder->delta_task_type = new BittreeInputOutputType(
-            NULL,  Name("delta_task_type"), internal_node, internal_node);
+            nullptr,  Name("delta_task_type"), internal_node, internal_node);
 
     holder->build_input_type(num_input_operands);
 
@@ -516,11 +516,11 @@ void Task__strech_of_0s_w_state::generate_bittree_task_expression(BittreeTypeExp
     int delta_output_sizes[2] = {1, 1};
 
     holder->base_task_type = new BittreeTaskType(
-            NULL,  Name("base_task_type"), internal_node, internal_node);
+            nullptr,  Name("base_task_type"), internal_node, internal_node);
     holder->init_delta_task_type = new BittreeInputOutputType(
-            NULL,  Name("init_delta_task_type"), internal_node, internal_node);
+            nullptr,  Name("init_delta_task_type"), internal_node, internal_node);
     holder->delta_task_type = new BittreeInputOutputType(
-            NULL,  Name("delta_task_type"), internal_node, internal_node);
+            nullptr,  Name("delta_task_type"), internal_node, internal_node);
 
     holder->build_input_type(num_input_operands);
 
@@ -594,11 +594,11 @@ void Task__linear_and_or_expression::generate_bittree_task_expression(BittreeTyp
     int delta_input_operands[2] = {1, 1};
 
     holder->base_task_type = new BittreeTaskType(
-            NULL,  Name("base_task_type"), internal_node, internal_node);
+            nullptr,  Name("base_task_type"), internal_node, internal_node);
     holder->init_delta_task_type = new BittreeInputOutputType(
-            NULL,  Name("init_delta_task_type"), internal_node, internal_node);
+            nullptr,  Name("init_delta_task_type"), internal_node, internal_node);
     holder->delta_task_type = new BittreeInputOutputType(
-            NULL,  Name("delta_task_type"), internal_node, internal_node);
+            nullptr,  Name("delta_task_type"), internal_node, internal_node);
 
     holder->build_input_type(num_input_operands, init_input_operands, delta_input_operands);//, init_input_operands, delta_input_operands);
 
@@ -650,11 +650,11 @@ void Task__linear_and_or_expression::solve(BittreeInputOutputType *holder) {
 void Task__linear_and_or_nand_nor_expression::generate_bittree_task_expression(BittreeTypeExpression *holder) {
     int num_input_operands = 3;
     holder->base_task_type = new BittreeTaskType(
-            NULL,  Name("base_task_type"), internal_node, internal_node);
+            nullptr,  Name("base_task_type"), internal_node, internal_node);
     holder->init_delta_task_type = new BittreeInputOutputType(
-            NULL,  Name("init_delta_task_type"), internal_node, internal_node);
+            nullptr,  Name("init_delta_task_type"), internal_node, internal_node);
     holder->delta_task_type = new BittreeInputOutputType(
-            NULL,  Name("delta_task_type"), internal_node, internal_node);
+            nullptr,  Name("delta_task_type"), internal_node, internal_node);
 
     holder->build_input_type(num_input_operands);//, init_input_operands, delta_input_operands);
 
@@ -802,11 +802,11 @@ void Task__gene_network::generate_bittree_task_expression(BittreeTypeExpression 
     int delta_output_sizes[3] = {0, 1, 1};
 
     holder->base_task_type =
-            new BittreeTaskType(NULL,  Name("base_task_type"), internal_node, internal_node);
+            new BittreeTaskType(nullptr,  Name("base_task_type"), internal_node, internal_node);
     holder->init_delta_task_type = new BittreeInputOutputType(
-            NULL,  Name("init_delta_task_type"), internal_node, internal_node);
+            nullptr,  Name("init_delta_task_type"), internal_node, internal_node);
     holder->delta_task_type =
-            new BittreeInputOutputType(NULL,  Name("delta_task_type"), internal_node, internal_node);
+            new BittreeInputOutputType(nullptr,  Name("delta_task_type"), internal_node, internal_node);
 
     holder->build_input_type(num_input_operands, init_input_operand_sizes, delta_input_operand_sizes);
 
@@ -911,11 +911,11 @@ void grid_in_grid_out(int in_w, int out_w, BittreeTypeExpression *holder)
 
     int num_input_operands = in_w;
     holder->base_task_type = new BittreeTaskType(
-            NULL,  Name("base_task_type"), internal_node, internal_node);
+            nullptr,  Name("base_task_type"), internal_node, internal_node);
     holder->init_delta_task_type = new BittreeInputOutputType(
-            NULL,  Name("init_delta_task_type"), internal_node, internal_node);
+            nullptr,  Name("init_delta_task_type"), internal_node, internal_node);
     holder->delta_task_type = new BittreeInputOutputType(
-            NULL,  Name("delta_task_type"), internal_node, internal_node);
+            nullptr,  Name("delta_task_type"), internal_node, internal_node);
 
     holder->build_input_type(num_input_operands, init_input_operands, delta_input_operands);
 

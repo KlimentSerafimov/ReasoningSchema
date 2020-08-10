@@ -328,7 +328,7 @@ void modeling_of_bitvector_functions() {
 //        Task * task = new Task__count_unary();
 //        Task * task = new Task__count_unary__rev(4);
 //        Task * task = new Task__unary_sum();
-//        Task * task = new Task__least_set_bit();
+        Task * task = new Task__least_set_bit();
 //        Task * task = new Task__strech_of_0s();
 //        Task * task = new Task__strech_of_0s_w_state();
 //        Task * task = new Task__linear_and_or_expression();
@@ -370,22 +370,21 @@ void modeling_of_bitvector_functions() {
 
 //        Task * task = new Task__remove_points_and_peninsula(2);
 
-        Task * task = new Task__game_of_life(2);
+//        Task * task = new Task__game_of_life(2);
 
-
-        int init_iter = 2;
-        int num_iter = 7;
+        int init_iter = 4;
+        int num_iter = 10;
         ModeType mode_type = progressive_prior_mode;
-        MetricType metric_type = most_progress;
+        MetricType metric_type = most_progress; //min_imp_set;
         int recursive_rep_set_depth = 0;
         int min_mask_size = 1;
         int max_mask_size = 4;
         int num_prev_subtasks = 0;
         int num_first_in_prior = -1;
         bool train_set_minimization = true;
-        int seed_train_set = 100;
-        int num_minimization_steps = 30;
-        double minimization_fraction = 16.0/20;
+        int seed_train_set = 20;
+        int num_minimization_steps = 1;
+        double minimization_fraction = 19.0/20;
 
         assert(minimization_fraction != 0);
 

@@ -372,8 +372,8 @@ void DecisionTreeNode::my_delete() {
     {
         branches[0]->my_delete();
         branches[1]->my_delete();
-        all_nodes[global_num_decision_tree_nodes].branches[0] = NULL;
-        all_nodes[global_num_decision_tree_nodes].branches[1] = NULL;
+        all_nodes[global_num_decision_tree_nodes].branches[0] = nullptr;
+        all_nodes[global_num_decision_tree_nodes].branches[1] = nullptr;
     }
     empty_slots.push_back(global_id);
 }
@@ -466,7 +466,7 @@ string DecisionTree::get_string_of_union_of_partial_functions(int num_tabs) {
 }
 
 void DecisionTree::my_delete() {
-    if(root != NULL) {
+    if(root != nullptr) {
         root->my_delete();
     }
 }
