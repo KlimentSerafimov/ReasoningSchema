@@ -22,6 +22,8 @@ public:
 class MaskAndCost: public Mask
 {
 public:
+    BittreeTaskTypeAsPartialFunction* now_canvas = nullptr;
+    BittreeTaskTypeAsPartialFunction* next_canvas = nullptr;
     CanvasAndBittreeProgram* program = nullptr;
     vector<MaskAndCost> local_variety;
     int cost;
@@ -30,6 +32,9 @@ public:
     {
         cost = to_copy->cost;
         local_variety = to_copy->local_variety;
+        program = to_copy->program;
+        now_canvas = to_copy->now_canvas;
+        next_canvas = to_copy->next_canvas;
     }
     MaskAndCost(int _cost, Bitvector _bitvector) : Mask(_bitvector)
     {
@@ -52,6 +57,16 @@ public:
     {
         local_variety = std::move(_local_variety);
     }
+    string to_string()
+    {
+        return Mask::to_string();
+    }
+    void set_next_bittree_as_partial(BittreeTaskTypeAsPartialFunction* bittree_as_partial)
+    {
+        next_canvas = bittree_as_partial;
+    }
+
+    void set_now_bittree_as_partial(BittreeTaskTypeAsPartialFunction *pFunction);
 };
 
 class MaskAndCostSortByMask: public MaskAndCost

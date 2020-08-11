@@ -881,6 +881,25 @@ BittreeTaskType::BittreeTaskType(TreeNode *_parent, Name name, BittreeTaskType *
     }
 }
 
+
+BittreeTaskType::BittreeTaskType(TreeNode *_parent, Name name, BittreeTaskType *to_copy, bool all_new_bits,
+                                 bool copy_all, bool hard_all_new_bits) {
+    copied_from = to_copy;
+    to_copy->copies.push_back(this);
+    assert(to_copy->io != nullptr);
+    io = new BittreeInputOutputType(this, Name("io"), to_copy->io, all_new_bits);
+    if (decomposition != nullptr) {
+        decomposition =
+                new BittreeTaskDecomposition(this, Name("decomposition"), to_copy->decomposition, all_new_bits, copy_all, hard_all_new_bits);
+    }
+    if(solution != nullptr)
+    {
+        solution =
+                new BittreeTaskType(this, Name("decomposition"), to_copy->solution, all_new_bits, copy_all ,hard_all_new_bits);
+    }
+}
+
+
 void BittreeTaskType::append_bits(vector<BitInBittree*>& bits)
 {
     append_IO_bits(bits);
@@ -1965,6 +1984,17 @@ BittreeTaskDecomposition::BittreeTaskDecomposition(TreeNode *parent, Name name, 
     }
 }
 
+BittreeTaskDecomposition::BittreeTaskDecomposition(TreeNode *parent, Name name, BittreeTaskDecomposition *to_copy,
+                                                   bool all_new_bits, bool copy_all, bool hard_all_new_bits) {
+    if(to_copy != nullptr)
+    {
+        copied_from = to_copy;
+        to_copy->copies.push_back(this);
+        delta = new BittreeInputOutputType(this, Name("delta"), to_copy->delta, all_new_bits);
+        subtask = new BittreeTaskType(this, Name("subtask"), to_copy->subtask, all_new_bits, copy_all, hard_all_new_bits);
+    }
+}
+
 
 //FOSSILS:
 /*
@@ -2803,11 +2833,7 @@ CanvasAndBittreeProgram::CanvasAndBittreeProgram(CanvasAndBittreeProgram *to_cop
 
 string CanvasAndBittreeProgram::to_string() {
     string ret;
-    ret += "code = ";
-    for(int i = 0;i<code.size();i++)
-    {
-        ret += code[i].to_string() + ", ";
-    }
+    ret += AutomatonRule::to_string();
     ret += ";\n";
     ret += canvas->slim_tree_to_string(0);
     return ret;

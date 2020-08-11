@@ -86,6 +86,8 @@ public:
 
     BittreeTaskDecomposition(TreeNode *parent, Name name, BittreeTaskDecomposition* to_copy, bool all_new_bits, bool copy_all);
 
+    BittreeTaskDecomposition(TreeNode *parent, Name name, BittreeTaskDecomposition* to_copy, bool all_new_bits, bool copy_all, bool hard_all_new_bits);
+
     void append_bits(vector<BitInBittree*>& bits);
 
     void append_bits_of_prefix_subtree(vector<BitInBittree*>& bits, int num_subtasks);
@@ -112,6 +114,8 @@ public:
     BittreeTaskType(TreeNode *_parent, Name name, BittreeTaskType *to_copy, bool all_new_bits);
 
     BittreeTaskType(TreeNode *_parent, Name name, BittreeTaskType *to_copy, bool all_new_bits, bool copy_all);
+
+    BittreeTaskType(TreeNode *_parent, Name name, BittreeTaskType *to_copy, bool all_new_bits, bool copy_all, bool hard_all_new_bits);
 
     void solve(Task *task_name);
 

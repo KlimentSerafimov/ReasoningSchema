@@ -310,7 +310,8 @@ void MetaExample::append_to_masks(
         }
 
         do{
-            ret_with_cost.emplace_back(make_pair(cost(local_mask), MaskAndCost(0, local_mask)));
+            MaskAndCost mask_and_cost = MaskAndCost(0, local_mask);
+            ret_with_cost.emplace_back(make_pair(cost(local_mask), mask_and_cost));
 //            ret.push_back(local_mask);
             cout << bitvector_to_str(local_mask, get_function_size()) << endl;
         }while(next_mask(local_mask, i));

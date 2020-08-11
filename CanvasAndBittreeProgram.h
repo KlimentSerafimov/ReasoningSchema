@@ -48,6 +48,16 @@ public:
     {
         code = to_copy->code;
     }
+    virtual string to_string()
+    {
+        string ret;
+        ret += "code = ";
+        for(int i = 0;i<code.size();i++)
+        {
+            ret += code[i].to_string() + " ";
+        }
+        return ret;
+    }
 };
 
 class CanvasAndBittreeProgram : public AutomatonRule
@@ -66,7 +76,7 @@ public:
 
     CanvasAndBittreeProgram * produce(Rule rule, vector<int> * path);
 
-    string to_string();
+    string to_string() override;
 
     int get_cost();
 };

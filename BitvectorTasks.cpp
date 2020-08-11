@@ -349,9 +349,9 @@ BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, Task *
     return meta_examples;
 }
 
-vector<MaskAndCost> get_next_subdomains(
+vector<MaskAndCost> BitvectorTasks::get_next_subdomains(
         MetricType metric, string dir_path, string init_language_name,
-        vector<MaskAndCost> & subdomains, BittreeTaskType * current_bittree, BittreeTaskType * next_bittree, int num_prev_subtasks)
+        vector<MaskAndCost> & subdomains, BittreeTaskType * current_bittree, BittreeTaskType * next_bittree, int num_prev_subtasks, int task_id)
 {
     ofstream fout;
 
@@ -372,57 +372,61 @@ vector<MaskAndCost> get_next_subdomains(
     }
 
     vector<MaskAndCost> next_subdomains;
-    if (next_bittree != nullptr) {
+    if (next_bittree != nullptr)
+    {
 
         set<MaskAndCost> next_subdomain_set;
 
         for (int subdomain_id = 0; subdomain_id < subdomains.size(); subdomain_id++) {
-            BittreeTaskTypeAsPartialFunction bittree_as_partial = BittreeTaskTypeAsPartialFunction(
-                    current_bittree, num_prev_subtasks);
+            BittreeTaskTypeAsPartialFunction* bittree_as_partial = subdomains[subdomain_id].now_canvas;
 
-            BittreeTaskTypeAsPartialFunction next_bittree_as_partial = BittreeTaskTypeAsPartialFunction(
-                    next_bittree, num_prev_subtasks);
+            vector<BittreeTaskType*> next_current_bittree =
+                    get_multi_task_type(new BittreeTypeExpression(task_name), task_id+2);
+            BittreeTaskTypeAsPartialFunction* next_bittree_as_partial = new BittreeTaskTypeAsPartialFunction(
+                    next_current_bittree[next_current_bittree.size()-1], num_prev_subtasks);
 
-            bittree_as_partial.assign_bits(subdomains[subdomain_id]);
-            bittree_as_partial.update_bitvector();
+//            BittreeTaskTypeAsPartialFunction* next_bittree_as_partial = new BittreeTaskTypeAsPartialFunction(
+//                    next_bittree, num_prev_subtasks);
 
-            for (int bit_id = 0, next_bit_id = 0; next_bit_id < next_bittree_as_partial.bits.size();) {
 
-                if (bit_id < bittree_as_partial.bits.size()) {
+            for (int bit_id = 0, next_bit_id = 0; next_bit_id < next_bittree_as_partial->bits.size();) {
 
-                    vector<string> path = bittree_as_partial.get_path_of_bit_id(bit_id);
+                if (bit_id < bittree_as_partial->bits.size()) {
 
-                    vector<string> next_path = next_bittree_as_partial.get_path_of_bit_id(next_bit_id);
+                    vector<string> path = bittree_as_partial->get_path_of_bit_id(bit_id);
+
+                    vector<string> next_path = next_bittree_as_partial->get_path_of_bit_id(next_bit_id);
 
                     if (path == next_path) {
-                        next_bittree_as_partial.bits[next_bit_id]->is_bit_set = true;
-                        next_bittree_as_partial.bits[next_bit_id]->bit_val = bittree_as_partial.bits[bit_id]->bit_val;
+                        next_bittree_as_partial->bits[next_bit_id]->is_bit_set = true;
+                        next_bittree_as_partial->bits[next_bit_id]->bit_val = bittree_as_partial->bits[bit_id]->bit_val;
 
                         next_bit_id++;
                         bit_id++;
                     } else {
-                        next_bittree_as_partial.bits[next_bit_id]->is_bit_set = true;
-                        next_bittree_as_partial.bits[next_bit_id]->bit_val = 0;
+                        next_bittree_as_partial->bits[next_bit_id]->is_bit_set = true;
+                        next_bittree_as_partial->bits[next_bit_id]->bit_val = 0;
                         next_bit_id++;
                     }
                 } else {
-                    next_bittree_as_partial.bits[next_bit_id]->is_bit_set = true;
-                    next_bittree_as_partial.bits[next_bit_id]->bit_val = 0;
+                    next_bittree_as_partial->bits[next_bit_id]->is_bit_set = true;
+                    next_bittree_as_partial->bits[next_bit_id]->bit_val = 0;
                     next_bit_id++;
                 }
             }
 
-            next_bittree_as_partial.update_bitvector();
+            next_bittree_as_partial->update_bitvector();
 
-            vector<MaskAndCost> local_variety = next_bittree_as_partial.generate_variety(&fout);
+            vector<MaskAndCost> local_variety = next_bittree_as_partial->generate_variety(&fout);
 
+            subdomains[subdomain_id].set_next_bittree_as_partial(next_bittree_as_partial);
             subdomains[subdomain_id].set_local_variety(local_variety);
 
             for (int i = 0; i < local_variety.size(); i++) {
                 next_subdomain_set.insert(local_variety[i]);
             }
 
-            fout << next_bittree_as_partial.to_string__one_line() << endl;
+            fout << next_bittree_as_partial->to_string__one_line() << endl;
         }
 
         for (auto subdomain : next_subdomain_set) {
@@ -465,12 +469,31 @@ void run_bittree_program(Task * task_name)
 
 }
 
+void BitvectorTasks::augment_subdomains(vector<MaskAndCost>& subdomains, BittreeTaskType* current_bittree, int num_prev_subtasks, int task_id)
+{
+    for (int subdomain_id = 0; subdomain_id < subdomains.size(); subdomain_id++) {
+        vector<BittreeTaskType*> new_current_bittree = get_multi_task_type(new BittreeTypeExpression(task_name), task_id+1);
+        BittreeTaskTypeAsPartialFunction* bittree_as_partial = new BittreeTaskTypeAsPartialFunction(
+                new_current_bittree[new_current_bittree.size()-1], num_prev_subtasks);
+
+        bittree_as_partial->assign_bits(subdomains[subdomain_id]);
+        bittree_as_partial->update_bitvector();
+
+        subdomains[subdomain_id].set_now_bittree_as_partial(bittree_as_partial);
+        cout <<"HERE::" << subdomains[subdomain_id].now_canvas->to_string__one_line() << endl;
+    }
+    for (int subdomain_id = 0; subdomain_id < subdomains.size(); subdomain_id++) {
+        cout <<"HERE::" << subdomains[subdomain_id].now_canvas->to_string__one_line() << endl;
+    }
+}
+
 pair<vector<MetaExample>, ReasoningSchemaOptimizer *>
 BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int task_id,
                                                             vector<MetaExample> meta_examples_of_task_id,
                                                             vector<MaskAndCost> &next_subdomains,
                                                             vector<vector<MaskAndCost> > masks_of_task_id,
-                                                            BittreeTaskType *task_type, BittreeTaskType *next_task_type,
+                                                            BittreeTaskType *task_type,
+                                                            BittreeTaskType *next_task_type,
                                                             vector<MaskAndCost> &prev_subdomains)
 {
     assert(masks_of_task_id.size() == 0);
@@ -658,6 +681,14 @@ BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int t
             train_meta_examples = new_train_set;
         }
 
+        next_subdomains.clear();
+
+        augment_subdomains(subdomains, task_type, num_prev_subtasks, task_id);
+
+        next_subdomains = get_next_subdomains(
+                metric, dir_path, init_language_name,
+                subdomains, task_type, next_task_type, num_prev_subtasks, task_id);
+
 
         ofstream mask_propagation_fout(dir_path+"/mask_propagation_model__task_id_"+std::to_string(task_id+1));
 
@@ -681,14 +712,16 @@ BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int t
 
         for(int now_id = 0;now_id<subdomains.size();now_id++)
         {
-            mask_propagation_fout << subdomains[now_id].to_string() <<  " :: " << endl;
+            mask_propagation_fout << subdomains[now_id].now_canvas->to_string__one_line() <<  " :: " ;
             for(int prev_id = 0;prev_id<prev_subdomains.size();prev_id++)
             {
                 for(int edge_id = 0;edge_id<prev_subdomains[prev_id].local_variety.size(); edge_id++)
                 {
                     if(subdomains[now_id] == prev_subdomains[prev_id].local_variety[edge_id])
                     {
-                        mask_propagation_fout << prev_subdomains[prev_id].to_string() << " " ;
+                        mask_propagation_fout <<
+                                              prev_subdomains[prev_id].next_canvas->to_string__one_line() << " " <<
+                                              prev_subdomains[prev_id].local_variety[edge_id].program->AutomatonRule::to_string() << " | ";
                     }
                 }
             }
@@ -696,11 +729,6 @@ BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int t
         }
 
         mask_propagation_fout.close();
-        next_subdomains.clear();
-
-        next_subdomains = get_next_subdomains(
-                metric, dir_path, init_language_name,
-                subdomains, task_type, next_task_type, num_prev_subtasks);
 
         prev_subdomains = subdomains;
 
@@ -753,9 +781,11 @@ BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int t
 
             assert(next_subdomains.size() == 0);
 
+            augment_subdomains(subdomains, task_type, num_prev_subtasks, task_id);
+
             next_subdomains =
                     get_next_subdomains(metric, dir_path, init_language_name, subdomains, task_type,
-                                        next_task_type, num_prev_subtasks);
+                                        next_task_type, num_prev_subtasks, task_id);
 
             prev_subdomains = subdomains;
             assert(prev_subdomains.size()>=1);
@@ -923,7 +953,7 @@ void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
             "task_name=" + task_name->get_task_name() +
-            "-gen=62.31-init_iter=" + std::to_string(init_iter) +
+            "-gen=63-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +

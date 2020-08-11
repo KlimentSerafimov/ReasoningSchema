@@ -11,3 +11,7 @@ MaskAndCost(CanvasAndBittreeProgram* _program): Mask(CanvasAsPartialFunction(_pr
     program = _program;
     cost = program->get_cost();
 }
+
+void MaskAndCost::set_now_bittree_as_partial(BittreeTaskTypeAsPartialFunction *_now_canvas) {
+    now_canvas = _now_canvas;
+}
