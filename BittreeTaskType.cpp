@@ -38,7 +38,7 @@ BittreeNode::BittreeNode(TreeNode *parent, Name name, NodeType _node_type, BitIn
 };
 
 BittreeNode::BittreeNode(TreeNode *parent, Name name, NodeType _node_type,
-                         BittreeTypeLeafNodeType _leaf_node_type) : TreeNode(parent, name, this)
+                         BittreeLeafNodeType _leaf_node_type) : TreeNode(parent, name, this)
 {
     assert(_node_type == leaf_node);
     assert(_leaf_node_type == double_node);
@@ -392,7 +392,7 @@ BittreeNode *BittreeNode::set_delta(NodeType delta_type_node, int num_children, 
     return delta;
 }
 
-BittreeNode *BittreeNode::set_delta(NodeType delta_type_node, BittreeTypeLeafNodeType delta_leaf_node_type) {
+BittreeNode *BittreeNode::set_delta(NodeType delta_type_node, BittreeLeafNodeType delta_leaf_node_type) {
     assert(delta_leaf_node_type == double_node);
     assert(delta == nullptr);
     assert(delta_type_node == leaf_node);
@@ -481,7 +481,7 @@ string BittreeNode::slim_tree_to_string(int tab) const {
 //    vector<BittreeNode*> children;
 //
 //    //if leaf_node;
-//    BittreeTypeLeafNodeType leaf_node_type;
+//    BittreeLeafNodeType leaf_node_type;
 //
 //    //if leaf_node_type == bit_node;
 //    BitInBittree *bit = nullptr;
@@ -1167,9 +1167,7 @@ vector<MaskAndCost> BittreeTaskType::generate_variety(int subtask_depth, ofstrea
     {
         ret_set.insert(
                 MaskAndCostSortByMask(
-                        new MaskAndCost(
-                                all_programs[i]->get_cost(),
-                                CanvasAsPartialFunction(all_programs[i]->get_canvas()).total_function)));
+                        new MaskAndCost(all_programs[i])));
     }
 
     /*

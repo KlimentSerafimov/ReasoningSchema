@@ -9,6 +9,7 @@
 #include "Bitvector.h"
 #include <utility>
 #include <vector>
+#include "CanvasAndBittreeProgram.h"
 
 class Mask: public Bitvector
 {
@@ -21,6 +22,7 @@ public:
 class MaskAndCost: public Mask
 {
 public:
+    CanvasAndBittreeProgram* program = nullptr;
     vector<MaskAndCost> local_variety;
     int cost;
     MaskAndCost() = default;
@@ -33,6 +35,8 @@ public:
     {
         cost = _cost;
     }
+    MaskAndCost(CanvasAndBittreeProgram* _program);
+
     virtual bool operator < (const MaskAndCost & other) const
     {
         if(cost != other.cost)

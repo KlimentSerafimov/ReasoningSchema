@@ -677,9 +677,25 @@ BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int t
             mask_propagation_fout << subdomains[i].to_string() << endl;
         }
         mask_propagation_fout << endl;
+        mask_propagation_fout << endl;
+
+        for(int now_id = 0;now_id<subdomains.size();now_id++)
+        {
+            mask_propagation_fout << subdomains[now_id].to_string() <<  " :: " << endl;
+            for(int prev_id = 0;prev_id<prev_subdomains.size();prev_id++)
+            {
+                for(int edge_id = 0;edge_id<prev_subdomains[prev_id].local_variety.size(); edge_id++)
+                {
+                    if(subdomains[now_id] == prev_subdomains[prev_id].local_variety[edge_id])
+                    {
+                        mask_propagation_fout << prev_subdomains[prev_id].to_string() << " " ;
+                    }
+                }
+            }
+            mask_propagation_fout << endl;
+        }
+
         mask_propagation_fout.close();
-
-
         next_subdomains.clear();
 
         next_subdomains = get_next_subdomains(
@@ -907,7 +923,7 @@ void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
             "task_name=" + task_name->get_task_name() +
-            "-gen=62.27-init_iter=" + std::to_string(init_iter) +
+            "-gen=62.31-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +

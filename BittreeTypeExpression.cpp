@@ -137,7 +137,7 @@ BittreeTypeExpression::BittreeTypeExpression(Task *task_name)
 
 //        int num_output = 1;
 //        int init_output_size = 1;
-//        BittreeTypeLeafNodeType delta_output_size = double_node;
+//        BittreeLeafNodeType delta_output_size = double_node;
 
         base_task_type = new BittreeTaskType(
                 nullptr,  Name("base_task_type"), internal_node, internal_node);
@@ -191,7 +191,7 @@ BittreeTypeExpression::BittreeTypeExpression(Task *task_name)
 
 //        int num_output = 1;
 //        int init_output_size = 2;
-//        BittreeTypeLeafNodeType delta_output_size = double_node;
+//        BittreeLeafNodeType delta_output_size = double_node;
 
         base_task_type =
                 new BittreeTaskType(
