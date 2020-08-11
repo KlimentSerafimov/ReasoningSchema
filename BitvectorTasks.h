@@ -100,15 +100,13 @@ class BitvectorTasks {
 
     void set_up_directory();
 
-    pair<vector<MetaExample>, ReasoningSchemaOptimizer*>  one_step_of_incremental_meta_generalization(
-            bool is_first,
-            int task_id,
-            vector<MetaExample> meta_examples_of_task_id,
-            vector<MaskAndCost> &next_subdomains,
-            vector<vector<MaskAndCost> > masks_of_task_id,
-            BittreeTaskType * task_type,
-            BittreeTaskType * next_task_type
-    );
+    pair<vector<MetaExample>, ReasoningSchemaOptimizer *>
+    one_step_of_incremental_meta_generalization(bool is_first, int task_id,
+                                                vector<MetaExample> meta_examples_of_task_id,
+                                                vector<MaskAndCost> &next_subdomains,
+                                                vector<vector<MaskAndCost> > masks_of_task_id,
+                                                BittreeTaskType *task_type, BittreeTaskType *next_task_type,
+                                                vector<MaskAndCost> &prev_subdomains);
 
 
 public:

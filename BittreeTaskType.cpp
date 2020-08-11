@@ -687,7 +687,24 @@ BittreeNode::populate_programs(vector<Rule> *rules, CanvasAndBittreeProgram *can
     assert(subtree_sum != -1);
     if(subtree_sum == 0)
     {
-
+        cout << "(subtree_sum == 0)" << endl;
+        if(next_child == -1)
+        {
+            all_programs->push_back(canvas);
+        }
+        else
+        {
+            if(next_child == children.size())
+            {
+                all_programs->push_back(canvas);
+                cout << "HERE CanvasAndBittreeProgram" << endl;
+                cout << canvas->to_string() << endl;
+            }
+            else
+            {
+                populate_programs(rules, canvas, next_child + 1, path, all_programs);
+            }
+        }
     }
     else {
         if (next_child == -1 || node_type == leaf_node) {
@@ -702,15 +719,33 @@ BittreeNode::populate_programs(vector<Rule> *rules, CanvasAndBittreeProgram *can
                 assert(next_child >= 0);
                 if (next_child == children.size()){
                     all_programs->push_back(canvas);
+                    cout << "HERE CanvasAndBittreeProgram" << endl;
+                    cout << canvas->to_string() << endl;
                 } else {
                     assert(next_child < children.size());
                     if(children[next_child]->subtree_sum >= 1) {
                         path->push_back(next_child);
                         vector<CanvasAndBittreeProgram*> programs_with_next_primitive = vector<CanvasAndBittreeProgram*>();
                         children[next_child]->populate_programs(rules, canvas, -1, path, &programs_with_next_primitive);
+                        children[next_child]->populate_programs(rules, canvas, 0, path, &programs_with_next_primitive);
                         path->pop_back();
                         for (int new_program_id = 0; new_program_id < programs_with_next_primitive.size(); new_program_id++) {
                             populate_programs(rules, programs_with_next_primitive[new_program_id],next_child + 1, path, all_programs);
+                        }
+                    }
+                    else
+                    {
+                        cout << "HERE" << endl;
+                        cout << "(subtree_sum == 0)" << endl;
+                        if(next_child == children.size())
+                        {
+                            all_programs->push_back(canvas);
+                            cout << "HERE CanvasAndBittreeProgram" << endl;
+                            cout << canvas->to_string() << endl;
+                        }
+                        else
+                        {
+                            populate_programs(rules, canvas, next_child + 1, path, all_programs);
                         }
                     }
                 }
@@ -1126,11 +1161,15 @@ vector<MaskAndCost> BittreeTaskType::generate_variety(int subtask_depth, ofstrea
         (*fout) << all_programs[i]->to_string() << endl;
     }
 
-    set<MaskAndCost> ret_set;
+    set<MaskAndCostSortByMask> ret_set;
 
     for(int i = 0;i<all_programs.size();i++)
     {
-        ret_set.insert(MaskAndCost(all_programs[i]->get_cost(), CanvasAsPartialFunction(all_programs[i]->get_canvas()).total_function));
+        ret_set.insert(
+                MaskAndCostSortByMask(
+                        new MaskAndCost(
+                                all_programs[i]->get_cost(),
+                                CanvasAsPartialFunction(all_programs[i]->get_canvas()).total_function)));
     }
 
     /*

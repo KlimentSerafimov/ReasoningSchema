@@ -15,6 +15,7 @@ class Mask: public Bitvector
 public:
     Mask() = default;
     Mask(Bitvector _bitvector) : Bitvector(_bitvector) {}
+    Mask(Mask * _bitvector) : Bitvector(*_bitvector) {}
 };
 
 class MaskAndCost: public Mask
@@ -23,11 +24,16 @@ public:
     vector<MaskAndCost> local_variety;
     int cost;
     MaskAndCost() = default;
+    MaskAndCost(MaskAndCost * to_copy) : Mask(to_copy)
+    {
+        cost = to_copy->cost;
+        local_variety = to_copy->local_variety;
+    }
     MaskAndCost(int _cost, Bitvector _bitvector) : Mask(_bitvector)
     {
         cost = _cost;
     }
-    bool operator < (const MaskAndCost & other) const
+    virtual bool operator < (const MaskAndCost & other) const
     {
         if(cost != other.cost)
         {
@@ -41,6 +47,20 @@ public:
     void set_local_variety(vector<MaskAndCost> _local_variety)
     {
         local_variety = std::move(_local_variety);
+    }
+};
+
+class MaskAndCostSortByMask: public MaskAndCost
+{
+public:
+    MaskAndCostSortByMask(MaskAndCost* to_copy) : MaskAndCost(to_copy)
+    {
+
+    }
+
+    bool operator < (const MaskAndCost & other) const override
+    {
+        return Mask::operator<(other);
     }
 };
 

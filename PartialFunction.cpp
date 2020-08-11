@@ -367,5 +367,16 @@ CanvasAsPartialFunction::CanvasAsPartialFunction(BittreeNode *_canvas)
     memset_visited(vis_bits);
     canvas->append_bits(partial_bits);
 
+    for(int i = 0;i<partial_bits.size();i++)
+    {
+        if(partial_bits[i]->is_bit_set)
+        {
+            if(partial_bits[i]->bit_val >= 1)
+            {
+                partial_bits[i]->bit_val = 1;
+            }
+        }
+    }
+
     init_via_bits(partial_bits);
 }

@@ -465,15 +465,13 @@ void run_bittree_program(Task * task_name)
 
 }
 
-pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of_incremental_meta_generalization(
-        bool is_first,
-        int task_id,
-        vector<MetaExample> meta_examples_of_task_id,
-        vector<MaskAndCost> &next_subdomains,
-        vector<vector<MaskAndCost > > masks_of_task_id,
-        BittreeTaskType * task_type,
-        BittreeTaskType * next_task_type
-)
+pair<vector<MetaExample>, ReasoningSchemaOptimizer *>
+BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int task_id,
+                                                            vector<MetaExample> meta_examples_of_task_id,
+                                                            vector<MaskAndCost> &next_subdomains,
+                                                            vector<vector<MaskAndCost> > masks_of_task_id,
+                                                            BittreeTaskType *task_type, BittreeTaskType *next_task_type,
+                                                            vector<MaskAndCost> &prev_subdomains)
 {
     assert(masks_of_task_id.size() == 0);
     vector<MetaExample> ret_train_meta_examples;
@@ -581,6 +579,7 @@ pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of
 
         string init_language_name = language_name;
 
+
         vector<MaskAndCost> subdomains;
         int min_train_set_size = test_meta_examples.size();
         vector<MetaExample> min_train_meta_examples;
@@ -659,11 +658,35 @@ pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of
             train_meta_examples = new_train_set;
         }
 
+
+        ofstream mask_propagation_fout(dir_path+"/mask_propagation_model__task_id_"+std::to_string(task_id+1));
+
+        assert(prev_subdomains.size() >= 1);
+        for(int i = 0;i<prev_subdomains.size();i++)
+        {
+            mask_propagation_fout << prev_subdomains[i].to_string() << endl;
+            for(int j = 0;j<prev_subdomains[i].local_variety.size(); j++)
+            {
+                mask_propagation_fout << "\t" << prev_subdomains[i].local_variety[j].to_string() << endl;
+            }
+        }
+        mask_propagation_fout << endl;
+
+        for(int i = 0;i<subdomains.size();i++)
+        {
+            mask_propagation_fout << subdomains[i].to_string() << endl;
+        }
+        mask_propagation_fout << endl;
+        mask_propagation_fout.close();
+
+
         next_subdomains.clear();
 
         next_subdomains = get_next_subdomains(
                 metric, dir_path, init_language_name,
                 subdomains, task_type, next_task_type, num_prev_subtasks);
+
+        prev_subdomains = subdomains;
 
     } else {
 
@@ -712,29 +735,14 @@ pair<vector<MetaExample>, ReasoningSchemaOptimizer*> BitvectorTasks::one_step_of
                 }
             } while (now_meta_examples_size != prev_meta_examples_size);
 
-            ofstream mask_propagation_fout(dir_path+"mask_propagation_model__task_id_"+std::to_string(task_id+1));
-
-            for(int i = 0;i<next_subdomains.size();i++)
-            {
-                mask_propagation_fout << next_subdomains[i].to_string() << endl;
-                for(int j = 0;j<next_subdomains[i].local_variety.size(); j++)
-                {
-                    mask_propagation_fout << "\t" << next_subdomains[i].local_variety[j].to_string() << endl;
-                }
-            }
-            mask_propagation_fout << endl;
-
-            for(int i = 0;i<subdomains.size();i++)
-            {
-                mask_propagation_fout << subdomains[i].to_string() << endl;
-            }
-            mask_propagation_fout << endl;
-            mask_propagation_fout.close();
+            assert(next_subdomains.size() == 0);
 
             next_subdomains =
                     get_next_subdomains(metric, dir_path, init_language_name, subdomains, task_type,
                                         next_task_type, num_prev_subtasks);
 
+            prev_subdomains = subdomains;
+            assert(prev_subdomains.size()>=1);
         } else if (true) {
             ReasoningSchemaOptimizer my_reasoning_schema =
                     ReasoningSchemaOptimizer(
@@ -803,6 +811,7 @@ BitvectorTasks::BitvectorTasks(Task *_task_name,
             &type_expression_for_meta_examples, task_name, num_iter, num_prev_subtasks);
 
     vector<MaskAndCost> next_subdomains;
+    vector<MaskAndCost> prev_subdomains;
 
     vector<vector<vector<MaskAndCost> > > masks =
             vector<vector<vector<MaskAndCost> > >(meta_examples.size(), vector<vector<MaskAndCost> >());
@@ -820,6 +829,7 @@ BitvectorTasks::BitvectorTasks(Task *_task_name,
 
     init_time = time(nullptr);
 
+
     for(int task_id = init_iter, is_first = true; task_id < meta_examples.size(); task_id++, is_first = false) {
         BittreeTaskType * next_task_type = nullptr;
         if(task_id + 1 < multi_task_type.size())
@@ -827,15 +837,15 @@ BitvectorTasks::BitvectorTasks(Task *_task_name,
             next_task_type = multi_task_type[task_id+1];
         }
         pair<vector<MetaExample>, ReasoningSchemaOptimizer*> solution =
-            one_step_of_incremental_meta_generalization(
-                    is_first,
-                    task_id,
-                    meta_examples[task_id],
-                    next_subdomains,
-                    masks[task_id],
-                    multi_task_type[task_id],
-                    next_task_type
-                    );
+                one_step_of_incremental_meta_generalization(
+                        is_first,
+                        task_id,
+                        meta_examples[task_id],
+                        next_subdomains,
+                        masks[task_id],
+                        multi_task_type[task_id],
+                        next_task_type,
+                        prev_subdomains);
 
         vector<MetaExample> rep_set = solution.first;
         ReasoningSchemaOptimizer * reasoning_schema = solution.second;
@@ -897,7 +907,7 @@ void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
             "task_name=" + task_name->get_task_name() +
-            "-gen=62.12-init_iter=" + std::to_string(init_iter) +
+            "-gen=62.27-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +
