@@ -318,7 +318,7 @@ void modeling_of_bitvector_functions() {
     for(int param = is_const * 0 + (!is_const) * 1; param <= is_const * 0 + (!is_const) * 31; param ++) {
         string str_task_name;
 
-        Task * task = new Task__sum();
+//        Task * task = new Task__sum();
 //        Task * task = new Task__greater();
 //        Task * task = new Task__cumulative_binary_operator();
 //        Task * task = new Task__bitwise_binary_operator();
@@ -358,7 +358,7 @@ void modeling_of_bitvector_functions() {
 //        }
 //        Task * task = new Task__gene_network(network_bits);
 
-//        Task * task = new Task__biggest_square(2);
+        Task * task = new Task__biggest_square(2);
 
 //        Task * task = new Task__biggest_square_with_kernel(2, 2, 1);
 
@@ -366,23 +366,23 @@ void modeling_of_bitvector_functions() {
 
 //        Task * task = new Task__biggest_square_as_corners(2);
 
-//        Task * task = new Task__remove_points(2);
+//        Task * task = new Task__remove_points(3);
 
-//        Task * task = new Task__remove_points_and_peninsula(2);
+//        Task * task = new Task__remove_points_and_peninsula(3);
 
 //        Task * task = new Task__game_of_life(2);
 
-        int init_iter = 2;
-        int num_iter = 4;
+        int init_iter = 1;
+        int num_iter = 5;
         ModeType mode_type = progressive_prior_mode;
         MetricType metric_type = most_progress; //min_imp_set;
         int recursive_rep_set_depth = 0;
         int min_mask_size = 1;
         int max_mask_size = 3;
-        int num_prev_subtasks = 1;
+        int num_prev_subtasks = 0;
         int num_first_in_prior = -1;
-        bool train_set_minimization = true;
-        int seed_train_set = 20;
+        bool train_set_minimization = false;
+        int seed_train_set = 100;
         int num_minimization_steps = 1;
         double minimization_fraction = 19.0/20;
 

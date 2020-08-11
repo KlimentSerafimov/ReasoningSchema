@@ -55,9 +55,6 @@ public:
 };
 
 
-
-
-
 class BitvectorTasks {
 
     Task *task_name;
@@ -113,6 +110,9 @@ class BitvectorTasks {
     vector<MaskAndCost> get_next_subdomains(
             MetricType metric, string dir_path, string init_language_name,
             vector<MaskAndCost> & subdomains, BittreeTaskType * current_bittree, BittreeTaskType * next_bittree, int num_prev_subtasks, int task_id);
+
+    void delta_wiring(vector<MaskAndCost> &subdomains, BittreeTaskType* task_type, int task_id, vector<MaskAndCost> &next_subdomains,
+                      string init_language_name, BittreeTaskType* next_task_type, vector<MaskAndCost> &prev_subdomains);
 public:
 
     BitvectorTasks(int function_size, int task_id);

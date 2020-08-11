@@ -27,7 +27,7 @@ public:
         string ret = rule_names[rule] + " ";
         for(int i = 0;i<path.size();i++)
         {
-            ret += std::to_string(path[i]);
+            ret += std::to_string(path[i]) + " ";
         }
         return ret;
     }

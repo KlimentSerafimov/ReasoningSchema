@@ -385,10 +385,6 @@ vector<MaskAndCost> BitvectorTasks::get_next_subdomains(
             BittreeTaskTypeAsPartialFunction* next_bittree_as_partial = new BittreeTaskTypeAsPartialFunction(
                     next_current_bittree[next_current_bittree.size()-1], num_prev_subtasks);
 
-//            BittreeTaskTypeAsPartialFunction* next_bittree_as_partial = new BittreeTaskTypeAsPartialFunction(
-//                    next_bittree, num_prev_subtasks);
-
-
             for (int bit_id = 0, next_bit_id = 0; next_bit_id < next_bittree_as_partial->bits.size();) {
 
                 if (bit_id < bittree_as_partial->bits.size()) {
@@ -487,6 +483,74 @@ void BitvectorTasks::augment_subdomains(vector<MaskAndCost>& subdomains, Bittree
     }
 }
 
+void BitvectorTasks::delta_wiring(vector<MaskAndCost> &subdomains, BittreeTaskType* task_type, int task_id, vector<MaskAndCost> &next_subdomains,
+                                  string init_language_name, BittreeTaskType* next_task_type, vector<MaskAndCost> &prev_subdomains)
+{
+
+    augment_subdomains(subdomains, task_type, num_prev_subtasks, task_id);
+
+    next_subdomains = get_next_subdomains(
+            metric, dir_path, init_language_name,
+            subdomains, task_type, next_task_type, num_prev_subtasks, task_id);
+
+
+    ofstream mask_propagation_fout(
+            dir_path + "/mask_propagation_model__task_id_" + std::to_string(task_id + 1));
+
+
+    if(prev_subdomains.size() >= 1) {
+        for (int i = 0; i < prev_subdomains.size(); i++) {
+            mask_propagation_fout << prev_subdomains[i].to_string() << endl;
+            for (int j = 0; j < prev_subdomains[i].local_variety.size(); j++) {
+                mask_propagation_fout << "\t" << prev_subdomains[i].local_variety[j].to_string() << endl;
+            }
+        }
+        mask_propagation_fout << endl;
+
+        for (int i = 0; i < subdomains.size(); i++) {
+            mask_propagation_fout << subdomains[i].to_string() << endl;
+        }
+        mask_propagation_fout << endl;
+        mask_propagation_fout << endl;
+
+        for (int now_id = 0; now_id < subdomains.size(); now_id++) {
+            mask_propagation_fout << subdomains[now_id].now_canvas->to_string__one_line() << " :: ";
+            for (int prev_id = 0; prev_id < prev_subdomains.size(); prev_id++) {
+                for (int edge_id = 0; edge_id < prev_subdomains[prev_id].local_variety.size(); edge_id++) {
+                    if (subdomains[now_id] == prev_subdomains[prev_id].local_variety[edge_id]) {
+                        mask_propagation_fout <<
+                                              prev_subdomains[prev_id].now_canvas->to_string__one_line()
+                                              << " -> " <<
+                                              prev_subdomains[prev_id].next_canvas->to_string__one_line()
+                                              << " then " <<
+                                              prev_subdomains[prev_id].local_variety[edge_id].program->AutomatonRule::to_string()
+                                              << " | ";
+                    }
+                }
+            }
+            mask_propagation_fout << endl;
+        }
+
+        for (int now_id = 0; now_id < subdomains.size(); now_id++) {
+            mask_propagation_fout << subdomains[now_id].now_canvas->to_string__one_line() << " :: ";
+
+            for (int prev_id = 0; prev_id < prev_subdomains.size(); prev_id++) {
+                for (int edge_id = 0; edge_id < prev_subdomains[prev_id].local_variety.size(); edge_id++) {
+                    if (subdomains[now_id] == prev_subdomains[prev_id].local_variety[edge_id]) {
+                        mask_propagation_fout << prev_subdomains[prev_id].local_variety[edge_id].program->AutomatonRule::to_string()  << " | ";
+                    }
+                }
+            }
+            mask_propagation_fout << endl;
+        }
+
+        mask_propagation_fout.close();
+    }
+
+    prev_subdomains = subdomains;
+
+}
+
 pair<vector<MetaExample>, ReasoningSchemaOptimizer *>
 BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int task_id,
                                                             vector<MetaExample> meta_examples_of_task_id,
@@ -509,7 +573,7 @@ BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int t
         }
         cout << endl;
 
-        bool more_buckets = false;
+        bool more_buckets = true;
         if(more_buckets) {
             int prev_cost = -1;
             vector<MaskAndCost> local_subdomains;
@@ -683,54 +747,7 @@ BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int t
 
         next_subdomains.clear();
 
-        augment_subdomains(subdomains, task_type, num_prev_subtasks, task_id);
-
-        next_subdomains = get_next_subdomains(
-                metric, dir_path, init_language_name,
-                subdomains, task_type, next_task_type, num_prev_subtasks, task_id);
-
-
-        ofstream mask_propagation_fout(dir_path+"/mask_propagation_model__task_id_"+std::to_string(task_id+1));
-
-        assert(prev_subdomains.size() >= 1);
-        for(int i = 0;i<prev_subdomains.size();i++)
-        {
-            mask_propagation_fout << prev_subdomains[i].to_string() << endl;
-            for(int j = 0;j<prev_subdomains[i].local_variety.size(); j++)
-            {
-                mask_propagation_fout << "\t" << prev_subdomains[i].local_variety[j].to_string() << endl;
-            }
-        }
-        mask_propagation_fout << endl;
-
-        for(int i = 0;i<subdomains.size();i++)
-        {
-            mask_propagation_fout << subdomains[i].to_string() << endl;
-        }
-        mask_propagation_fout << endl;
-        mask_propagation_fout << endl;
-
-        for(int now_id = 0;now_id<subdomains.size();now_id++)
-        {
-            mask_propagation_fout << subdomains[now_id].now_canvas->to_string__one_line() <<  " :: " ;
-            for(int prev_id = 0;prev_id<prev_subdomains.size();prev_id++)
-            {
-                for(int edge_id = 0;edge_id<prev_subdomains[prev_id].local_variety.size(); edge_id++)
-                {
-                    if(subdomains[now_id] == prev_subdomains[prev_id].local_variety[edge_id])
-                    {
-                        mask_propagation_fout <<
-                                              prev_subdomains[prev_id].next_canvas->to_string__one_line() << " " <<
-                                              prev_subdomains[prev_id].local_variety[edge_id].program->AutomatonRule::to_string() << " | ";
-                    }
-                }
-            }
-            mask_propagation_fout << endl;
-        }
-
-        mask_propagation_fout.close();
-
-        prev_subdomains = subdomains;
+        delta_wiring(subdomains, task_type, task_id, next_subdomains, init_language_name, next_task_type, prev_subdomains);
 
     } else {
 
@@ -779,16 +796,10 @@ BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int t
                 }
             } while (now_meta_examples_size != prev_meta_examples_size);
 
-            assert(next_subdomains.size() == 0);
+            next_subdomains.clear();
 
-            augment_subdomains(subdomains, task_type, num_prev_subtasks, task_id);
+            delta_wiring(subdomains, task_type, task_id, next_subdomains, init_language_name, next_task_type, prev_subdomains);
 
-            next_subdomains =
-                    get_next_subdomains(metric, dir_path, init_language_name, subdomains, task_type,
-                                        next_task_type, num_prev_subtasks, task_id);
-
-            prev_subdomains = subdomains;
-            assert(prev_subdomains.size()>=1);
         } else if (true) {
             ReasoningSchemaOptimizer my_reasoning_schema =
                     ReasoningSchemaOptimizer(
@@ -861,12 +872,6 @@ BitvectorTasks::BitvectorTasks(Task *_task_name,
 
     vector<vector<vector<MaskAndCost> > > masks =
             vector<vector<vector<MaskAndCost> > >(meta_examples.size(), vector<vector<MaskAndCost> >());
-//
-//    masks.reserve(init_iter);
-//    for(int task_id = 0; task_id < init_iter;task_id++)
-//    {
-//        masks.emplace_back();
-//    }
 
     set_up_directory();
 
@@ -874,7 +879,6 @@ BitvectorTasks::BitvectorTasks(Task *_task_name,
     summary_with_times = ofstream(dir_path + "/summary_with_times");
 
     init_time = time(nullptr);
-
 
     for(int task_id = init_iter, is_first = true; task_id < meta_examples.size(); task_id++, is_first = false) {
         BittreeTaskType * next_task_type = nullptr;
@@ -953,7 +957,7 @@ void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
             "task_name=" + task_name->get_task_name() +
-            "-gen=63-init_iter=" + std::to_string(init_iter) +
+            "-gen=63.3-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +
