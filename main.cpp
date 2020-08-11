@@ -382,7 +382,7 @@ void modeling_of_bitvector_functions() {
         int num_prev_subtasks = 0;
         int num_first_in_prior = -1;
         bool train_set_minimization = false;
-        int seed_train_set = 100;
+        int seed_train_set = 64;
         int num_minimization_steps = 1;
         double minimization_fraction = 19.0/20;
 

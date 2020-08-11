@@ -299,8 +299,45 @@ void ReasoningSchemaOptimizer::calc_masks(int set_init_mask_size, int set_end_ma
     }
     else if(parent_pointer != nullptr)
     {
-        assert(parent_pointer->masks.size() >= 1);
-        masks = parent_pointer->masks;
+        bool copy_masks_from_parent = false;
+        if(copy_masks_from_parent)
+        {
+            assert(parent_pointer->masks.size() >= 1);
+            masks = parent_pointer->masks;
+        }
+        else
+        {
+            //place all_best_from_prev;
+
+            vector<MaskAndCost> new_first_bucket;
+            set<pair<int, int> > ids_for_new_first_bucket;
+            for(int i = 0;i<parent_pointer->mask_ids_by_heuristic.size();i++)
+            {
+                pair<int, int> id = parent_pointer->mask_ids_by_heuristic[i].get_id();
+                int bucket_id = id.first;
+                int mask_id = id.second;
+                ids_for_new_first_bucket.insert(id);
+                assert(bucket_id<parent_pointer->masks.size() && mask_id < parent_pointer->masks[bucket_id].size());
+                new_first_bucket.push_back(parent_pointer->masks[bucket_id][mask_id]);
+            }
+
+            assert(masks.size() == 0);
+            masks.push_back(new_first_bucket);
+            for(int i = 0;i<parent_pointer->masks.size();i++)
+            {
+                if(parent_pointer->masks[i].size()>=1) {
+                    masks.emplace_back();
+                    for (int j = 0; j < parent_pointer->masks[i].size(); j++) {
+                        if (ids_for_new_first_bucket.find(make_pair(i, j)) == ids_for_new_first_bucket.end()) {
+                            masks[masks.size() - 1].push_back(parent_pointer->masks[i][j]);
+                        }
+                    }
+                }
+            }
+        }
+
+
+
     }
     else if(true) {
         vector<vector<int> > masks_by_size = vector<vector<int> >(function_size + 1, vector<int>());
@@ -475,7 +512,6 @@ bool ReasoningSchemaOptimizer::skip_mask(MaskAndCost subdomain_mask)
     }
 }
 
-
 void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample> _meta_examples) {
 
     meta_examples = _meta_examples;
@@ -520,7 +556,7 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
                 cout << "working on mask = " << bitvector_to_str(masks[bucket_id][mask_id], function_size) << " time: "
                      << (double) time(nullptr) - local_time << " ";
 
-                if (parent_pointer != nullptr && bucket_id < parent_pointer->heuristic_score_by_bucket_id_by_mask_id.size() &&
+                if (false && parent_pointer != nullptr && bucket_id < parent_pointer->heuristic_score_by_bucket_id_by_mask_id.size() &&
                 mask_id < parent_pointer->heuristic_score_by_bucket_id_by_mask_id[bucket_id].size() &&
                 skip_mask(masks[bucket_id][mask_id])) {
                     cout << "skip" << endl;
@@ -539,7 +575,9 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
 
                     heuristic = local_module.heuristic_score = calculate_heuristic(&local_module);
 
-                    mask_ids_by_heuristic.push_back(make_pair(heuristic, make_pair(bucket_id, mask_id)));
+                    if(heuristic.defined) {
+                        mask_ids_by_heuristic.push_back(make_pair(heuristic, make_pair(bucket_id, mask_id)));
+                    }
                     heuristic_score_by_bucket_id_by_mask_id[bucket_id].push_back(heuristic);
 
 
@@ -565,26 +603,23 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
 
         cout << "PRINT mask_ids_by_heuristic" << endl;
         for (int local_id = 0; local_id < mask_ids_by_heuristic.size(); local_id++) {
-            int mask_id = mask_ids_by_heuristic[local_id].second.second;
-            int bucket_id = mask_ids_by_heuristic[local_id].second.first;
+            int mask_id = mask_ids_by_heuristic[local_id].get_id().second;
+            int bucket_id = mask_ids_by_heuristic[local_id].get_id().first;
 
             //assert(masks[bucket_id][mask_id].get_size() == function_size);
             cout << bitvector_to_str(masks[bucket_id][mask_id], function_size) << fixed << setprecision(6)
-                 << " heuristic_measure = " << mask_ids_by_heuristic[local_id].first.to_string() << endl;
-            if(!mask_ids_by_heuristic[local_id].first.defined)
-            {
+                 << " heuristic_measure = " << mask_ids_by_heuristic[local_id].get_score().to_string() << endl;
+            if (mask_ids_by_heuristic[local_id].get_score().defined) {
+                assert(mask_ids_by_heuristic[local_id].get_score().num_input_bits >= 1);
+            } else {
                 cout << "..." << endl;
                 break;
-            }
-            else
-            {
-                assert(mask_ids_by_heuristic[local_id].first.num_input_bits >= 1);
             }
         }
 
         assert(mask_ids_by_heuristic.size() >= 1);
 
-        HeuristicScore max_num_consistent_meta_examples = mask_ids_by_heuristic[0].first;
+        HeuristicScore max_num_consistent_meta_examples = mask_ids_by_heuristic[0].get_score();
 
         if (max_num_consistent_meta_examples.defined) {
 
@@ -594,8 +629,8 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
 
             best_module = Module(this);
 
-            int best_mask_id = mask_ids_by_heuristic[0].second.second;
-            int best_bucket_id = mask_ids_by_heuristic[0].second.first;
+            int best_mask_id = mask_ids_by_heuristic[0].get_id().second;
+            int best_bucket_id = mask_ids_by_heuristic[0].get_id().first;
 
             calc_module(masks[best_bucket_id][best_mask_id], (&best_module));
 

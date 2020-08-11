@@ -8,6 +8,33 @@
 #include "Module.h"
 #include "MetricType.h"
 
+class MaskIdAndHeuristicScore
+{
+    HeuristicScore score;
+    pair<int, int> id;
+
+public:
+    MaskIdAndHeuristicScore(pair<HeuristicScore, pair<int, int> > score_and_id)
+    {
+        score = score_and_id.first;
+        assert(score.defined);
+        id = score_and_id.second;
+    }
+
+    pair<int, int> get_id() {
+        return id;
+    }
+
+    HeuristicScore get_score() {
+        return score;
+    }
+
+    bool operator < (const MaskIdAndHeuristicScore & other) const
+    {
+        return score < other.score;
+    }
+};
+
 class ReasoningSchemaOptimizer
 {
     ReasoningSchemaOptimizer* parent_pointer = nullptr;
@@ -22,7 +49,7 @@ class ReasoningSchemaOptimizer
 
     vector<vector<MaskAndCost> > masks;
     int module_id;
-    vector<pair<HeuristicScore, pair<int, int> > > mask_ids_by_heuristic;
+    vector<MaskIdAndHeuristicScore> mask_ids_by_heuristic;
     vector<vector<HeuristicScore> > heuristic_score_by_bucket_id_by_mask_id;
 
     ReasoningSchemaOptimizer* next = nullptr;

@@ -15,17 +15,16 @@ class HeuristicScore
 public:
     bool defined = false;
     int num_input_bits;
-    double ratio_delta_meta_examples_per_new_bit;
-//    int delta_bits = 0;
+    double heuristic;
 
     bool operator < (const HeuristicScore& other) const
     {
         if(defined && other.defined) {
-            if(ratio_delta_meta_examples_per_new_bit == other.ratio_delta_meta_examples_per_new_bit)
+            if(heuristic == other.heuristic)
             {
                 return num_input_bits < other.num_input_bits;
             }
-            return ratio_delta_meta_examples_per_new_bit > other.ratio_delta_meta_examples_per_new_bit;
+            return heuristic > other.heuristic;
         }
         else
         {
@@ -40,9 +39,10 @@ public:
         }
     }
 
+
     HeuristicScore(int _num_input_bits, double _ratio_delta_meta_examples_per_new_bit) {
         num_input_bits = _num_input_bits;
-        ratio_delta_meta_examples_per_new_bit = _ratio_delta_meta_examples_per_new_bit;
+        heuristic = _ratio_delta_meta_examples_per_new_bit;
         defined = true;
     }
 
@@ -51,7 +51,7 @@ public:
     string to_string()
     {
         if(defined) {
-            return std::to_string(num_input_bits) + " " + std::to_string(ratio_delta_meta_examples_per_new_bit);
+            return std::to_string(num_input_bits) + " " + std::to_string(heuristic);
         }
         else
         {

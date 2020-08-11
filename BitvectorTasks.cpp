@@ -551,6 +551,25 @@ void BitvectorTasks::delta_wiring(vector<MaskAndCost> &subdomains, BittreeTaskTy
 
 }
 
+void remove_duplicates(vector<vector<MaskAndCost> > & masks_of_task_id)
+{
+    vector<vector<MaskAndCost> > ret_masks_of_task_id;
+    set<Bitvector> masks;
+    for(int i = 0;i<masks_of_task_id.size();i++)
+    {
+        ret_masks_of_task_id.push_back(vector<MaskAndCost>());
+        for(int j = 0;j<masks_of_task_id[i].size();j++)
+        {
+            if(masks.find(masks_of_task_id[i][j]) == masks.end())
+            {
+                ret_masks_of_task_id[i].push_back(masks_of_task_id[i][j]);
+                masks.insert((Bitvector)masks_of_task_id[i][j]);
+            }
+        }
+    }
+    masks_of_task_id = ret_masks_of_task_id ;
+}
+
 pair<vector<MetaExample>, ReasoningSchemaOptimizer *>
 BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int task_id,
                                                             vector<MetaExample> meta_examples_of_task_id,
@@ -603,6 +622,9 @@ BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int t
     task_type->to_meta_example(-1, num_prev_subtasks).append_to_masks(
             min_mask_size, max_mask_size, num_first_in_prior, masks_of_task_id);
 //            }
+
+    remove_duplicates(masks_of_task_id);
+
     string language_name =
             "[task_id=" + std::to_string(task_id + 1) + "]";
 
@@ -957,7 +979,7 @@ void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
             "task_name=" + task_name->get_task_name() +
-            "-gen=63.3-init_iter=" + std::to_string(init_iter) +
+            "-gen=64-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +
