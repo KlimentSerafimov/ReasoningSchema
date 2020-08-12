@@ -23,7 +23,7 @@ public:
     bool prepared_for_deepening = false;
     BittreeTaskType* superinstance_type = nullptr;
 
-    int num_superinstances;
+    int num_superinstances = 0;
     BittreeTaskType* superinstances[max_instance_tree_degree];
 
     bool deepened = false;

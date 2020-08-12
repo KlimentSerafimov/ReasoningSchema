@@ -372,7 +372,7 @@ void modeling_of_bitvector_functions() {
 
 //        Task * task = new Task__game_of_life(2);
 
-        int init_iter = 3;
+        int init_iter = 2;
         int num_iter = 6;
         ModeType mode_type = progressive_prior_mode;
         MetricType metric_type = most_progress; //min_imp_set;
