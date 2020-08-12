@@ -797,6 +797,12 @@ void Task__gene_network::generate_bittree_task_expression(BittreeTypeExpression 
     int init_input_operand_sizes[1] = {0};
     int delta_input_operand_sizes[1] = {2};
 
+    //input:
+    //
+    //__
+    //____
+    //..
+
     int num_outputs = 3;
     int init_output_sizes[3] = {1, 0, 0};
     int delta_output_sizes[3] = {0, 1, 1};
@@ -1280,6 +1286,8 @@ void Task__remove_points_and_peninsula::solve(BittreeInputOutputType *holder) {
     }
 }
 
+
+
 void Task__game_of_life::generate_bittree_task_expression(BittreeTypeExpression *holder) {
     grid_in_grid_out(param__w, param__w, holder);
 }
@@ -1298,6 +1306,10 @@ vector<vector<int> > produce_new_grid_with_same_shape_and_all_0s(vector<vector<i
 
     return output_grid;
 }
+
+//incremental task := {task_0, task_1, task_2 .. }
+//task_0 := {instace_0, instance_1 ... }
+//...
 
 void Task__game_of_life::solve(BittreeInputOutputType *holder) {
     vector<vector<int> > input_grid = get_input_grid(param__w, holder);

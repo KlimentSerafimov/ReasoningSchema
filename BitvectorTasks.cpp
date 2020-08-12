@@ -826,6 +826,8 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
         for (int minimization_step = 0; minimization_step < num_minimization_steps; minimization_step++, at_minimization_fraction+=delta_minimization_fraction) {
             bool all_solved = false;
             vector<MaskAndCost> local_subdomains;
+            vector<MaskAndCost> prev_subdomains;
+
             while (!all_solved) {
                 language_name = init_language_name + "__min_step=" + std::to_string(minimization_step) +
                                 "__train_set_size=" + std::to_string(train_meta_examples.size()) +
@@ -833,6 +835,11 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
 
                 if(subdomains.size() != 0) {
                     masks_of_task_id.insert(masks_of_task_id.begin(), subdomains);
+                    remove_duplicates(masks_of_task_id);
+                }
+                else if(prev_subdomains.size() != 0)
+                {
+                    masks_of_task_id.insert(masks_of_task_id.begin(), prev_subdomains);
                     remove_duplicates(masks_of_task_id);
                 }
 
@@ -868,6 +875,7 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
                     ret_reasoning_schema = my_reasoning_schema;
                     ret_train_meta_examples = train_meta_examples;
                 }
+                prev_subdomains = my_reasoning_schema->get_subdomains();;
 
                 if (train_meta_examples.size() >= min_train_set_size) {
                     break;
@@ -986,22 +994,22 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
 }
 
 BitvectorTasks::BitvectorTasks(
-Task *_task_name,
-int _init_iter,
-int _num_iter,
-int _recursive_rep_set_depth,
-MetricType _metric,
-ModeType _mode,
-int _min_mask_size,
-int _max_mask_size,
-int _num_prev_subtasks,
-string _dir_path,
-int _num_first_in_prior,
-bool _train_set_minimization,
-int _seed_train_set,
-int _num_minimization_steps,
-double _init_minimization_fraction,
-double _end_minimization_fraction)
+    Task *_task_name,
+    int _init_iter,
+    int _num_iter,
+    int _recursive_rep_set_depth,
+    MetricType _metric,
+    ModeType _mode,
+    int _min_mask_size,
+    int _max_mask_size,
+    int _num_prev_subtasks,
+    string _dir_path,
+    int _num_first_in_prior,
+    bool _train_set_minimization,
+    int _seed_train_set,
+    int _num_minimization_steps,
+    double _init_minimization_fraction,
+    double _end_minimization_fraction)
 {
     task_name = _task_name;
     init_iter = _init_iter;
@@ -1158,7 +1166,7 @@ void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
             "task_name=" + task_name->get_task_name() +
-            "-gen=68.3-init_iter=" + std::to_string(init_iter) +
+            "-gen=69-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +

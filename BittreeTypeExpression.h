@@ -16,6 +16,14 @@ public:
     BittreeInputOutputType* init_delta_task_type;
     BittreeInputOutputType* delta_task_type;
 
+    // type_expression(type) = type + delta_type
+
+    //sum: base = . . -> _
+    //sum: delta = _ _ -> _
+
+    //base + delta = (. . -> _) + (_ _ -> _) = (_ _ -> __)
+    //base + delta + delta = (_ _ -> __) + (_ _ -> _) = (__ __ -> ___)
+
     BittreeTypeExpression() = default;
 
     BittreeTypeExpression(Task *task_name);
