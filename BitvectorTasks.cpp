@@ -178,10 +178,10 @@ void InstanceTree::deepen(BittreeInputOutputType* delta)
         {
             prepare_for_deepening(delta);
         }
-        assert(superinstance_trees.size() == 0);
+        assert(superinstance_trees_size == 0);
         for (int i = 0; i < num_superinstances; i++) {
-            superinstance_trees.push_back(
-                    new InstanceTree(superinstances[i], task_name));
+            superinstance_trees[superinstance_trees_size++] =
+                    new InstanceTree(superinstances[i], task_name);
             superinstance_trees[i]->prepare_for_deepening(delta);
         }
         deepened = true;
@@ -206,10 +206,49 @@ void InstanceTree::populate_meta_examples(vector<vector<MetaExample> >& ret, int
     }
     if(deepened)
     {
-        assert(superinstance_trees.size() == num_superinstances);
-        for(int i = 0; i < superinstance_trees.size();i++)
+        assert(superinstance_trees_size == num_superinstances);
+        for(int i = 0; i < superinstance_trees_size;i++)
         {
             superinstance_trees[i]->populate_meta_examples(ret, at_depth + 1, subtask_depth);
+        }
+    }
+}
+
+void InstanceTree::vectorize_instance_tree(vector<vector<InstanceTree*> >& ret, int at_depth)
+{
+    if(ret.size() <= at_depth)
+    {
+        assert(ret.size() == at_depth);
+        ret.push_back(vector<InstanceTree*>());
+    }
+    if(prepared_for_deepening)
+    {
+        if(num_superinstances == superinstance_trees_size)
+        {
+            for (int i = 0; i < num_superinstances; i++) {
+                assert(superinstance_trees[i]->instance != nullptr);
+            }
+        }
+        else
+        {
+            assert(superinstance_trees_size == 0);
+            for (int i = 0; i < num_superinstances; i++)
+            {
+                superinstance_trees[superinstance_trees_size++] =
+                        new InstanceTree(superinstances[i], task_name);
+            }
+        }
+        for(int i = 0;i<num_superinstances;i++)
+        {
+            ret[at_depth].push_back(superinstance_trees[i]);
+        }
+    }
+    if(deepened)
+    {
+        assert(superinstance_trees_size == num_superinstances);
+        for(int i = 0; i < superinstance_trees_size;i++)
+        {
+            superinstance_trees[i]->vectorize_instance_tree(ret, at_depth + 1);
         }
     }
 }
@@ -305,9 +344,10 @@ BitvectorTasks::masks_generator(int num_subtasks, int max_masks_size, int min_ma
 
 }
 
-vector<vector<MetaExample> >
+void
 BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, Task *task_name, int init_num_iter,
-                                  int subtask_depth)
+                                  int subtask_depth, vector<vector<MetaExample> >& ret_meta_examples,
+                                  vector<vector<InstanceTree*> >& ret_inst_trees)
 {
     int num_iter = init_num_iter;
     type_expression->base_task_type->solve(task_name);
@@ -315,8 +355,8 @@ BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, Task *
 
 //    cout << type_expression->base_task_type->to_string() << endl;
 
-    InstanceTree instances = InstanceTree(type_expression->base_task_type, task_name);
-    instances.prepare_for_deepening(type_expression->init_delta_task_type);
+    instance_tree = InstanceTree(type_expression->base_task_type, task_name);
+    instance_tree.prepare_for_deepening(type_expression->init_delta_task_type);
 //    instances.deepen(type_expression->init_delta_task_type);
 //
 //    instances.prepare_for_deepening(type_expression->delta_task_type);
@@ -337,16 +377,16 @@ BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, Task *
 //        }
 //        cout << "----------------------------------------" << endl;
 
-        instances.deepen(type_expression->delta_task_type);
+        instance_tree.deepen(type_expression->delta_task_type);
         cout << "DONE GENERATING DATA FOR ITER: " << iter << endl;
     }
 
-    vector<vector<MetaExample> > meta_examples;
-    instances.populate_meta_examples(meta_examples, 0, subtask_depth);
+    instance_tree.populate_meta_examples(ret_meta_examples, 0, subtask_depth);
+    instance_tree.vectorize_instance_tree(ret_inst_trees, 0);
 
-    assert(meta_examples.size() == init_num_iter);
+    assert(ret_meta_examples.size() == init_num_iter);
+    assert(ret_inst_trees.size() == init_num_iter);
 
-    return meta_examples;
 }
 
 vector<MaskAndCost> BitvectorTasks::get_next_subdomains(
@@ -576,6 +616,7 @@ void BitvectorTasks::delta_wiring(vector<MaskAndCost> &subdomains, BittreeTaskTy
                                           << " then " <<
                                           prev_subdomains[prev_id].best_edge.first->local_variety[prev_subdomains[prev_id].best_edge.second].program->AutomatonRule::to_string()
                                           << " | ";
+
                 }
             }
 
@@ -608,18 +649,28 @@ void remove_duplicates(vector<vector<MaskAndCost> > & masks_of_task_id)
     masks_of_task_id = ret_masks_of_task_id ;
 }
 
-pair<vector<MetaExample>, ReasoningSchemaOptimizer *>
-BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int task_id,
+void BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first,
+                                                            int task_id,
                                                             vector<MetaExample> meta_examples_of_task_id,
+                                                            vector<InstanceTree*> inst_trees_of_task_id,
                                                             vector<MaskAndCost> &next_subdomains,
                                                             vector<vector<MaskAndCost> > masks_of_task_id,
-                                                            BittreeTaskType *task_type, BittreeTaskType *next_task_type,
+                                                            BittreeTaskType *task_type, 
+                                                            BittreeTaskType *next_task_type,
                                                             vector<MaskAndCost> &prev_subdomains,
-                                                            vector<MaskAndCost> &new_prev_subdomains)
+                                                            vector<MaskAndCost> &new_prev_subdomains,
+                                                            vector<MetaExample> prev_train_set,
+                                                            vector<InstanceTree*> prev_inst_trees, 
+                                                            
+                                                            vector<MetaExample> & ret_train_meta_examples,
+                                                            vector<InstanceTree*> & ret_train_instnace_subtrees,
+                                                            ReasoningSchemaOptimizer* & ret_reasoning_schema
+)
 {
     assert(masks_of_task_id.size() == 0);
-    vector<MetaExample> ret_train_meta_examples;
-    ReasoningSchemaOptimizer* ret_reasoning_schema;
+    assert(ret_train_meta_examples.size() == 0);
+    assert(ret_train_instnace_subtrees.size() == 0);
+    assert(ret_reasoning_schema == nullptr);
 
     assert(next_subdomains.size() != 0 || is_first);
     if (mode == progressive_prior_mode && next_subdomains.size() != 0) {
@@ -679,17 +730,12 @@ BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int t
     cout << masks_of_task_id[0][0].to_string() << endl;
     assert(len_domain_of_meta_example == len_mask);
 
-//            vector<Bitvector> masks =
-//                    meta_examples_of_task_id[0].get_masks(max_mask_size);
-
     for (int j = 0; j < masks_of_task_id.size(); j++) {
         for (int k = 0; k < masks_of_task_id[j].size(); k++) {
             cout << bitvector_to_str(masks_of_task_id[j][k], masks_of_task_id[j][k].get_size()) << endl;
         }
         cout << endl;
     }
-
-
 
     //ideas:
     //multi-objective beam search
@@ -707,25 +753,55 @@ BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int t
         vector<MetaExample> test_meta_examples = meta_examples_of_task_id;
         vector<MetaExample> train_meta_examples;
 
-        int local_seed_train_set = seed_train_set;
-        if (local_seed_train_set == -1) {
-            local_seed_train_set = test_meta_examples.size();
-        } else {
-            std::shuffle(test_meta_examples.begin(), test_meta_examples.end(),
-                         std::mt19937(std::random_device()()));
-        }
+        bool random_train_set = false;
+        if(random_train_set) {
+            int local_seed_train_set_size = seed_train_set;
+            if (local_seed_train_set_size == -1) {
+                local_seed_train_set_size = test_meta_examples.size();
+            } else {
+                std::shuffle(test_meta_examples.begin(), test_meta_examples.end(),
+                             std::mt19937(std::random_device()()));
+            }
 
-        for (int i = 0; i < test_meta_examples.size(); i++) {
-            test_meta_examples[i].idx = i;
-        }
+            for (int i = 0; i < test_meta_examples.size(); i++) {
+                test_meta_examples[i].idx = i;
+            }
 
-        for (int i = 0; i < min((int) test_meta_examples.size(), local_seed_train_set); i++) {
-            train_meta_examples.push_back(test_meta_examples[i]);
-            train_meta_examples.back().idx = (int) train_meta_examples.size() - 1;
+            for (int i = 0; i < min((int) test_meta_examples.size(), local_seed_train_set_size); i++) {
+                train_meta_examples.push_back(test_meta_examples[i]);
+                train_meta_examples.back().idx = (int) train_meta_examples.size() - 1;
+            }
         }
+//        else
+//        {
+            vector<InstanceTree*> superinstance_tree = std::move(inst_trees_of_task_id);
+            vector<MetaExample> meta_examples = meta_examples_of_task_id;
 
+            assert(superinstance_tree.size() == meta_examples.size());   
+            
+            map<MetaExample, InstanceTree*> meta_examples_to_instance_trees;
+            map<InstanceTree*, MetaExample> instnace_tree_to_meta_examples;
+            
+            for(int i = 0;i<meta_examples.size();i++)
+            {
+                assert(meta_examples_to_instance_trees.find(meta_examples[i]) == meta_examples_to_instance_trees.end());
+                meta_examples_to_instance_trees[meta_examples[i]] = superinstance_tree[i];
+                assert(instnace_tree_to_meta_examples.find(superinstance_tree[i]) == instnace_tree_to_meta_examples.end());
+                instnace_tree_to_meta_examples[superinstance_tree[i]] = meta_examples[i];
+            }
+            
+            for(int i = 0; i<prev_inst_trees.size();i++)
+            {
+                for(int j = 0;j<prev_inst_trees[i]->superinstance_trees_size;j++)
+                {
+                    InstanceTree* superinstance = prev_inst_trees[i]->superinstance_trees[j];
+                    assert(superinstance != nullptr);
+                    assert(instnace_tree_to_meta_examples.find(superinstance) != instnace_tree_to_meta_examples.end());
+                    train_meta_examples.push_back(instnace_tree_to_meta_examples[superinstance]);
+                }
+            }
+//        }
         string init_language_name = language_name;
-
 
         vector<MaskAndCost> subdomains;
         int min_train_set_size = test_meta_examples.size();
@@ -884,8 +960,7 @@ BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int t
                                                                       masks_of_task_id[0]);
         }
     }
-    
-    return make_pair(ret_train_meta_examples, ret_reasoning_schema);
+
 }
 
 BitvectorTasks::BitvectorTasks(Task *_task_name,
@@ -926,8 +1001,9 @@ BitvectorTasks::BitvectorTasks(Task *_task_name,
 
     vector<BittreeTaskType *> multi_task_type = get_multi_task_type(&type_expression_for_multi_task_set, num_iter);
 
-    vector<vector<MetaExample> > meta_examples = get_meta_examples(
-            &type_expression_for_meta_examples, task_name, num_iter, num_prev_subtasks);
+    vector<vector<MetaExample> > meta_examples;
+    vector<vector<InstanceTree*> > instance_subtrees;
+    get_meta_examples(&type_expression_for_meta_examples, task_name, num_iter, num_prev_subtasks, meta_examples, instance_subtrees);
 
     vector<MaskAndCost> next_subdomains;
     vector<vector<MaskAndCost> > prev_subdomains;
@@ -942,6 +1018,9 @@ BitvectorTasks::BitvectorTasks(Task *_task_name,
     summary_with_times = ofstream(dir_path + "/summary_with_times");
 
     init_time = time(nullptr);
+    
+    vector<vector<MetaExample> > rep_set_per_task = vector<vector<MetaExample> >(meta_examples.size(), vector<MetaExample>());
+    vector<vector<InstanceTree*> > inst_tree_per_task = vector<vector<InstanceTree*> >(meta_examples.size(), vector<InstanceTree*>());
 
     for(int task_id = init_iter, is_first = true, iter = 0; task_id < meta_examples.size(); task_id++, is_first = false, iter++) {
         BittreeTaskType * next_task_type = nullptr;
@@ -951,20 +1030,38 @@ BitvectorTasks::BitvectorTasks(Task *_task_name,
         }
 
         prev_subdomains.push_back(vector<MaskAndCost>());
-        pair<vector<MetaExample>, ReasoningSchemaOptimizer*> solution =
-                one_step_of_incremental_meta_generalization(
-                        is_first,
-                        task_id,
-                        meta_examples[task_id],
-                        next_subdomains,
-                        masks[task_id],
-                        multi_task_type[task_id],
-                        next_task_type,
-                        prev_subdomains[iter],
-                        prev_subdomains[iter+1]);
+        vector<MetaExample> rep_set;
+        vector<InstanceTree*> inst_trees;
+        ReasoningSchemaOptimizer * reasoning_schema = nullptr;
 
-        vector<MetaExample> rep_set = solution.first;
-        ReasoningSchemaOptimizer * reasoning_schema = solution.second;
+        vector<MetaExample> prev_rep_set;
+        vector<InstanceTree*> prev_inst_tree;
+        if(!is_first)
+        {
+            prev_rep_set = rep_set_per_task[task_id-1];
+            prev_inst_tree = inst_tree_per_task[task_id-1];
+        }
+
+        one_step_of_incremental_meta_generalization(
+                is_first,
+                task_id,
+                meta_examples[task_id],
+                instance_subtrees[task_id],
+                next_subdomains,
+                masks[task_id],
+                multi_task_type[task_id],
+                next_task_type,
+                prev_subdomains[iter],
+                prev_subdomains[iter + 1],
+
+                prev_rep_set,
+                prev_inst_tree,
+
+                rep_set,
+                inst_trees,
+                reasoning_schema
+            );
+
 
         vector<Module*> modules = reasoning_schema->get_modules();
 
@@ -1035,16 +1132,13 @@ void BitvectorTasks::set_up_directory() {
             "-num_minimize_steps="+std::to_string(num_minimization_steps)+
             "-minimize_fraction="+std::to_string(minimization_fraction);
 
-    char charstr_dir_path[dir_path.length()+1];
-
     int check_mkdir = mkdir( dir_path.c_str(), 0777);
     if (check_mkdir == -1){
         cerr << "Error :  " << strerror(errno) << endl;
         assert(false);
     }
     else {
-        cout << "Directory created " << charstr_dir_path << endl;
-        cout << "should be " << dir_path << endl;
+        cout << "Directory created: "  << dir_path << endl;
     }
 }
 

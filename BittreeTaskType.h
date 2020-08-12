@@ -133,7 +133,7 @@ public:
 
     void apply_delta(BittreeInputOutputType* type) ;
 
-    BittreeTaskType* get_supertask_type(BittreeInputOutputType* type);
+    BittreeTaskType* get_supertask_type(BittreeInputOutputType* delta);
 
     BittreeTaskTypeAsPartialFunction to_partial_function(int num_subtasks);
 

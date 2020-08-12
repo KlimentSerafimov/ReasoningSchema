@@ -17,17 +17,20 @@ static const int max_instance_tree_degree = 8;
 class InstanceTree
 {
 public:
-    BittreeTaskType* instance;
-    Task * task_name;
+    BittreeTaskType* instance = nullptr;
+    Task * task_name = nullptr;
 
     bool prepared_for_deepening = false;
-    BittreeTaskType* superinstance_type;
+    BittreeTaskType* superinstance_type = nullptr;
 
     int num_superinstances;
     BittreeTaskType* superinstances[max_instance_tree_degree];
 
     bool deepened = false;
-    vector<InstanceTree*> superinstance_trees;
+    int superinstance_trees_size = 0;
+    InstanceTree* superinstance_trees[max_instance_tree_degree];
+
+    InstanceTree() = default;
 
     InstanceTree(BittreeTaskType* _instance, Task *_task_name);
 
@@ -36,6 +39,8 @@ public:
     void deepen(BittreeInputOutputType* delta);
 
     void populate_meta_examples(vector<vector<MetaExample> >& ret, int at_depth, int subtask_depth);
+
+    void vectorize_instance_tree(vector<vector<InstanceTree*> >& ret, int at_depth);
 };
 
 class BittreeTaskInstance
@@ -73,6 +78,8 @@ class BitvectorTasks {
     int num_minimization_steps;
     double minimization_fraction;
 
+    InstanceTree instance_tree;
+
     time_t init_time;
     ofstream summary;
     ofstream summary_with_times;
@@ -91,20 +98,28 @@ class BitvectorTasks {
 
     vector<BittreeTaskType*> get_multi_task_type(BittreeTypeExpression *type_expression, int init_num_iter);
 
-    vector<vector<MetaExample> >
-    get_meta_examples(BittreeTypeExpression *type_expression, Task *task_name, int init_num_iter,
-                      int subtask_depth);
+    void get_meta_examples(BittreeTypeExpression *type_expression, Task *task_name, int init_num_iter,
+                                      int subtask_depth, vector<vector<MetaExample> >& ret_meta_examples,
+                                      vector<vector<InstanceTree*> >& ret_inst_trees);
 
     void set_up_directory();
 
-    pair<vector<MetaExample>, ReasoningSchemaOptimizer *>
-    one_step_of_incremental_meta_generalization(bool is_first, int task_id,
-                                                vector<MetaExample> meta_examples_of_task_id,
-                                                vector<MaskAndCost> &next_subdomains,
-                                                vector<vector<MaskAndCost> > masks_of_task_id,
-                                                BittreeTaskType *task_type, BittreeTaskType *next_task_type,
-                                                vector<MaskAndCost> &prev_subdomains,
-                                                vector<MaskAndCost> &new_prev_subdomains);
+
+    void one_step_of_incremental_meta_generalization(bool is_first, int task_id,
+                                                                vector<MetaExample> meta_examples_of_task_id,
+                                                                vector<InstanceTree*> instance_subtrees_of_task_id,
+                                                                vector<MaskAndCost> &next_subdomains,
+                                                                vector<vector<MaskAndCost> > masks_of_task_id,
+                                                                BittreeTaskType *task_type,
+                                                                BittreeTaskType *next_task_type,
+                                                                vector<MaskAndCost> &prev_subdomains,
+                                                                vector<MaskAndCost> &new_prev_subdomains,
+                                                                vector<MetaExample> prev_train_set,
+                                                                vector<InstanceTree*> prev_instance_subtrees,
+
+                                                                vector<MetaExample> & ret_train_meta_exampes,
+                                                                vector<InstanceTree*> & ret_train_instnace_subtrees,
+                                                                ReasoningSchemaOptimizer* & ret_reasoning_schema);
 
     void augment_subdomains(vector<MaskAndCost>& subdomains, BittreeTaskType* current_bittree, int num_prev_subtasks, int task_id);
 
@@ -116,6 +131,8 @@ class BitvectorTasks {
                       vector<MaskAndCost> &next_subdomains, string init_language_name,
                       BittreeTaskType *next_task_type, vector<MaskAndCost> &prev_subdomains,
                       vector<MaskAndCost> &new_prev_subdomains);
+
+    void get_next_meta_examples(MetaExample at_meta_example);
 public:
 
     BitvectorTasks(int function_size, int task_id);
