@@ -820,13 +820,16 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
         summary << "task_id " << task_id + 1 << endl;
         summary_with_times << "task_id_" << task_id + 1 << " ";
 
-        for (int minimization_step = 0; minimization_step < num_minimization_steps; minimization_step++) {
+        double at_minimization_fraction = init_minimization_fraction;
+        double delta_minimization_fraction = (end_minimization_fraction-init_minimization_fraction)/num_minimization_steps;
+
+        for (int minimization_step = 0; minimization_step < num_minimization_steps; minimization_step++, at_minimization_fraction+=delta_minimization_fraction) {
             bool all_solved = false;
             vector<MaskAndCost> local_subdomains;
             while (!all_solved) {
                 language_name = init_language_name + "__min_step=" + std::to_string(minimization_step) +
-                                "__size_of_train_set=" +
-                                std::to_string(train_meta_examples.size());
+                                "__train_set_size=" + std::to_string(train_meta_examples.size()) +
+                                "__at_min_frac="+std::to_string(at_minimization_fraction);
 
                 ReasoningSchemaOptimizer * my_reasoning_schema = new
                         ReasoningSchemaOptimizer(
@@ -883,8 +886,8 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
 
             vector<MetaExample> new_train_set;
 
-            new_train_set.reserve(train_meta_examples.size() * minimization_fraction);
-            for (int i = 0; i < train_meta_examples.size() * minimization_fraction; i++) {
+            new_train_set.reserve(train_meta_examples.size() * at_minimization_fraction);
+            for (int i = 0; i < train_meta_examples.size() * at_minimization_fraction; i++) {
                 new_train_set.emplace_back(train_meta_examples[i]);
                 new_train_set[i].idx = i;
             }
@@ -977,21 +980,23 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
     }
 }
 
-BitvectorTasks::BitvectorTasks(Task *_task_name,
-                               int _init_iter,
-                               int _num_iter,
-                               int _recursive_rep_set_depth,
-                               MetricType _metric,
-                               ModeType _mode,
-                               int _min_mask_size,
-                               int _max_mask_size,
-                               int _num_prev_subtasks,
-                               string _dir_path,
-                               int _num_first_in_prior,
-                               bool _train_set_minimization,
-                               int _seed_train_set,
-                               int _num_minimization_steps,
-                               double _minimization_fraction)
+BitvectorTasks::BitvectorTasks(
+Task *_task_name,
+int _init_iter,
+int _num_iter,
+int _recursive_rep_set_depth,
+MetricType _metric,
+ModeType _mode,
+int _min_mask_size,
+int _max_mask_size,
+int _num_prev_subtasks,
+string _dir_path,
+int _num_first_in_prior,
+bool _train_set_minimization,
+int _seed_train_set,
+int _num_minimization_steps,
+double _init_minimization_fraction,
+double _end_minimization_fraction)
 {
     task_name = _task_name;
     init_iter = _init_iter;
@@ -1007,7 +1012,8 @@ BitvectorTasks::BitvectorTasks(Task *_task_name,
     train_set_minimization = _train_set_minimization;
     seed_train_set = _seed_train_set;
     num_minimization_steps = _num_minimization_steps;
-    minimization_fraction = _minimization_fraction;
+    init_minimization_fraction = _init_minimization_fraction;
+    end_minimization_fraction = _end_minimization_fraction;
 
     //set up type expression
     BittreeTypeExpression type_expression_for_meta_examples = BittreeTypeExpression(task_name);
@@ -1156,8 +1162,8 @@ void BitvectorTasks::set_up_directory() {
             "-mode="+mode_type_name[mode]+
             "-tsm="+std::to_string(train_set_minimization)[0]+
             "-seed_train_set=" + std::to_string(seed_train_set)+
-            "-num_minimize_steps="+std::to_string(num_minimization_steps)+
-            "-minimize_fraction="+std::to_string(minimization_fraction);
+            "-num_min_steps="+std::to_string(num_minimization_steps)+
+            "-min_frac=["+std::to_string(init_minimization_fraction)+","+std::to_string(end_minimization_fraction)+"]";
 
     int check_mkdir = mkdir( dir_path.c_str(), 0777);
     if (check_mkdir == -1){
