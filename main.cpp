@@ -373,17 +373,17 @@ void modeling_of_bitvector_functions() {
 
         Task * task = new Task__game_of_life(2);
 
-        int init_iter = 1;
+        int init_iter = 2;
         int num_iter = 6;
         ModeType mode_type = progressive_prior_mode;
         MetricType metric_type = most_progress; //min_imp_set;
         int recursive_rep_set_depth = 0;
         int min_mask_size = 1;
-        int max_mask_size = 4;
+        int max_mask_size = 5;
         int num_prev_subtasks = 0;
         int num_first_in_prior = -1;
         bool train_set_minimization = true;
-        int seed_train_set = 9;
+        int seed_train_set = 20;
         int num_minimization_steps = 40;
         double init_minimization_fraction = 17.0/20;
         double end_minimization_fraction = 19.8/20;
