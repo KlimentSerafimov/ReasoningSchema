@@ -483,8 +483,10 @@ void BitvectorTasks::augment_subdomains(vector<MaskAndCost>& subdomains, Bittree
     }
 }
 
-void BitvectorTasks::delta_wiring(vector<MaskAndCost> &subdomains, BittreeTaskType* task_type, int task_id, vector<MaskAndCost> &next_subdomains,
-                                  string init_language_name, BittreeTaskType* next_task_type, vector<MaskAndCost> &prev_subdomains)
+void BitvectorTasks::delta_wiring(vector<MaskAndCost> &subdomains, BittreeTaskType *task_type, int task_id,
+                                  vector<MaskAndCost> &next_subdomains, string init_language_name,
+                                  BittreeTaskType *next_task_type, vector<MaskAndCost> &prev_subdomains,
+                                  vector<MaskAndCost> &new_prev_subdomains)
 {
 
     augment_subdomains(subdomains, task_type, num_prev_subtasks, task_id);
@@ -530,24 +532,60 @@ void BitvectorTasks::delta_wiring(vector<MaskAndCost> &subdomains, BittreeTaskTy
             }
             mask_propagation_fout << endl;
         }
+        mask_propagation_fout << endl;
 
         for (int now_id = 0; now_id < subdomains.size(); now_id++) {
             mask_propagation_fout << subdomains[now_id].now_canvas->to_string__one_line() << " :: ";
-
+            pair<int, pair<int, int> > best_mask = make_pair(-1, make_pair(-1, -1));
             for (int prev_id = 0; prev_id < prev_subdomains.size(); prev_id++) {
                 for (int edge_id = 0; edge_id < prev_subdomains[prev_id].local_variety.size(); edge_id++) {
                     if (subdomains[now_id] == prev_subdomains[prev_id].local_variety[edge_id]) {
-                        mask_propagation_fout << prev_subdomains[prev_id].local_variety[edge_id].program->AutomatonRule::to_string()  << " | ";
+                        if(best_mask.first == -1)
+                        {
+                            assert(prev_subdomains[prev_id].local_variety[edge_id].cost>=0);
+                            best_mask = make_pair(prev_subdomains[prev_id].local_variety[edge_id].cost,
+                                                  make_pair(prev_id, edge_id));
+                        }
+                        else
+                        {
+                            best_mask = min(best_mask, make_pair(prev_subdomains[prev_id].local_variety[edge_id].cost,
+                                                                 make_pair(prev_id, edge_id)));
+                        }
                     }
                 }
             }
+
+            if(best_mask.first != -1)
+            {
+                int prev_id = best_mask.second.first;
+                int edge_id = best_mask.second.second;
+                mask_propagation_fout <<
+                                      prev_subdomains[prev_id].now_canvas->to_string__one_line()
+                                      << " -> " <<
+                                      prev_subdomains[prev_id].next_canvas->to_string__one_line()
+                                      << " then " <<
+                                      prev_subdomains[prev_id].local_variety[edge_id].program->AutomatonRule::to_string()
+                                      << " | ";
+                subdomains[now_id].set_best_edge(&prev_subdomains[prev_id], edge_id);
+                if(prev_subdomains[prev_id].best_edge.first != nullptr)
+                {
+                    mask_propagation_fout << "prev_best_edge:: " <<
+                                          prev_subdomains[prev_id].best_edge.first->now_canvas->to_string__one_line()
+                                          << " -> " <<
+                                          prev_subdomains[prev_id].best_edge.first->next_canvas->to_string__one_line()
+                                          << " then " <<
+                                          prev_subdomains[prev_id].best_edge.first->local_variety[prev_subdomains[prev_id].best_edge.second].program->AutomatonRule::to_string()
+                                          << " | ";
+                }
+            }
+
             mask_propagation_fout << endl;
         }
 
         mask_propagation_fout.close();
     }
 
-    prev_subdomains = subdomains;
+    new_prev_subdomains = subdomains;
 
 }
 
@@ -575,9 +613,9 @@ BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int t
                                                             vector<MetaExample> meta_examples_of_task_id,
                                                             vector<MaskAndCost> &next_subdomains,
                                                             vector<vector<MaskAndCost> > masks_of_task_id,
-                                                            BittreeTaskType *task_type,
-                                                            BittreeTaskType *next_task_type,
-                                                            vector<MaskAndCost> &prev_subdomains)
+                                                            BittreeTaskType *task_type, BittreeTaskType *next_task_type,
+                                                            vector<MaskAndCost> &prev_subdomains,
+                                                            vector<MaskAndCost> &new_prev_subdomains)
 {
     assert(masks_of_task_id.size() == 0);
     vector<MetaExample> ret_train_meta_examples;
@@ -769,7 +807,8 @@ BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int t
 
         next_subdomains.clear();
 
-        delta_wiring(subdomains, task_type, task_id, next_subdomains, init_language_name, next_task_type, prev_subdomains);
+        delta_wiring(subdomains, task_type, task_id, next_subdomains, init_language_name, next_task_type,
+                     prev_subdomains, new_prev_subdomains);
 
     } else {
 
@@ -820,7 +859,8 @@ BitvectorTasks::one_step_of_incremental_meta_generalization(bool is_first, int t
 
             next_subdomains.clear();
 
-            delta_wiring(subdomains, task_type, task_id, next_subdomains, init_language_name, next_task_type, prev_subdomains);
+            delta_wiring(subdomains, task_type, task_id, next_subdomains, init_language_name, next_task_type,
+                         prev_subdomains, new_prev_subdomains);
 
         } else if (true) {
             ReasoningSchemaOptimizer my_reasoning_schema =
@@ -890,7 +930,8 @@ BitvectorTasks::BitvectorTasks(Task *_task_name,
             &type_expression_for_meta_examples, task_name, num_iter, num_prev_subtasks);
 
     vector<MaskAndCost> next_subdomains;
-    vector<MaskAndCost> prev_subdomains;
+    vector<vector<MaskAndCost> > prev_subdomains;
+    prev_subdomains.push_back(vector<MaskAndCost>());
 
     vector<vector<vector<MaskAndCost> > > masks =
             vector<vector<vector<MaskAndCost> > >(meta_examples.size(), vector<vector<MaskAndCost> >());
@@ -902,12 +943,14 @@ BitvectorTasks::BitvectorTasks(Task *_task_name,
 
     init_time = time(nullptr);
 
-    for(int task_id = init_iter, is_first = true; task_id < meta_examples.size(); task_id++, is_first = false) {
+    for(int task_id = init_iter, is_first = true, iter = 0; task_id < meta_examples.size(); task_id++, is_first = false, iter++) {
         BittreeTaskType * next_task_type = nullptr;
         if(task_id + 1 < multi_task_type.size())
         {
             next_task_type = multi_task_type[task_id+1];
         }
+
+        prev_subdomains.push_back(vector<MaskAndCost>());
         pair<vector<MetaExample>, ReasoningSchemaOptimizer*> solution =
                 one_step_of_incremental_meta_generalization(
                         is_first,
@@ -917,7 +960,8 @@ BitvectorTasks::BitvectorTasks(Task *_task_name,
                         masks[task_id],
                         multi_task_type[task_id],
                         next_task_type,
-                        prev_subdomains);
+                        prev_subdomains[iter],
+                        prev_subdomains[iter+1]);
 
         vector<MetaExample> rep_set = solution.first;
         ReasoningSchemaOptimizer * reasoning_schema = solution.second;
@@ -979,7 +1023,7 @@ void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
             "task_name=" + task_name->get_task_name() +
-            "-gen=64-init_iter=" + std::to_string(init_iter) +
+            "-gen=65-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +

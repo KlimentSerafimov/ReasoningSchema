@@ -10,8 +10,13 @@ MaskAndCost(CanvasAndBittreeProgram* _program): Mask(CanvasAsPartialFunction(_pr
 {
     program = _program;
     cost = program->get_cost();
+    best_edge = make_pair(nullptr, -1);
 }
 
 void MaskAndCost::set_now_bittree_as_partial(BittreeTaskTypeAsPartialFunction *_now_canvas) {
     now_canvas = _now_canvas;
+}
+
+void MaskAndCost::set_best_edge(MaskAndCost *prev_mask, int edge_id) {
+    best_edge = make_pair(prev_mask, edge_id);
 }

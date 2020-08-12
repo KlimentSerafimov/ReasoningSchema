@@ -103,7 +103,8 @@ class BitvectorTasks {
                                                 vector<MaskAndCost> &next_subdomains,
                                                 vector<vector<MaskAndCost> > masks_of_task_id,
                                                 BittreeTaskType *task_type, BittreeTaskType *next_task_type,
-                                                vector<MaskAndCost> &prev_subdomains);
+                                                vector<MaskAndCost> &prev_subdomains,
+                                                vector<MaskAndCost> &new_prev_subdomains);
 
     void augment_subdomains(vector<MaskAndCost>& subdomains, BittreeTaskType* current_bittree, int num_prev_subtasks, int task_id);
 
@@ -111,8 +112,10 @@ class BitvectorTasks {
             MetricType metric, string dir_path, string init_language_name,
             vector<MaskAndCost> & subdomains, BittreeTaskType * current_bittree, BittreeTaskType * next_bittree, int num_prev_subtasks, int task_id);
 
-    void delta_wiring(vector<MaskAndCost> &subdomains, BittreeTaskType* task_type, int task_id, vector<MaskAndCost> &next_subdomains,
-                      string init_language_name, BittreeTaskType* next_task_type, vector<MaskAndCost> &prev_subdomains);
+    void delta_wiring(vector<MaskAndCost> &subdomains, BittreeTaskType *task_type, int task_id,
+                      vector<MaskAndCost> &next_subdomains, string init_language_name,
+                      BittreeTaskType *next_task_type, vector<MaskAndCost> &prev_subdomains,
+                      vector<MaskAndCost> &new_prev_subdomains);
 public:
 
     BitvectorTasks(int function_size, int task_id);

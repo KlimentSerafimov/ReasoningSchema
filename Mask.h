@@ -27,6 +27,7 @@ public:
     CanvasAndBittreeProgram* program = nullptr;
     vector<MaskAndCost> local_variety;
     int cost;
+    pair<MaskAndCost*, int> best_edge;
     MaskAndCost() = default;
     MaskAndCost(MaskAndCost * to_copy) : Mask(to_copy)
     {
@@ -35,10 +36,12 @@ public:
         program = to_copy->program;
         now_canvas = to_copy->now_canvas;
         next_canvas = to_copy->next_canvas;
+        best_edge = make_pair(nullptr, -1);
     }
     MaskAndCost(int _cost, Bitvector _bitvector) : Mask(_bitvector)
     {
         cost = _cost;
+        best_edge = make_pair(nullptr, -1);
     }
     MaskAndCost(CanvasAndBittreeProgram* _program);
 
@@ -67,6 +70,8 @@ public:
     }
 
     void set_now_bittree_as_partial(BittreeTaskTypeAsPartialFunction *pFunction);
+
+    void set_best_edge(MaskAndCost *pCost, int i);
 };
 
 class MaskAndCostSortByMask: public MaskAndCost

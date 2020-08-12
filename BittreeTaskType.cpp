@@ -1174,11 +1174,11 @@ vector<MaskAndCost> BittreeTaskType::generate_variety(int subtask_depth, ofstrea
     assert(new_path.size() == 0);
     local_parent->populate_programs(&possible_rules, new CanvasAndBittreeProgram(canvas), 0, &new_path, &all_programs);
 
-    for(int i = 0;i<all_programs.size();i++)
-    {
-        (*fout) << "all_programs[" << i << "] = " << endl;
-        (*fout) << all_programs[i]->to_string() << endl;
-    }
+//    for(int i = 0;i<all_programs.size();i++)
+//    {
+//        (*fout) << "all_programs[" << i << "] = " << endl;
+//        (*fout) << all_programs[i]->to_string() << endl;
+//    }
 
     set<MaskAndCostSortByMask> ret_set;
 
