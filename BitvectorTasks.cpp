@@ -831,6 +831,11 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
                                 "__train_set_size=" + std::to_string(train_meta_examples.size()) +
                                 "__at_min_frac="+std::to_string(at_minimization_fraction);
 
+                if(subdomains.size() != 0) {
+                    masks_of_task_id.insert(masks_of_task_id.begin(), subdomains);
+                    remove_duplicates(masks_of_task_id);
+                }
+
                 ReasoningSchemaOptimizer * my_reasoning_schema = new
                         ReasoningSchemaOptimizer(
                                 train_meta_examples, language_name, masks_of_task_id, dir_path, metric);
@@ -1153,7 +1158,7 @@ void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
             "task_name=" + task_name->get_task_name() +
-            "-gen=67.2-init_iter=" + std::to_string(init_iter) +
+            "-gen=68.3-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +

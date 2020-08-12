@@ -299,7 +299,7 @@ void ReasoningSchemaOptimizer::calc_masks(int set_init_mask_size, int set_end_ma
     }
     else if(parent_pointer != nullptr)
     {
-        bool copy_masks_from_parent = false;
+        bool copy_masks_from_parent = true;
         if(copy_masks_from_parent)
         {
             assert(parent_pointer->masks.size() >= 1);

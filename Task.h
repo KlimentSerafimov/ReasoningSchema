@@ -219,7 +219,7 @@ class Task__biggest_square_with_kernel : public Task
     int tile_h;
 public:
     Task__biggest_square_with_kernel(int _param__w, int _tile_w, int _tile_h) : Task("biggest_square_with_kernel") {
-        assert(tile_w == 2 && tile_h == 1);
+        assert(_tile_w == 2 && _tile_h == 1);
         param__w = _param__w;
         tile_w = _tile_w;
         tile_h = _tile_h;
