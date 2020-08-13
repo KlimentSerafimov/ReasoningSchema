@@ -10,6 +10,7 @@
 #include <utility>
 #include <vector>
 #include "CanvasAndBittreeProgram.h"
+#include "AutomatonRuleCost.h"
 
 class Mask: public Bitvector
 {
@@ -26,12 +27,10 @@ public:
     BittreeTaskTypeAsPartialFunction* next_canvas = nullptr;
     CanvasAndBittreeProgram* program = nullptr;
     vector<MaskAndCost> local_variety;
-    int cost;
     pair<MaskAndCost*, int> best_edge;
     MaskAndCost() = default;
     MaskAndCost(MaskAndCost * to_copy) : Mask(to_copy)
     {
-        cost = to_copy->cost;
         local_variety = to_copy->local_variety;
         program = to_copy->program;
         now_canvas = to_copy->now_canvas;
@@ -40,16 +39,20 @@ public:
     }
     MaskAndCost(int _cost, Bitvector _bitvector) : Mask(_bitvector)
     {
-        cost = _cost;
         best_edge = make_pair(nullptr, -1);
     }
     MaskAndCost(CanvasAndBittreeProgram* _program);
 
+    AutomatonRuleCost get_cost()
+    {
+        return program->get_cost();
+    }
+
     virtual bool operator < (const MaskAndCost & other) const
     {
-        if(cost != other.cost)
+        if(program->get_cost() != other.program->get_cost())
         {
-            return cost < other.cost;
+            return program->get_cost() < other.program->get_cost();
         }
         else
         {

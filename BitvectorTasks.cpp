@@ -5,6 +5,7 @@
 #include "util.h"
 #include "BitvectorTasks.h"
 #include "TraceVersionSpace.h"
+#include "AutomatonRuleCost.h"
 #include <cstring>
 #include <random>
 #include <string>
@@ -576,20 +577,24 @@ void BitvectorTasks::delta_wiring(vector<MaskAndCost> &subdomains, BittreeTaskTy
 
         for (int now_id = 0; now_id < subdomains.size(); now_id++) {
             mask_propagation_fout << subdomains[now_id].now_canvas->to_string__one_line() << " :: ";
-            pair<int, pair<int, int> > best_mask = make_pair(-1, make_pair(-1, -1));
+            pair<AutomatonRuleCost, pair<int, int> > best_mask = make_pair(AutomatonRuleCost(), make_pair(-1, -1));
             for (int prev_id = 0; prev_id < prev_subdomains.size(); prev_id++) {
                 for (int edge_id = 0; edge_id < prev_subdomains[prev_id].local_variety.size(); edge_id++) {
                     if (subdomains[now_id] == prev_subdomains[prev_id].local_variety[edge_id]) {
-                        if(best_mask.first == -1)
+                        if(!best_mask.first.get_defined())
                         {
-                            assert(prev_subdomains[prev_id].local_variety[edge_id].cost>=0);
-                            best_mask = make_pair(prev_subdomains[prev_id].local_variety[edge_id].cost,
-                                                  make_pair(prev_id, edge_id));
+                            assert(prev_subdomains[prev_id].local_variety[edge_id].get_cost().get_defined());
+                            best_mask = make_pair(
+                                    prev_subdomains[prev_id].local_variety[edge_id].get_cost(),
+                                    make_pair(prev_id, edge_id));
                         }
                         else
                         {
-                            best_mask = min(best_mask, make_pair(prev_subdomains[prev_id].local_variety[edge_id].cost,
-                                                                 make_pair(prev_id, edge_id)));
+                            best_mask = min(
+                                    best_mask,
+                                    make_pair(
+                                            prev_subdomains[prev_id].local_variety[edge_id].get_cost(),
+                                            make_pair(prev_id, edge_id)));
                         }
                     }
                 }
@@ -684,15 +689,15 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
 
         bool more_buckets = true;
         if(more_buckets) {
-            int prev_cost = -1;
+            AutomatonRuleCost prev_cost = -1;
             vector<MaskAndCost> local_subdomains;
             for (int i = 0; i < next_subdomains.size(); i++) {
-                if (prev_cost != next_subdomains[i].cost && prev_cost != -1) {
+            if (prev_cost != next_subdomains[i].get_cost() && prev_cost != -1) {
                     masks_of_task_id.push_back(local_subdomains);
                     local_subdomains.clear();
                 }
                 local_subdomains.push_back(next_subdomains[i]);
-                prev_cost = next_subdomains[i].cost;
+                prev_cost = next_subdomains[i].get_cost();
             }
         }
         else
@@ -703,7 +708,7 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
         ofstream out_next_subdomains(dir_path + "/current_subdomains__task_id_"+std::to_string(task_id+1));
         for(int i = 0;i<next_subdomains.size(); i++)
         {
-            out_next_subdomains << next_subdomains[i].to_string() << " " << next_subdomains[i].cost <<endl;
+            out_next_subdomains << next_subdomains[i].to_string() << " " << next_subdomains[i].get_cost().to_string() <<endl;
         }
         out_next_subdomains.close();
 
@@ -1055,7 +1060,11 @@ BitvectorTasks::BitvectorTasks(
     vector<vector<MetaExample> > rep_set_per_task = vector<vector<MetaExample> >(meta_examples.size(), vector<MetaExample>());
     vector<vector<InstanceTree*> > inst_tree_per_task = vector<vector<InstanceTree*> >(meta_examples.size(), vector<InstanceTree*>());
 
-    for(int task_id = init_iter, is_first = true, iter = 0; task_id < meta_examples.size(); task_id++, is_first = false, iter++) {
+    for(
+            int task_id = init_iter, is_first = true, iter = 0;
+            task_id < meta_examples.size();
+            task_id++, is_first = false, iter++)
+    {
         BittreeTaskType * next_task_type = nullptr;
         if(task_id + 1 < multi_task_type.size())
         {
@@ -1166,7 +1175,7 @@ void BitvectorTasks::set_up_directory() {
     //set up directory
     dir_path =
             "task_name=" + task_name->get_task_name() +
-            "-gen=69-init_iter=" + std::to_string(init_iter) +
+            "-gen=70-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +

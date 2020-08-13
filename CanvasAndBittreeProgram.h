@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include "BittreeNode.h"
+#include "AutomatonRuleCost.h"
 
 using namespace std;
 
@@ -15,12 +16,14 @@ class PathAndRule
 {
     vector<int> path;
     Rule rule;
+    AutomatonRuleCost cost;
 public:
     PathAndRule() = default;
     PathAndRule(vector<int> _path, Rule _rule)
     {
         path = _path;
         rule = _rule;
+        cost = AutomatonRuleCost(rule_cost[rule]*(int)path.size());
     }
     string to_string()
     {
@@ -31,22 +34,28 @@ public:
         }
         return ret;
     }
-    Rule get_rule()
-    {
+    Rule get_rule() const {
         return rule;
     }
+    AutomatonRuleCost get_cost()
+    {
+        return cost;
+    }
 };
+
 
 class AutomatonRule
 {
 protected:
     vector<PathAndRule> code;
+    AutomatonRuleCost cost;
 public:
     void push_back(PathAndRule new_path_and_rule);
     AutomatonRule() = default;
     AutomatonRule(AutomatonRule * to_copy)
     {
         code = to_copy->code;
+        cost = to_copy->cost;
     }
     virtual string to_string()
     {
@@ -78,7 +87,7 @@ public:
 
     string to_string() override;
 
-    int get_cost();
+    AutomatonRuleCost get_cost() const;
 };
 
 

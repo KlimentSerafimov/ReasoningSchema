@@ -9,7 +9,6 @@ MaskAndCost::
 MaskAndCost(CanvasAndBittreeProgram* _program): Mask(CanvasAsPartialFunction(_program->get_canvas()).total_function)
 {
     program = _program;
-    cost = program->get_cost();
     best_edge = make_pair(nullptr, -1);
 }
 

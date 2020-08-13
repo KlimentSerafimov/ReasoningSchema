@@ -84,9 +84,8 @@ public:
 
     string slim_tree_to_string(int tab) const;
 
-    void populate_programs(
-            vector<Rule> *rules, CanvasAndBittreeProgram *canvas, int next_child, vector<int> *path,
-            vector<CanvasAndBittreeProgram*> * all_programs) const;
+    void populate_programs(vector<Rule> *rules, CanvasAndBittreeProgram *canvas, int next_child, vector<int> *path,
+                           vector<CanvasAndBittreeProgram *> *all_programs, int cost_remaining) const;
 
     BittreeNode* produce_subtree_from_rule(Rule rule, vector<int> path);
 
