@@ -20,6 +20,7 @@ public:
     Mask(Mask * _bitvector) : Bitvector(*_bitvector) {}
 };
 
+
 class MaskAndCost: public Mask
 {
 public:
@@ -28,6 +29,8 @@ public:
     CanvasAndBittreeProgram* program = nullptr;
     vector<MaskAndCost> local_variety;
     pair<MaskAndCost*, int> best_edge;
+    bool mask_cost_defined = false;
+    int mask_cost;
     MaskAndCost() = default;
     MaskAndCost(MaskAndCost * to_copy) : Mask(to_copy)
     {
@@ -36,12 +39,26 @@ public:
         now_canvas = to_copy->now_canvas;
         next_canvas = to_copy->next_canvas;
         best_edge = make_pair(nullptr, -1);
+        mask_cost_defined = to_copy->mask_cost_defined;
+        mask_cost = to_copy->mask_cost;
     }
     MaskAndCost(int _cost, Bitvector _bitvector) : Mask(_bitvector)
     {
+        set_mask_cost(_cost);
         best_edge = make_pair(nullptr, -1);
     }
     MaskAndCost(CanvasAndBittreeProgram* _program);
+
+    void set_mask_cost(float _mask_cost)
+    {
+        mask_cost_defined = true;
+        mask_cost = _mask_cost;
+    }
+
+    float get_mask_cost() const {
+        assert(mask_cost_defined);
+        return mask_cost;
+    }
 
     AutomatonRuleCost get_cost()
     {
@@ -50,13 +67,23 @@ public:
 
     virtual bool operator < (const MaskAndCost & other) const
     {
-        if(program->get_cost() != other.program->get_cost())
+        if(program == nullptr || other.program == nullptr)
         {
-            return program->get_cost() < other.program->get_cost();
+            if(get_mask_cost() == other.get_mask_cost())
+            {
+                return Mask::operator<(other);
+            }
+            else
+            {
+                return get_mask_cost() < other.get_mask_cost();
+            }
         }
-        else
-        {
-            return Mask::operator<(other);
+        else {
+            if (program->get_cost() != other.program->get_cost()) {
+                return program->get_cost() < other.program->get_cost();
+            } else {
+                return Mask::operator<(other);
+            }
         }
     }
     void set_local_variety(vector<MaskAndCost> _local_variety)

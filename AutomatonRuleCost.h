@@ -12,7 +12,7 @@ using namespace std;
 class AutomatonRuleCost
 {
     bool defined = false;
-    int cost;
+    int cost = 0;
 public:
     AutomatonRuleCost() = default;
 
@@ -28,6 +28,7 @@ public:
     }
 
     void add_cost(AutomatonRuleCost _cost) {
+        defined = true;
         cost += _cost.get_cost();
     }
 

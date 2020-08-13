@@ -1136,7 +1136,8 @@ vector<MaskAndCost> BittreeTaskType::generate_variety(int subtask_depth, ofstrea
         }
         while(subtask_depth>0)
         {
-            local_parent->push_back_child(copy_bittree(local_parent, Name("copy_subtask_output", child_id++), at_subtask->io->output));
+            local_parent->push_back_child(
+                    copy_bittree(local_parent, Name("copy_subtask_output", child_id++), at_subtask->io->output));
             if(at_subtask->decomposition != nullptr)
             {
                 assert(at_subtask->decomposition->subtask != nullptr);
@@ -2809,7 +2810,6 @@ void BittreeInputOutputType::solve__sum()
 */
 void AutomatonRule::push_back(PathAndRule new_path_and_rule) {
     cost.add_cost(new_path_and_rule.get_cost());
-
     code.push_back(new_path_and_rule);
 }
 

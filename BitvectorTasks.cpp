@@ -536,10 +536,8 @@ void BitvectorTasks::delta_wiring(vector<MaskAndCost> &subdomains, BittreeTaskTy
             metric, dir_path, init_language_name,
             subdomains, task_type, next_task_type, num_prev_subtasks, task_id);
 
-
     ofstream mask_propagation_fout(
             dir_path + "/mask_propagation_model__task_id_" + std::to_string(task_id + 1));
-
 
     if(prev_subdomains.size() >= 1) {
         for (int i = 0; i < prev_subdomains.size(); i++) {
@@ -1172,10 +1170,10 @@ BitvectorTasks::BitvectorTasks(
 }
 
 void BitvectorTasks::set_up_directory() {
-    //set up directory
+
     dir_path =
             "task_name=" + task_name->get_task_name() +
-            "-gen=70-init_iter=" + std::to_string(init_iter) +
+            "-gen=70.4-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +

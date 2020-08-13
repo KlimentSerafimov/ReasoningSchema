@@ -364,7 +364,7 @@ void ReasoningSchemaOptimizer::calc_masks(int set_init_mask_size, int set_end_ma
             if (i >= set_init_mask_size && i <= set_end_mask_size) {
                 for (int j = 0; j < masks_by_size[i].size(); j++) {
                     reduced.push_back(masks_by_size[i][j]);
-                    tmp_masks.push_back(MaskAndCost(0, Bitvector(masks_by_size[i][j], function_size)));
+                    tmp_masks.push_back(MaskAndCost((float) i, Bitvector(masks_by_size[i][j], function_size)));
                 }
             }
             masks_by_size[i] = reduced;

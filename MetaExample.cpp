@@ -282,7 +282,7 @@ void MetaExample::append_to_masks(
         return ;
     }
 
-    vector<pair<float, MaskAndCost> > ret_with_cost;
+    vector<MaskAndCost> ret_with_cost;
 
     cout << "MASKS: " << endl;
 
@@ -308,26 +308,21 @@ void MetaExample::append_to_masks(
         {
             local_mask.set(j);
         }
-
         do{
-            MaskAndCost mask_and_cost = MaskAndCost(0, local_mask);
-            ret_with_cost.emplace_back(make_pair(cost(local_mask), mask_and_cost));
-//            ret.push_back(local_mask);
+            ret_with_cost.emplace_back(MaskAndCost(cost(local_mask), local_mask));
             cout << bitvector_to_str(local_mask, get_function_size()) << endl;
         }while(next_mask(local_mask, i));
     }
 
     sort(ret_with_cost.begin(), ret_with_cost.end());
-    //reverse(ret_with_cost.begin(), ret_with_cost.end());
-
 
     vector<MaskAndCost> ret_bucket;
 
     int bucket_id = 0;
     for(int i = 0;i<ret_with_cost.size();i++)
     {
-        cout << "subdomain " << ret_with_cost[i].second.to_string() << " cost " << ret_with_cost[i].first;
-        ret_bucket.push_back(ret_with_cost[i].second);
+        cout << "subdomain " << ret_with_cost[i].to_string() << " cost " << ret_with_cost[i].get_mask_cost();
+        ret_bucket.push_back(ret_with_cost[i]);
         cout << " put in bucket " + std::to_string(bucket_id);
         if (num_first_in_prior != -1 && (i+1) % num_first_in_prior == 0)
         {
