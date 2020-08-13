@@ -78,6 +78,7 @@ class BitvectorTasks {
     int num_minimization_steps;
     double init_minimization_fraction;
     double end_minimization_fraction;
+    AutomatonRuleCost max_automaton_rule_cost;
 
     InstanceTree instance_tree;
 
@@ -138,23 +139,11 @@ public:
 
     BitvectorTasks(int function_size, int task_id);
 
-    BitvectorTasks(
-            Task *_task_name,
-            int _init_iter,
-            int _num_iter,
-            int _recursive_rep_set_depth,
-            MetricType _metric,
-            ModeType _mode,
-            int _min_mask_size,
-            int _max_mask_size,
-            int _num_prev_subtasks,
-            string _dir_path,
-            int _num_first_in_prior,
-            bool _train_set_minimization,
-            int _seed_train_set,
-            int _num_minimization_steps,
-            double _init_minimization_fraction,
-            double _end_minimization_fraction);
+    BitvectorTasks(Task *_task_name, int _init_iter, int _num_iter, int _recursive_rep_set_depth, MetricType _metric,
+                   ModeType _mode, int _min_mask_size, int _max_mask_size, int _num_prev_subtasks, string _dir_path,
+                   int _num_first_in_prior, bool _train_set_minimization, int _seed_train_set,
+                   int _num_minimization_steps, double _init_minimization_fraction, double _end_minimization_fraction,
+                   AutomatonRuleCost max_automaton_rule_cost);
 };
 
 #endif //COMPACTPOSET_BITVECTORTASKS_H

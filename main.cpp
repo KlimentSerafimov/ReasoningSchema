@@ -387,6 +387,7 @@ void modeling_of_bitvector_functions() {
         int num_minimization_steps = 3;
         double init_minimization_fraction = 19.5/20;
         double end_minimization_fraction = 19.8/20;
+        AutomatonRuleCost max_automaton_rule_cost = AutomatonRuleCost(0);
 
         assert(init_minimization_fraction != 0);
         assert(end_minimization_fraction != 0);
@@ -408,7 +409,8 @@ void modeling_of_bitvector_functions() {
                         seed_train_set,
                         num_minimization_steps,
                         init_minimization_fraction,
-                        end_minimization_fraction);
+                        end_minimization_fraction,
+                        max_automaton_rule_cost);
     }
 
 }

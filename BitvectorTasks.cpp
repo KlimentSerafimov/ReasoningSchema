@@ -454,7 +454,7 @@ vector<MaskAndCost> BitvectorTasks::get_next_subdomains(
 
             next_bittree_as_partial->update_bitvector();
 
-            vector<MaskAndCost> local_variety = next_bittree_as_partial->generate_variety(&fout);
+            vector<MaskAndCost> local_variety = next_bittree_as_partial->generate_variety(&fout, max_automaton_rule_cost);
 
             subdomains[subdomain_id].set_next_bittree_as_partial(next_bittree_as_partial);
             subdomains[subdomain_id].set_local_variety(local_variety);
@@ -996,23 +996,14 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
     }
 }
 
-BitvectorTasks::BitvectorTasks(
-    Task *_task_name,
-    int _init_iter,
-    int _num_iter,
-    int _recursive_rep_set_depth,
-    MetricType _metric,
-    ModeType _mode,
-    int _min_mask_size,
-    int _max_mask_size,
-    int _num_prev_subtasks,
-    string _dir_path,
-    int _num_first_in_prior,
-    bool _train_set_minimization,
-    int _seed_train_set,
-    int _num_minimization_steps,
-    double _init_minimization_fraction,
-    double _end_minimization_fraction)
+BitvectorTasks::BitvectorTasks(Task *_task_name, int _init_iter, int _num_iter, int _recursive_rep_set_depth,
+                               MetricType _metric,
+                               ModeType _mode, int _min_mask_size, int _max_mask_size, int _num_prev_subtasks,
+                               string _dir_path,
+                               int _num_first_in_prior, bool _train_set_minimization, int _seed_train_set,
+                               int _num_minimization_steps, double _init_minimization_fraction,
+                               double _end_minimization_fraction,
+                               AutomatonRuleCost _max_automaton_rule_cost)
 {
     task_name = _task_name;
     init_iter = _init_iter;
@@ -1030,6 +1021,7 @@ BitvectorTasks::BitvectorTasks(
     num_minimization_steps = _num_minimization_steps;
     init_minimization_fraction = _init_minimization_fraction;
     end_minimization_fraction = _end_minimization_fraction;
+    max_automaton_rule_cost = _max_automaton_rule_cost;
 
     //set up type expression
     BittreeTypeExpression type_expression_for_meta_examples = BittreeTypeExpression(task_name);
@@ -1173,7 +1165,7 @@ void BitvectorTasks::set_up_directory() {
 
     dir_path =
             "task_name=" + task_name->get_task_name() +
-            "-gen=70.4-init_iter=" + std::to_string(init_iter) +
+            "-gen=70.7-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +
@@ -1183,7 +1175,8 @@ void BitvectorTasks::set_up_directory() {
             "-tsm="+std::to_string(train_set_minimization)[0]+
             "-seed_train_set=" + std::to_string(seed_train_set)+
             "-num_min_steps="+std::to_string(num_minimization_steps)+
-            "-min_frac=["+std::to_string(init_minimization_fraction)+","+std::to_string(end_minimization_fraction)+"]";
+            "-min_frac=["+std::to_string(init_minimization_fraction)+","+std::to_string(end_minimization_fraction)+"]" +
+            "-max_rule_cost="+max_automaton_rule_cost.to_string();
 
     int check_mkdir = mkdir( dir_path.c_str(), 0777);
     if (check_mkdir == -1){

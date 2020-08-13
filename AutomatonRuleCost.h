@@ -47,6 +47,11 @@ public:
         return cost >= other_int;
     }
 
+    bool operator <= (const AutomatonRuleCost& other) const
+    {
+        return cost <= other.cost;
+    }
+
     bool get_defined() {
         return defined;
     }
