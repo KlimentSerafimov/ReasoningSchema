@@ -297,6 +297,18 @@ public:
     void solve(BittreeInputOutputType* holder) override;
 };
 
+class Task__sum_of_n_k_bit_integers : public Task
+{
+    int param_k;
+public:
+    Task__sum_of_n_k_bit_integers(int _param_k) : Task("list_sum")
+    {
+        param_k = _param_k;
+    }
+    void generate_bittree_task_expression(BittreeTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
+};
+
 
 
 #endif //COMPACTPOSET_TASK_H

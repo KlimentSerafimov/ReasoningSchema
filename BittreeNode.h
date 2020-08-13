@@ -75,9 +75,11 @@ public:
 
     BittreeNode *set_delta(NodeType delta_type_node, BittreeLeafNodeType leaf_node_type);
 
+    BittreeNode *set_delta(BittreeNode *_delta);
+
     BittreeNode *add_child(NodeType node_type, BitInBittreeType bit_in_bittree_type);
 
-    void push_back_child(BittreeNode* child);
+    BittreeNode * push_back_child(BittreeNode* child);
 
     string to_string__one_line();
 
@@ -102,5 +104,8 @@ public:
 
     int calc_subtree_sums();
 };
+
+    void add_child(NodeType type, BitInBittreeType type1);
+
 
 #endif //COMPACTPOSET_BITTREENODE_H

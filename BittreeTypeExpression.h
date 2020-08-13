@@ -36,7 +36,7 @@ public:
 
     void build_output_type(int num_outputs, int* init_output_sizes, int* delta_output_sizes) const;
 
-    void build_type(int num_input_operands, int init_output_size, int delta_output_size);
+    void build_type__add_leafs(int num_input_operands, int init_output_size, int delta_output_size);
 
 };
 

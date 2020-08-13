@@ -20,7 +20,7 @@ void Task__sum::generate_bittree_task_expression(BittreeTypeExpression * ret) {
     int init_output_size = 1;
     int delta_output_size = 1;
 
-    ret->build_type(num_input_operands, init_output_size, delta_output_size);
+    ret->build_type__add_leafs(num_input_operands, init_output_size, delta_output_size);
 }
 
 void Task__sum::solve(BittreeInputOutputType * holder) {
@@ -52,7 +52,7 @@ void Task__greater::generate_bittree_task_expression(BittreeTypeExpression *hold
     int num_input_operands = 2;
     int init_output_size = 1;
     int delta_output_size = 0;
-    holder->build_type(num_input_operands, init_output_size, delta_output_size);
+    holder->build_type__add_leafs(num_input_operands, init_output_size, delta_output_size);
 }
 
 void Task__greater::solve(BittreeInputOutputType *holder) {
@@ -83,7 +83,7 @@ void Task__cumulative_binary_operator::generate_bittree_task_expression(BittreeT
     int num_input_operands = 1;
     int init_output_size = 1;
     int delta_output_size = 0;
-    holder->build_type(num_input_operands, init_output_size, delta_output_size);
+    holder->build_type__add_leafs(num_input_operands, init_output_size, delta_output_size);
 }
 
 void Task__cumulative_binary_operator::solve(BittreeInputOutputType *holder) {
@@ -112,7 +112,7 @@ void Task__bitwise_binary_operator::generate_bittree_task_expression(BittreeType
     int num_input_operands = 2;
     int init_output_size = 0;
     int delta_output_size = 1;
-    holder->build_type(num_input_operands, init_output_size, delta_output_size);
+    holder->build_type__add_leafs(num_input_operands, init_output_size, delta_output_size);
 }
 
 void Task__bitwise_binary_operator::solve(BittreeInputOutputType *holder) {
@@ -201,7 +201,7 @@ void Task__multiply_by::generate_bittree_task_expression(BittreeTypeExpression *
 
     assert(init_output_size != -1);
 
-    holder->build_type(num_input_operands, init_output_size, delta_output_size);
+    holder->build_type__add_leafs(num_input_operands, init_output_size, delta_output_size);
 }
 
 void Task__multiply_by::solve(BittreeInputOutputType *holder) {
@@ -232,7 +232,7 @@ void Task__one_shift_idx__rev::generate_bittree_task_expression(BittreeTypeExpre
     int init_output_size = (1<<param__init_size);
     int delta_output_size = 0;
 
-    holder->build_type(num_input_operands, init_output_size, delta_output_size);
+    holder->build_type__add_leafs(num_input_operands, init_output_size, delta_output_size);
 }
 
 void Task__one_shift_idx__rev::solve(BittreeInputOutputType *holder) {
@@ -314,7 +314,7 @@ void Task__count_unary__rev::generate_bittree_task_expression(BittreeTypeExpress
     int init_output_size = (1<<param__init_size);
     int delta_output_size = 0;
 
-    holder->build_type(num_input_operands, init_output_size, delta_output_size);
+    holder->build_type__add_leafs(num_input_operands, init_output_size, delta_output_size);
 }
 
 void Task__count_unary__rev::solve(BittreeInputOutputType *holder) {
@@ -454,7 +454,7 @@ void Task__strech_of_0s::generate_bittree_task_expression(BittreeTypeExpression 
     int init_output_size = 0;
     int delta_output_size = 1;
 
-    holder->build_type(num_input_operands, init_output_size, delta_output_size);
+    holder->build_type__add_leafs(num_input_operands, init_output_size, delta_output_size);
 }
 
 void Task__strech_of_0s::solve(BittreeInputOutputType *holder) {
@@ -714,7 +714,7 @@ void Task__sort_bits::generate_bittree_task_expression(BittreeTypeExpression *ho
     int init_output_size = 0;
     int delta_output_size = 1;
 
-    holder->build_type(num_input_operands, init_output_size, delta_output_size);
+    holder->build_type__add_leafs(num_input_operands, init_output_size, delta_output_size);
 }
 
 void Task__sort_bits::solve(BittreeInputOutputType *holder) {
@@ -764,7 +764,7 @@ void Task__add::generate_bittree_task_expression(BittreeTypeExpression *holder) 
 
     assert(init_output_size != -1);
 
-    holder->build_type(num_input_operands, init_output_size, delta_output_size);
+    holder->build_type__add_leafs(num_input_operands, init_output_size, delta_output_size);
 }
 
 void Task__add::solve(BittreeInputOutputType *holder) {
@@ -934,6 +934,32 @@ void grid_in_grid_out(int in_w, int out_w, BittreeTypeExpression *holder)
     holder->build_output_type(num_outputs, init_output_sizes, delta_output_sizes);
 }
 
+void list_in_int_out(BittreeTypeExpression *holder)
+{
+    holder->base_task_type = new BittreeTaskType(
+            nullptr,  Name("base_task_type"), internal_node, internal_node);
+    holder->init_delta_task_type = new BittreeInputOutputType(
+            nullptr,  Name("init_delta_task_type"), leaf_node, leaf_node);
+    holder->delta_task_type = new BittreeInputOutputType(
+            nullptr,  Name("delta_task_type"), leaf_node, leaf_node);
+
+    BittreeNode* input_leaf_delta = new BittreeNode(nullptr, Name("input_leaf_delta"), internal_node);
+    BittreeNode* integer_node = input_leaf_delta->push_back_child(new BittreeNode(input_leaf_delta, Name("children", 0), internal_node));
+    integer_node->add_child(leaf_node, shared_blanko_bit);
+
+    BittreeNode* output_leaf_delta = new BittreeNode(nullptr, Name("output_leaf_delta"), internal_node);
+    output_leaf_delta->add_child(leaf_node, new_blanko_bit);
+    output_leaf_delta->add_child(leaf_node, new_blanko_bit);
+    output_leaf_delta->add_child(leaf_node, new_blanko_bit);
+
+    holder->init_delta_task_type->input->set_delta(input_leaf_delta);
+    holder->delta_task_type->input->set_delta(input_leaf_delta);
+
+    holder->init_delta_task_type->output->set_delta(output_leaf_delta);
+    holder->delta_task_type->output->set_delta(output_leaf_delta);
+
+}
+
 void Task__biggest_square::generate_bittree_task_expression(BittreeTypeExpression *holder) {
     grid_in_grid_out(param__w, param__w, holder);
 }
@@ -951,6 +977,30 @@ vector<vector<int> > get_input_grid(int param__w, BittreeInputOutputType *holder
             assert(holder->input->children.at(i)->children.at(j)->bit->is_bit_set == true);
             input_grid[i].push_back(holder->input->children.at(i)->children.at(j)->bit->bit_val);
         }
+    }
+
+    return input_grid;
+}
+
+int get_bitvector_as_int(BittreeNode* node)
+{
+    int ret = 0;
+    int pow = 1;
+    int len_operands = node->children.size();
+    for (int j = 0; j < node->children.size(); j++) {
+        assert(node->children.at(j)->bit->is_bit_set == true);
+        ret += pow * node->children.at(j)->bit->bit_val;
+        pow *= 2;
+    }
+    return ret;
+}
+
+vector<int> get_input_list_of_bitvectors_as_ints(BittreeInputOutputType *holder)
+{
+    vector<int> input_grid;
+    for(int i = 0;i<holder->input->children.size();i++)
+    {
+        input_grid.push_back(get_bitvector_as_int(holder->input->children[i]));
     }
 
     return input_grid;
@@ -1024,6 +1074,16 @@ void project_output_grid(BittreeInputOutputType *holder, vector<vector<int> > ou
             holder->output->children.at(i)->children.at(j)->bit->is_bit_set = true;
             holder->output->children.at(i)->children.at(j)->bit->bit_val = output_grid[i][j];
         }
+    }
+}
+
+void project_output_bitvector(BittreeInputOutputType *holder, vector<int> output_grid)
+{
+    for(int j = 0;j<(int)holder->output->children.size();j++)
+    {
+        assert(holder->output->children.at(j)->bit->is_bit_set == false);
+        holder->output->children.at(j)->bit->is_bit_set = true;
+        holder->output->children.at(j)->bit->bit_val = output_grid[j];
     }
 }
 
@@ -1349,4 +1409,23 @@ void Task__game_of_life::solve(BittreeInputOutputType *holder) {
     }
 
     project_output_grid(holder, output_grid);
+}
+
+void Task__sum_of_n_k_bit_integers::generate_bittree_task_expression(BittreeTypeExpression *holder) {
+    list_in_int_out(holder);
+}
+
+void Task__sum_of_n_k_bit_integers::solve(BittreeInputOutputType *holder) {
+    vector<int> input_list = get_input_list_of_bitvectors_as_ints(holder);
+    int sum = 0;
+    for(int i = 0;i<input_list.size();i++)
+    {
+        sum += input_list[i];
+    }
+    vector<int> output_bitvector;
+    for(int i = 0;i<holder->output->children.size();i++)
+    {
+        output_bitvector.push_back(i<sum);
+    }
+    project_output_bitvector(holder, output_bitvector);
 }

@@ -374,6 +374,7 @@ void BittreeNode::append_bits(vector<BitInBittree *>& bits) {
     }
 }
 
+
 BittreeNode *BittreeNode::set_delta(NodeType delta_type_node, int num_children, BitInBittreeType bit_type) {
     assert(delta == nullptr);
     assert(delta_type_node == internal_node);
@@ -390,6 +391,15 @@ BittreeNode *BittreeNode::set_delta(NodeType delta_type_node, int num_children, 
                 new BittreeNode(
                         delta,Name("children", i),leaf_node, bit_type));
     }
+    return delta;
+}
+
+
+BittreeNode *BittreeNode::set_delta(BittreeNode *_delta) {
+    assert(delta == nullptr);
+    assert(node_type == leaf_node);
+    leaf_node_type = delta_node;
+    delta = _delta;
     return delta;
 }
 
@@ -437,8 +447,9 @@ string BittreeNode::to_string__one_line() {
     return ret;
 }
 
-void BittreeNode::push_back_child(BittreeNode *child) {
+BittreeNode * BittreeNode::push_back_child(BittreeNode *child) {
     children.push_back(child);
+    return child;
 }
 
 
