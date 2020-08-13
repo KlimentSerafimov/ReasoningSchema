@@ -946,6 +946,7 @@ void list_in_int_out(BittreeTypeExpression *holder)
     BittreeNode* input_leaf_delta = new BittreeNode(nullptr, Name("input_leaf_delta"), internal_node);
     BittreeNode* integer_node = input_leaf_delta->push_back_child(new BittreeNode(input_leaf_delta, Name("children", 0), internal_node));
     integer_node->add_child(leaf_node, shared_blanko_bit);
+    integer_node->add_child(leaf_node, shared_blanko_bit);
 
     BittreeNode* output_leaf_delta = new BittreeNode(nullptr, Name("output_leaf_delta"), internal_node);
     output_leaf_delta->add_child(leaf_node, new_blanko_bit);

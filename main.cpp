@@ -375,18 +375,18 @@ void modeling_of_bitvector_functions() {
 
         Task * task = new Task__sum_of_n_k_bit_integers(2);
 
-        int init_iter = 2;
+        int init_iter = 1;
         int num_iter = 6;
         ModeType mode_type = progressive_prior_mode;
         MetricType metric_type = most_progress; //min_imp_set;
         int recursive_rep_set_depth = 0;
-        int min_mask_size = 8;
-        int max_mask_size = 8;
+        int min_mask_size = 1;
+        int max_mask_size = 4;
         int num_prev_subtasks = 0;
         int num_first_in_prior = -1;
         bool train_set_minimization = true;
-        int seed_train_set = 15;
-        int num_minimization_steps = 30;
+        int seed_train_set = 20;
+        int num_minimization_steps = 3;
         double init_minimization_fraction = 18.0/20;
         double end_minimization_fraction = 19.5/20;
         AutomatonRuleCost max_automaton_rule_cost = AutomatonRuleCost(20);

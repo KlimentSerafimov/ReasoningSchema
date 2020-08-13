@@ -92,7 +92,7 @@ public:
 
     BittreeNode* produce_subtree_from_rule(Rule rule, vector<int> path);
 
-    void apply_rule(Rule rule, int child_id, const BittreeNode *canvas) const;
+    void apply_rule(Rule rule, int child_id, const BittreeNode *canvas, int grandchild_id) const;
 
     void initialize_special_parents(BittreeNode *parent);
 
