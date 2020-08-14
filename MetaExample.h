@@ -136,7 +136,7 @@ public:
 
     vector<vector<MaskAndCost>> get_masks(int min_mask_size, int max_mask_size, int num_first_in_prior);
 
-    void append_to_masks(int min_mask_size, int max_mask_size, int num_first_in_prior, vector<vector<MaskAndCost> > &ret);
+    void append_to_masks(int min_mask_size, int max_mask_size, vector<vector<MaskAndCost> > &ret);
 
 };
 

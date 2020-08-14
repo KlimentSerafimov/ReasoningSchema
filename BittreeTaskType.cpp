@@ -613,8 +613,8 @@ void BittreeNode::apply_rule(Rule rule, int child_id, const BittreeNode *canvas,
                         canvas->bit->bit_val = max(0, canvas->bit->bit_val - 1);
                         assert(get_parent()->children.size() == canvas->get_parent()->children.size());
                         assert(0 <= next_id && next_id < get_parent()->children.size());
-                        cout << "prev_id = " << child_id << endl;
-                        cout << "next_id = " << next_id << endl;
+//                        cout << "prev_id = " << child_id << endl;
+//                        cout << "next_id = " << next_id << endl;
                         BittreeNode *sibling = canvas->get_parent()->children[next_id];
                         assert(sibling->node_type == leaf_node && sibling->leaf_node_type == bit_node &&
                                sibling->bit->is_bit_set);
@@ -647,8 +647,8 @@ void BittreeNode::apply_rule(Rule rule, int child_id, const BittreeNode *canvas,
 
                             assert(get_parent()->get_parent()->children.size() == canvas->get_parent()->get_parent()->children.size());
                             assert(0 <= next_id && next_id < get_parent()->get_parent()->children.size());
-                            cout << "grandchild_id = " << grandchild_id << endl;
-                            cout << "next_id = " << next_id << endl;
+//                            cout << "grandchild_id = " << grandchild_id << endl;
+//                            cout << "next_id = " << next_id << endl;
                             if(child_id < canvas->get_parent()->get_parent()->children[next_id]->children.size()) {
                                 BittreeNode *cousin = canvas->get_parent()->get_parent()->children[next_id]->children[child_id];
                                 if (cousin->node_type == leaf_node) {
@@ -750,8 +750,8 @@ BittreeNode::populate_programs(
             if(next_child == children.size())
             {
                 all_programs->push_back(canvas);
-                cout << "HERE CanvasAndBittreeProgram" << endl;
-                cout << canvas->to_string() << endl;
+//                cout << "HERE CanvasAndBittreeProgram" << endl;
+//                cout << canvas->to_string() << endl;
             }
             else
             {
@@ -775,8 +775,8 @@ BittreeNode::populate_programs(
                 assert(next_child >= 0);
                 if (next_child == children.size()){
                     all_programs->push_back(canvas);
-                    cout << "HERE CanvasAndBittreeProgram" << endl;
-                    cout << canvas->to_string() << endl;
+//                    cout << "HERE CanvasAndBittreeProgram" << endl;
+//                    cout << canvas->to_string() << endl;
                 } else {
                     assert(next_child < children.size());
                     if(children[next_child]->subtree_sum >= 1) {
@@ -795,13 +795,13 @@ BittreeNode::populate_programs(
                     }
                     else
                     {
-                        cout << "HERE" << endl;
-                        cout << "(subtree_sum == 0)" << endl;
+//                        cout << "HERE" << endl;
+//                        cout << "(subtree_sum == 0)" << endl;
                         if(next_child == children.size())
                         {
                             all_programs->push_back(canvas);
-                            cout << "HERE CanvasAndBittreeProgram" << endl;
-                            cout << canvas->to_string() << endl;
+//                            cout << "HERE CanvasAndBittreeProgram" << endl;
+//                            cout << canvas->to_string() << endl;
                         }
                         else
                         {

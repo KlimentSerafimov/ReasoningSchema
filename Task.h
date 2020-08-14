@@ -345,6 +345,20 @@ public:
     void solve(BittreeInputOutputType* holder) override;
 };
 
-
+class Task__sum_of_n_k_bit_integers_with_second_order_intermediate_state : public Task
+{
+    int param_k;
+public:
+    Task__sum_of_n_k_bit_integers_with_second_order_intermediate_state(int _param_k) : Task("list_sum_w_inter_w_inter")
+    {
+        param_k = _param_k;
+    }
+    string get_task_name() override
+    {
+        return Task::get_task_name() + "(n=" + std::to_string(param_k) + ")";
+    }
+    void generate_bittree_task_expression(IncrementalTypeExpression* holder) override;
+    void solve(BittreeInputOutputType* holder) override;
+};
 #endif //COMPACTPOSET_TASK_H
 

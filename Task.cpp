@@ -1482,47 +1482,211 @@ void Task__sum_of_n_k_bit_integers::solve(BittreeInputOutputType *holder) {
 
 
 void Task__sum_of_n_k_bit_integers_with_intermediate_state::generate_bittree_task_expression(IncrementalTypeExpression *holder) {
+
     holder->base_task_type = new BittreeTaskType(
             nullptr,  Name("base_task_type"), internal_node, internal_node);
-    holder->init_delta_task_type = new BittreeInputOutputType(
-            nullptr,  Name("init_delta_task_type"), leaf_node, leaf_node);
-    holder->delta_task_type = new BittreeInputOutputType(
-            nullptr,  Name("delta_task_type"), leaf_node, leaf_node);
 
-    BittreeNode* input_leaf_delta = new BittreeNode(nullptr, Name("input_leaf_delta"), internal_node);
-    BittreeNode* integer_node = input_leaf_delta->push_back_child(new BittreeNode(input_leaf_delta, Name("children", 0), internal_node));
-    for(int i = 0;i<param_k;i++)
+    holder->base_task_type->io->add_output_child(internal_node);
+    holder->base_task_type->io->add_output_child(internal_node);
+
+    for(int i = 0; i<10;i++)
     {
-        integer_node->add_child(leaf_node, shared_blanko_bit);
+        holder->deltas.push_back(
+                new BittreeInputOutputType(
+                        nullptr,  Name("init_delta_task_type"), leaf_node, internal_node));
+
+        BittreeNode* input_leaf_delta = new BittreeNode(nullptr, Name("input_leaf_delta"), internal_node);
+        BittreeNode* integer_node = input_leaf_delta->push_back_child(new BittreeNode(input_leaf_delta, Name("children", 0), internal_node));
+        for(int j = 0;j<param_k;j++)
+        {
+            integer_node->add_child(leaf_node, shared_blanko_bit);
+        }
+        holder->deltas[i]->input->set_delta(input_leaf_delta);
+
+        holder->deltas[i]->add_output_child(leaf_node);
+
+        BittreeNode* intermediate_state = new BittreeNode(nullptr, Name("intermediate_state"), internal_node);
+        BittreeNode* new_inter_integer = intermediate_state->push_back_child(
+                new BittreeNode(intermediate_state, Name("children", 0), internal_node));
+        if(i>=2)
+        {
+            for(int j = 0;j<i+1;j++)
+            {
+                new_inter_integer->add_child(leaf_node, new_blanko_bit);
+            }
+        }
+
+        holder->deltas[i]->output->children[0]->set_delta(intermediate_state);
+
+        holder->deltas[i]->add_output_child(leaf_node);
+
+        BittreeNode* output_leaf_delta = new BittreeNode(nullptr, Name("output_leaf_delta"), internal_node);
+        if(i == 0)
+        {
+            for(int j = 0;j<param_k;j++)
+            {
+                output_leaf_delta->add_child(leaf_node, new_blanko_bit);
+            }
+        }
+        else
+        {
+            output_leaf_delta->add_child(leaf_node, new_blanko_bit);
+        }
+
+        holder->deltas[i]->output->children[1]->set_delta(output_leaf_delta);
     }
-
-    BittreeNode* init_output_leaf_delta = new BittreeNode(nullptr, Name("output_leaf_delta"), internal_node);
-    for(int i = 0;i<param_k;i++)
-    {
-        init_output_leaf_delta->add_child(leaf_node, new_blanko_bit);
-    }
-
-    holder->init_delta_task_type->input->set_delta(input_leaf_delta);
-    holder->init_delta_task_type->output->set_delta(init_output_leaf_delta);
-
-    BittreeNode* output_leaf_delta = new BittreeNode(nullptr, Name("output_leaf_delta"), internal_node);
-    output_leaf_delta->add_child(leaf_node, new_blanko_bit);
-
-    holder->delta_task_type->input->set_delta(input_leaf_delta);
-    holder->delta_task_type->output->set_delta(output_leaf_delta);
 }
 
 void Task__sum_of_n_k_bit_integers_with_intermediate_state::solve(BittreeInputOutputType *holder) {
     vector<int> input_list = get_input_list_of_bitvectors_as_ints(holder);
-    int sum = 0;
+    vector<int> sums;
     for(int i = 0;i<input_list.size();i++)
     {
-        sum += input_list[i];
+        if(i == 0)
+        {
+            sums.push_back(input_list[i]);
+        }
+        else
+        {
+            sums.push_back(sums[i-1]+input_list[i]);
+        }
     }
-    vector<int> output_bitvector;
-    for(int i = 0;i<holder->output->children.size();i++)
+    for(int i = 0;i<holder->output->children[0]->children.size();i++)
     {
-        output_bitvector.push_back(get_bit(sum, i));
+        for(int j = 0;j<holder->output->children[0]->children[i]->children.size();j++)
+        {
+
+            assert(holder->output->children[0]->children[i]->children[j]->bit->is_bit_set == false);
+            holder->output->children[0]->children[i]->children[j]->bit->is_bit_set = true;
+            assert(i-1 < sums.size());
+            assert(i-1 >= 0);
+            holder->output->children[0]->children[i]->children[j]->bit->bit_val = get_bit(sums[i-1], j);
+        }
     }
-    project_output_bitvector(holder, output_bitvector);
+    for(int i = 0;i<holder->output->children[1]->children.size();i++)
+    {
+        assert(holder->output->children[1]->children[i]->bit->is_bit_set == false);
+        holder->output->children[1]->children[i]->bit->is_bit_set = true;
+        holder->output->children[1]->children[i]->bit->bit_val = get_bit(sums[sums.size()-1], i);
+    }
+
+    cout << holder->input->to_string__one_line() <<" -> " << holder->output->to_string__one_line() << endl;
+
+}
+
+
+void Task__sum_of_n_k_bit_integers_with_second_order_intermediate_state::generate_bittree_task_expression(IncrementalTypeExpression *holder) {
+
+    holder->base_task_type = new BittreeTaskType(
+            nullptr,  Name("base_task_type"), internal_node, internal_node);
+
+    holder->base_task_type->io->add_output_child(internal_node);
+    holder->base_task_type->io->add_output_child(internal_node);
+
+    for(int i = 0; i<10;i++)
+    {
+        holder->deltas.push_back(
+                new BittreeInputOutputType(
+                        nullptr,  Name("init_delta_task_type"), leaf_node, internal_node));
+
+        BittreeNode* input_leaf_delta = new BittreeNode(nullptr, Name("input_leaf_delta"), internal_node);
+        BittreeNode* integer_node = input_leaf_delta->push_back_child(new BittreeNode(input_leaf_delta, Name("children", 0), internal_node));
+        for(int j = 0;j<param_k;j++)
+        {
+            integer_node->add_child(leaf_node, shared_blanko_bit);
+        }
+        holder->deltas[i]->input->set_delta(input_leaf_delta);
+
+        holder->deltas[i]->add_output_child(leaf_node);
+
+        BittreeNode* intermediate_state = new BittreeNode(nullptr, Name("intermediate_state"), internal_node);
+        BittreeNode* new_inter_integer = intermediate_state->push_back_child(
+                new BittreeNode(intermediate_state, Name("children", 0), internal_node));
+        BittreeNode* new_main_inter_int = new_inter_integer->push_back_child(
+                new BittreeNode(new_inter_integer, Name("children", 0), internal_node));
+        BittreeNode* new_second_inter_list = new_inter_integer->push_back_child(
+                new BittreeNode(new_inter_integer, Name("children", 1), internal_node));
+
+        if(i>=2)
+        {
+            for(int j = 0;j<i+1;j++)
+            {
+                new_main_inter_int->add_child(leaf_node, new_blanko_bit);
+            }
+            for(int j = 0; j<i; j++)
+            {
+                BittreeNode* new_second_inter_int = new_second_inter_list->push_back_child(
+                    new BittreeNode(new_second_inter_list, Name("children", j), internal_node));
+
+                for(int k = 0; k<=j;k++)
+                {
+                    new_second_inter_int->add_child(leaf_node, new_blanko_bit);
+                }
+            }
+        }
+
+        holder->deltas[i]->output->children[0]->set_delta(intermediate_state);
+
+        holder->deltas[i]->add_output_child(leaf_node);
+
+        BittreeNode* output_leaf_delta = new BittreeNode(nullptr, Name("output_leaf_delta"), internal_node);
+        if(i == 0)
+        {
+            for(int j = 0;j<param_k;j++)
+            {
+                output_leaf_delta->add_child(leaf_node, new_blanko_bit);
+            }
+        }
+        else
+        {
+            output_leaf_delta->add_child(leaf_node, new_blanko_bit);
+        }
+
+        holder->deltas[i]->output->children[1]->set_delta(output_leaf_delta);
+    }
+}
+
+void Task__sum_of_n_k_bit_integers_with_second_order_intermediate_state::solve(BittreeInputOutputType *holder) {
+    vector<int> input_list = get_input_list_of_bitvectors_as_ints(holder);
+    vector<int> sums;
+    for(int i = 0;i<input_list.size();i++)
+    {
+        if(i == 0)
+        {
+            sums.push_back(input_list[i]);
+        }
+        else
+        {
+            sums.push_back(sums[i-1]+input_list[i]);
+        }
+    }
+    for(int i = 0;i<holder->output->children[0]->children.size();i++)
+    {
+
+        for(int j = 0; j < holder->output->children[0]->children[i]->children[0]->children.size(); j++)
+        {
+            assert(holder->output->children[0]->children[i]->children[0]->children[j]->bit->is_bit_set == false);
+            holder->output->children[0]->children[i]->children[0]->children[j]->bit->is_bit_set = true;
+            holder->output->children[0]->children[i]->children[0]->children[j]->bit->bit_val = get_bit(0, j);
+        }
+        for(int j = 0; j < holder->output->children[0]->children[i]->children[1]->children.size(); j++)
+        {
+            for(int k = 0; k < holder->output->children[0]->children[i]->children[1]->children[j]->children.size(); k++)
+            {
+                assert(holder->output->children[0]->children[i]->children[1]->children[j]->children[k]->bit->is_bit_set == false);
+                holder->output->children[0]->children[i]->children[1]->children[j]->children[k]->bit->is_bit_set = true;
+                holder->output->children[0]->children[i]->children[1]->children[j]->children[k]->bit->bit_val = get_bit(0, j);
+            }
+        }
+
+    }
+    for(int i = 0;i<holder->output->children[1]->children.size();i++)
+    {
+        assert(holder->output->children[1]->children[i]->bit->is_bit_set == false);
+        holder->output->children[1]->children[i]->bit->is_bit_set = true;
+        holder->output->children[1]->children[i]->bit->bit_val = get_bit(sums[sums.size()-1], i);
+    }
+
+    cout << holder->input->to_string__one_line() <<" -> " << holder->output->to_string__one_line() << endl;
+
 }

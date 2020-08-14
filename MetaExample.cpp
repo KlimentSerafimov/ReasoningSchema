@@ -202,7 +202,7 @@ vector<vector<MaskAndCost>> MetaExample::get_masks(int min_mask_size, int max_ma
 
     vector<vector<MaskAndCost> > ret;
 
-    append_to_masks(min_mask_size, max_mask_size, num_first_in_prior, ret);
+    append_to_masks(min_mask_size, max_mask_size, ret);
 
     return ret;
 //
@@ -273,9 +273,7 @@ vector<vector<MaskAndCost>> MetaExample::get_masks(int min_mask_size, int max_ma
 
 }
 
-void MetaExample::append_to_masks(
-        int min_mask_size, int max_mask_size,
-        int num_first_in_prior, vector<vector<MaskAndCost> > &ret) {
+void MetaExample::append_to_masks(int min_mask_size, int max_mask_size, vector<vector<MaskAndCost> > &ret) {
 
     if(get_function_size() == 0)
     {
@@ -318,21 +316,11 @@ void MetaExample::append_to_masks(
 
     vector<MaskAndCost> ret_bucket;
 
-    int bucket_id = 0;
     for(int i = 0;i<ret_with_cost.size();i++)
     {
-        cout << "subdomain " << ret_with_cost[i].to_string() << " cost " << ret_with_cost[i].get_mask_cost();
         ret_bucket.push_back(ret_with_cost[i]);
-        cout << " put in bucket " + std::to_string(bucket_id);
-        if (num_first_in_prior != -1 && (i+1) % num_first_in_prior == 0)
-        {
-            ret.push_back(ret_bucket);
-            ret_bucket.clear();
-            bucket_id++;
-            cout << endl;
-        }
-        cout << endl;
     }
+
     ret.push_back(ret_bucket);
     ret_bucket.clear();
     cout << endl;

@@ -299,7 +299,7 @@ void ReasoningSchemaOptimizer::calc_masks(int set_init_mask_size, int set_end_ma
     }
     else if(parent_pointer != nullptr)
     {
-        bool copy_masks_from_parent = true;
+        bool copy_masks_from_parent = false;
         if(copy_masks_from_parent)
         {
             assert(parent_pointer->masks.size() >= 1);
@@ -542,6 +542,11 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
     init_num_missing_bits = get_num_missing_bits(meta_examples);
 
     int num_candidates_to_find = 1;
+
+    if(parent_pointer == nullptr)
+    {
+        assert(init_num_missing_bits >= 1);
+    }
 
     if(init_num_missing_bits >= 1) {
 

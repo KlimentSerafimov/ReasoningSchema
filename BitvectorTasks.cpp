@@ -291,9 +291,9 @@ BitvectorTasks::get_multi_task_type(IncrementalTypeExpression *type_expression, 
     for (int i = 0; i < num_iter; i++) {
         if(i == 0)
         {
-            multi_task_type.push_back(type_expression->base_task_type->get_supertask_type(type_expression->init_delta_task_type));
+            multi_task_type.push_back(type_expression->base_task_type->get_supertask_type(type_expression->deltas[0]));
         } else{
-            multi_task_type.push_back(multi_task_type[i-1]->get_supertask_type(type_expression->delta_task_type));
+            multi_task_type.push_back(multi_task_type[i-1]->get_supertask_type(type_expression->deltas[i]));
         }
         cout << multi_task_type[i]->to_string() << endl;
     }
@@ -355,13 +355,14 @@ BitvectorTasks::get_meta_examples(IncrementalTypeExpression *type_expression, Ta
     type_expression->base_task_type->solve(task_name);
     num_iter--;
 
+    int at_delta = 0;
     instance_tree = InstanceTree(type_expression->base_task_type, task_name);
-    instance_tree.prepare_for_deepening(type_expression->init_delta_task_type);
+    instance_tree.prepare_for_deepening(type_expression->deltas[at_delta++]);
 
     for(int iter = 0;iter<num_iter;iter++)
     {
         cout << "GENERATING DATA FOR ITER: " << iter << endl;
-        instance_tree.deepen(type_expression->delta_task_type);
+        instance_tree.deepen(type_expression->deltas[at_delta++]);
         cout << "DONE GENERATING DATA FOR ITER: " << iter << endl;
     }
 
@@ -693,10 +694,8 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
         out_next_subdomains.close();
 
     }
-//            else {
-    task_type->to_meta_example(-1, num_prev_subtasks).append_to_masks(
-            min_mask_size, max_mask_size, num_first_in_prior, masks_of_task_id);
-//            }
+
+    task_type->to_meta_example(-1, num_prev_subtasks).append_to_masks(min_mask_size, max_mask_size, masks_of_task_id);
 
     remove_duplicates(masks_of_task_id);
 
@@ -877,8 +876,9 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
                     subdomains = local_subdomains;
                 }
             }
-            assert(ret_train_meta_examples.size() != 0);
-            train_meta_examples = ret_train_meta_examples;
+            if(ret_train_meta_examples.size() != 0) {
+                train_meta_examples = ret_train_meta_examples;
+            }
 
             std::shuffle(train_meta_examples.begin(), train_meta_examples.end(),
                          std::mt19937(std::random_device()()));
@@ -983,10 +983,9 @@ BitvectorTasks::BitvectorTasks(Task *_task_name, int _init_iter, int _num_iter, 
                                MetricType _metric,
                                ModeType _mode, int _min_mask_size, int _max_mask_size, int _num_prev_subtasks,
                                string _dir_path,
-                               int _num_first_in_prior, bool _train_set_minimization, int _seed_train_set,
-                               int _num_minimization_steps, double _init_minimization_fraction,
-                               double _end_minimization_fraction,
-                               AutomatonRuleCost _max_automaton_rule_cost)
+                               bool _train_set_minimization, int _seed_train_set, int _num_minimization_steps,
+                               double _init_minimization_fraction, double _end_minimization_fraction,
+                               AutomatonRuleCost max_automaton_rule_cost)
 {
     task_name = _task_name;
     init_iter = _init_iter;
@@ -998,13 +997,12 @@ BitvectorTasks::BitvectorTasks(Task *_task_name, int _init_iter, int _num_iter, 
     max_mask_size = _max_mask_size;
     num_prev_subtasks = _num_prev_subtasks;
     dir_path = _dir_path;
-    num_first_in_prior = _num_first_in_prior;
     train_set_minimization = _train_set_minimization;
     seed_train_set = _seed_train_set;
     num_minimization_steps = _num_minimization_steps;
     init_minimization_fraction = _init_minimization_fraction;
     end_minimization_fraction = _end_minimization_fraction;
-    max_automaton_rule_cost = _max_automaton_rule_cost;
+    max_automaton_rule_cost = max_automaton_rule_cost;
 
     //set up type expression
     IncrementalTypeExpression type_expression_for_multi_task_set = IncrementalTypeExpression(task_name);
@@ -1147,12 +1145,10 @@ BitvectorTasks::BitvectorTasks(Task *_task_name, int _init_iter, int _num_iter, 
 void BitvectorTasks::set_up_directory() {
 
     dir_path =
-            "task_name=" + task_name->get_task_name() +
-            "-gen=72-init_iter=" + std::to_string(init_iter) +
-            "-end_iter=" + std::to_string(num_iter) +
-            "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
+            "task=" + task_name->get_task_name() +
+            "-gen=74-iter_range=[" + std::to_string(init_iter) + "," + std::to_string(num_iter) + "]"
+            "-num_subtask=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +
-            "-fst_from_pior="+std::to_string(num_first_in_prior) +
             "-metric=" + metric_type_name[metric]+
             "-mode="+mode_type_name[mode]+
             "-tsm="+std::to_string(train_set_minimization)[0]+
