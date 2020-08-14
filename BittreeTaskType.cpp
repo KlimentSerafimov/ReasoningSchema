@@ -649,12 +649,17 @@ void BittreeNode::apply_rule(Rule rule, int child_id, const BittreeNode *canvas,
                             assert(0 <= next_id && next_id < get_parent()->get_parent()->children.size());
                             cout << "grandchild_id = " << grandchild_id << endl;
                             cout << "next_id = " << next_id << endl;
-                            BittreeNode *cousin = canvas->get_parent()->get_parent()->children[next_id]->children[child_id];
-                            if(cousin->node_type == leaf_node)
-                            {
-                                if(cousin->leaf_node_type == bit_node && cousin->bit->is_bit_set) {
-                                    canvas->bit->bit_val = max(0, canvas->bit->bit_val - 1);
-                                    cousin->bit->bit_val++;
+                            if(child_id < canvas->get_parent()->get_parent()->children[next_id]->children.size()) {
+                                BittreeNode *cousin = canvas->get_parent()->get_parent()->children[next_id]->children[child_id];
+                                if (cousin->node_type == leaf_node) {
+                                    if (cousin->leaf_node_type == bit_node) {
+                                        if (cousin->bit->is_bit_set) {
+                                            canvas->bit->bit_val = max(0, canvas->bit->bit_val - 1);
+                                            cousin->bit->bit_val++;
+                                        }
+                                    } else {
+                                        assert(false);
+                                    }
                                 }
                             }
                         }

@@ -2,19 +2,19 @@
 // Created by Kliment Serafimov on 1/21/20.
 //
 
-#include "BittreeTypeExpression.h"
+#include "IncrementalTypeExpression.h"
 #include <iostream>
 #include <vector>
 
 using namespace std;
 
-BittreeTypeExpression::BittreeTypeExpression(Task *task_name)
+IncrementalTypeExpression::IncrementalTypeExpression(Task *task_name)
 {
     task_name->generate_bittree_task_expression(this);
 
 }
 
-void BittreeTypeExpression::build_input_type(int num_input_operands, int init_input_sizes[], int delta_input_size[])
+void IncrementalTypeExpression::build_input_type(int num_input_operands, int init_input_sizes[], int delta_input_size[])
 {
     //input type expression
     for(int i = 0;i<num_input_operands;i++)
@@ -38,7 +38,7 @@ void BittreeTypeExpression::build_input_type(int num_input_operands, int init_in
     }
 }
 
-void BittreeTypeExpression::build_output_type(int num_outputs, int* init_output_sizes, int* delta_output_size) const
+void IncrementalTypeExpression::build_output_type(int num_outputs, int* init_output_sizes, int* delta_output_size) const
 {
     for(int i = 0;i<num_outputs;i++)
     {
@@ -69,7 +69,7 @@ void BittreeTypeExpression::build_output_type(int num_outputs, int* init_output_
     }
 }
 
-void BittreeTypeExpression::build_type__add_leafs(int num_input_operands, int init_output_size, int delta_output_size)
+void IncrementalTypeExpression::build_type__add_leafs(int num_input_operands, int init_output_size, int delta_output_size)
 {
     base_task_type = new BittreeTaskType(
             nullptr,  Name("base_task_type"), internal_node, internal_node);
@@ -111,7 +111,7 @@ void BittreeTypeExpression::build_type__add_leafs(int num_input_operands, int in
 //    }
 }
 
-void BittreeTypeExpression::build_input_type(int num_input_operands) {
+void IncrementalTypeExpression::build_input_type(int num_input_operands) {
     int init_input_sizes[num_input_operands];
     int delta_input_sizes[num_input_operands];
     for (int i = 0; i < num_input_operands; i++) {

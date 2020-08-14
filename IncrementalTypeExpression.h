@@ -2,19 +2,22 @@
 // Created by Kliment Serafimov on 1/21/20.
 //
 
-#ifndef COMPACTPOSET_BITTREETYPEEXPRESSION_H
-#define COMPACTPOSET_BITTREETYPEEXPRESSION_H
+#ifndef COMPACTPOSET_INCREMENTALTYPEEXPRESSION_H
+#define COMPACTPOSET_INCREMENTALTYPEEXPRESSION_H
 
 #include "Task.h"
 #include "BittreeTaskType.h"
 
-class BittreeTypeExpression
+
+class IncrementalTypeExpression
 {
 public:
 
     BittreeTaskType* base_task_type;
     BittreeInputOutputType* init_delta_task_type;
     BittreeInputOutputType* delta_task_type;
+
+    vector<BittreeInputOutputType*> deltas;
 
     // type_expression(type) = type + delta_type
 
@@ -24,9 +27,9 @@ public:
     //base + delta = (. . -> _) + (_ _ -> _) = (_ _ -> __)
     //base + delta + delta = (_ _ -> __) + (_ _ -> _) = (__ __ -> ___)
 
-    BittreeTypeExpression() = default;
+    IncrementalTypeExpression() = default;
 
-    BittreeTypeExpression(Task *task_name);
+    IncrementalTypeExpression(Task *task_name);
 
     void build_input_type(int num_input_operands, int* init_input_sizes, int* delta_input_sizes);
 
@@ -41,4 +44,4 @@ public:
 };
 
 
-#endif //COMPACTPOSET_BITTREETYPEEXPRESSION_H
+#endif //COMPACTPOSET_INCREMENTALTYPEEXPRESSION_H

@@ -284,7 +284,7 @@ BittreeTaskInstance::BittreeTaskInstance(BittreeTaskType* _bittree_task_type)
 }
 
 vector<BittreeTaskType *>
-BitvectorTasks::get_multi_task_type(BittreeTypeExpression *type_expression, int init_num_iter) {
+BitvectorTasks::get_multi_task_type(IncrementalTypeExpression *type_expression, int init_num_iter) {
     int num_iter = init_num_iter;
 
     vector<BittreeTaskType *> multi_task_type;
@@ -300,6 +300,7 @@ BitvectorTasks::get_multi_task_type(BittreeTypeExpression *type_expression, int 
     return multi_task_type;
 
 }
+
 
 vector<vector<vector<MaskAndCost> > >
 BitvectorTasks::masks_generator(int num_subtasks, int max_masks_size, int min_mask_size, int num_first_in_prior, vector<BittreeTaskType*> multi_task_type)
@@ -346,7 +347,7 @@ BitvectorTasks::masks_generator(int num_subtasks, int max_masks_size, int min_ma
 }
 
 void
-BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, Task *task_name, int init_num_iter,
+BitvectorTasks::get_meta_examples(IncrementalTypeExpression *type_expression, Task *task_name, int init_num_iter,
                                   int subtask_depth, vector<vector<MetaExample> >& ret_meta_examples,
                                   vector<vector<InstanceTree*> >& ret_inst_trees)
 {
@@ -354,30 +355,12 @@ BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, Task *
     type_expression->base_task_type->solve(task_name);
     num_iter--;
 
-//    cout << type_expression->base_task_type->to_string() << endl;
-
     instance_tree = InstanceTree(type_expression->base_task_type, task_name);
     instance_tree.prepare_for_deepening(type_expression->init_delta_task_type);
-//    instances.deepen(type_expression->init_delta_task_type);
-//
-//    instances.prepare_for_deepening(type_expression->delta_task_type);
-//    num_iter--;
 
     for(int iter = 0;iter<num_iter;iter++)
     {
         cout << "GENERATING DATA FOR ITER: " << iter << endl;
-//        vector<vector<MetaExample> > meta_examples;
-//        instances.populate_meta_examples(meta_examples, 0, subtask_depth);
-//        for(int i = 0;i<meta_examples.size();i++)
-//        {
-//            for(int j = 0;j<meta_examples[i].size();j++)
-//            {
-//                cout << meta_examples[i][j].to_string() << endl;
-//            }
-//            cout << endl;
-//        }
-//        cout << "----------------------------------------" << endl;
-
         instance_tree.deepen(type_expression->delta_task_type);
         cout << "DONE GENERATING DATA FOR ITER: " << iter << endl;
     }
@@ -387,7 +370,6 @@ BitvectorTasks::get_meta_examples(BittreeTypeExpression *type_expression, Task *
 
     assert(ret_meta_examples.size() == init_num_iter);
     assert(ret_inst_trees.size() == init_num_iter);
-
 }
 
 vector<MaskAndCost> BitvectorTasks::get_next_subdomains(
@@ -422,7 +404,7 @@ vector<MaskAndCost> BitvectorTasks::get_next_subdomains(
             BittreeTaskTypeAsPartialFunction* bittree_as_partial = subdomains[subdomain_id].now_canvas;
 
             vector<BittreeTaskType*> next_current_bittree =
-                    get_multi_task_type(new BittreeTypeExpression(task_name), task_id+2);
+                    get_multi_task_type(new IncrementalTypeExpression(task_name), task_id + 2);
             BittreeTaskTypeAsPartialFunction* next_bittree_as_partial = new BittreeTaskTypeAsPartialFunction(
                     next_current_bittree[next_current_bittree.size()-1], num_prev_subtasks);
 
@@ -486,7 +468,7 @@ void run_bittree_program(Task * task_name)
 {
 
     int num_subtasks = 1;
-    BittreeTypeExpression type_expression_for_masks = BittreeTypeExpression(task_name);
+    IncrementalTypeExpression type_expression_for_masks = IncrementalTypeExpression(task_name);
     vector<BittreeTaskType*> curriculum;
     int num_iter = 4;
     int num_subtree_markers = 100;
@@ -509,7 +491,7 @@ void run_bittree_program(Task * task_name)
 void BitvectorTasks::augment_subdomains(vector<MaskAndCost>& subdomains, BittreeTaskType* current_bittree, int num_prev_subtasks, int task_id)
 {
     for (int subdomain_id = 0; subdomain_id < subdomains.size(); subdomain_id++) {
-        vector<BittreeTaskType*> new_current_bittree = get_multi_task_type(new BittreeTypeExpression(task_name), task_id+1);
+        vector<BittreeTaskType*> new_current_bittree = get_multi_task_type(new IncrementalTypeExpression(task_name), task_id + 1);
         BittreeTaskTypeAsPartialFunction* bittree_as_partial = new BittreeTaskTypeAsPartialFunction(
                 new_current_bittree[new_current_bittree.size()-1], num_prev_subtasks);
 
@@ -598,7 +580,7 @@ void BitvectorTasks::delta_wiring(vector<MaskAndCost> &subdomains, BittreeTaskTy
                 }
             }
 
-            if(best_mask.first != -1)
+            if(best_mask.first.get_defined())
             {
                 int prev_id = best_mask.second.first;
                 int edge_id = best_mask.second.second;
@@ -818,7 +800,6 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
 
         vector<MaskAndCost> subdomains;
         int min_train_set_size = test_meta_examples.size();
-        vector<MetaExample> min_train_meta_examples;
 
         summary << "task_id " << task_id + 1 << endl;
         summary_with_times << "task_id_" << task_id + 1 << " ";
@@ -830,6 +811,7 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
             bool all_solved = false;
             vector<MaskAndCost> local_subdomains;
             vector<MaskAndCost> prev_subdomains;
+            ReasoningSchemaOptimizer * local_reasoning_scema = nullptr;
 
             while (!all_solved) {
                 language_name = init_language_name + "__min_step=" + std::to_string(minimization_step) +
@@ -875,8 +857,7 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
 
                 if (all_solved) {
                     local_subdomains = my_reasoning_schema->get_subdomains();
-                    ret_reasoning_schema = my_reasoning_schema;
-                    ret_train_meta_examples = train_meta_examples;
+                    local_reasoning_scema = my_reasoning_schema;
                 }
                 prev_subdomains = my_reasoning_schema->get_subdomains();;
 
@@ -888,14 +869,16 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
                 summary << train_meta_examples.size() << endl;
                 summary_with_times << train_meta_examples.size() << " " << (time(nullptr) - init_time) << endl;
 
-                if (min_train_set_size > train_meta_examples.size()) {
+                if (min_train_set_size >= train_meta_examples.size()) {
                     min_train_set_size = train_meta_examples.size();
-                    min_train_meta_examples = train_meta_examples;
+                    ret_reasoning_schema = local_reasoning_scema;
+                    ret_train_meta_examples = train_meta_examples;
                     assert(local_subdomains.size() >= 1);
                     subdomains = local_subdomains;
                 }
             }
-            train_meta_examples = min_train_meta_examples;
+            assert(ret_train_meta_examples.size() != 0);
+            train_meta_examples = ret_train_meta_examples;
 
             std::shuffle(train_meta_examples.begin(), train_meta_examples.end(),
                          std::mt19937(std::random_device()()));
@@ -1024,8 +1007,8 @@ BitvectorTasks::BitvectorTasks(Task *_task_name, int _init_iter, int _num_iter, 
     max_automaton_rule_cost = _max_automaton_rule_cost;
 
     //set up type expression
-    BittreeTypeExpression type_expression_for_meta_examples = BittreeTypeExpression(task_name);
-    BittreeTypeExpression type_expression_for_multi_task_set = BittreeTypeExpression(task_name);
+    IncrementalTypeExpression type_expression_for_multi_task_set = IncrementalTypeExpression(task_name);
+    IncrementalTypeExpression type_expression_for_meta_examples = IncrementalTypeExpression(task_name);
 
     vector<BittreeTaskType *> multi_task_type = get_multi_task_type(&type_expression_for_multi_task_set, num_iter);
 
@@ -1165,7 +1148,7 @@ void BitvectorTasks::set_up_directory() {
 
     dir_path =
             "task_name=" + task_name->get_task_name() +
-            "-gen=71.4-init_iter=" + std::to_string(init_iter) +
+            "-gen=72-init_iter=" + std::to_string(init_iter) +
             "-end_iter=" + std::to_string(num_iter) +
             "-num_prev_subtasks=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +
