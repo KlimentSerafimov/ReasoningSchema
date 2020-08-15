@@ -7,6 +7,7 @@
 
 #include "Module.h"
 #include "MetricType.h"
+#include "MaskAndCostAndInstantiatedModules.h"
 
 class MaskIdAndHeuristicScore
 {
@@ -47,7 +48,7 @@ class ReasoningSchemaOptimizer
     vector<MetaExample> meta_examples;
     int init_num_missing_bits;
 
-    vector<vector<MaskAndCost> > masks;
+    Prior masks;
     int module_id;
     vector<MaskIdAndHeuristicScore> mask_ids_by_heuristic;
     vector<vector<HeuristicScore> > heuristic_score_by_bucket_id_by_mask_id;
@@ -64,7 +65,7 @@ class ReasoningSchemaOptimizer
 
     void calc_masks(int set_init_masks_size, int set_end_masks_size);
 
-    void calc_module(MaskAndCost subdomain_mask, Module *module);
+    void calc_module(MaskAndCostAndInstantiatedModules *subdomain_mask, Module *module);
 
     void main__minimal_factoring_schema(vector<MetaExample> _meta_examples);
 
@@ -80,12 +81,12 @@ public:
 
     ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name);
 
-    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name, vector<vector<MaskAndCost> > mask,
+    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name, Prior mask,
                              string dir_path, MetricType metric_type);
 
     vector<MetaExample> get_necessary_meta_examples(bool print);
 
-    vector<MaskAndCost> get_subdomains();
+    vector<MaskAndCostAndInstantiatedModules*> get_subdomains();
 
     PartialFunction query(PartialFunction partial_function);
 

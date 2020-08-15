@@ -2,8 +2,10 @@
 // Created by Kliment Serafimov on 2019-11-18.
 //
 
+#include "MaskAndCostAndInstantiatedModules.h"
 #include "MetaExample.h"
 #include "util.h"
+#include "Prior.h"
 #include <iostream>
 
 MetaExample::MetaExample(
@@ -197,10 +199,10 @@ float MetaExample::cost(Bitvector mask)
     return (float)sum_sum+custom_cost;
 }
 
-vector<vector<MaskAndCost>> MetaExample::get_masks(int min_mask_size, int max_mask_size, int num_first_in_prior)
+Prior MetaExample::get_masks(int min_mask_size, int max_mask_size, int num_first_in_prior)
 {
 
-    vector<vector<MaskAndCost> > ret;
+    Prior ret;
 
     append_to_masks(min_mask_size, max_mask_size, ret);
 
@@ -273,14 +275,14 @@ vector<vector<MaskAndCost>> MetaExample::get_masks(int min_mask_size, int max_ma
 
 }
 
-void MetaExample::append_to_masks(int min_mask_size, int max_mask_size, vector<vector<MaskAndCost> > &ret) {
+void MetaExample::append_to_masks(int min_mask_size, int max_mask_size, Prior &ret) {
 
     if(get_function_size() == 0)
     {
         return ;
     }
 
-    vector<MaskAndCost> ret_with_cost;
+    vector<Pointer_MaskAndCostAndInstantiatedModules> ret_with_cost;
 
     cout << "MASKS: " << endl;
 
@@ -307,18 +309,18 @@ void MetaExample::append_to_masks(int min_mask_size, int max_mask_size, vector<v
             local_mask.set(j);
         }
         do{
-            ret_with_cost.emplace_back(MaskAndCost(cost(local_mask), local_mask));
+            ret_with_cost.emplace_back(new MaskAndCostAndInstantiatedModules(new MaskAndCost(cost(local_mask), local_mask))) ;
             cout << bitvector_to_str(local_mask, get_function_size()) << endl;
         }while(next_mask(local_mask, i));
     }
 
     sort(ret_with_cost.begin(), ret_with_cost.end());
 
-    vector<MaskAndCost> ret_bucket;
+    vector<MaskAndCostAndInstantiatedModules*> ret_bucket;
 
     for(int i = 0;i<ret_with_cost.size();i++)
     {
-        ret_bucket.push_back(ret_with_cost[i]);
+        ret_bucket.push_back(ret_with_cost[i].get_pointer());
     }
 
     ret.push_back(ret_bucket);

@@ -95,7 +95,7 @@ public:
 
     void update_bitvector();
 
-    vector<MaskAndCost> generate_variety(ofstream *fout, AutomatonRuleCost max_automaton_rule_cost);
+    vector<MaskAndCostAndInstantiatedModules*> generate_variety(ofstream *fout, AutomatonRuleCost max_automaton_rule_cost);
 };
 
 class CanvasAsPartialFunction: public PartialFunction

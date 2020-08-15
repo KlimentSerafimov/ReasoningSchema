@@ -24,7 +24,7 @@ string Module::print_module_sketch(time_t delta_time)
 
     string ret =
             one_line + " | " +
-            bitvector_to_str(subdomain_mask, function_size) + " " +
+            bitvector_to_str(*subdomain_mask, function_size) + " " +
             std::to_string(necessary_meta_example_ids.size()) + " " +
             std::to_string(intermediate_num_missing_bits) + " time " + std::to_string(delta_time) + "\n";
 
@@ -36,7 +36,7 @@ string Module::print_module_sketch(time_t delta_time)
         string one_line_1 = subdomain_mask_to_string(repeats_module_pointers[i]->subdomain_mask);
         ret +=
                 one_line_1 + " | "+
-                bitvector_to_str(repeats_module_pointers[i]->subdomain_mask, repeats_module_pointers[i]->function_size) + " " +
+                bitvector_to_str(*repeats_module_pointers[i]->subdomain_mask, repeats_module_pointers[i]->function_size) + " " +
                 std::to_string(necessary_meta_example_ids.size()) + " " +
                 std::to_string(num_missing_bits_per_repeat[i]) + " " +
                 "mask " + std::to_string(repeats_module_ids[i]) + " " +
@@ -94,7 +94,7 @@ string Module::covered_to_string(vector<MetaExample> init_meta_examples)
                 ret +=
 //                        "subdomain_mask " + bitvector_to_str(parent_modules[i]->subdomain_mask, function_size) + "\t" +
                         "masked " + meta_example_to_string(intermediate_meta_example.get_application_of_subdomain(
-                                parent_modules[i]->subdomain_mask)) + "\t" +
+                                *parent_modules[i]->subdomain_mask)) + "\t" +
 //                intermediate_meta_example.get_application_of_subdomain(
 //                        parent_modules[i]->subdomain_mask).to_string() + "\t" +
                 "intermediate " + meta_example_to_string(intermediate_meta_example) + "\t" +

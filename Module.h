@@ -67,7 +67,7 @@ class Module
 {
 public:
     int function_size;
-    MaskAndCost subdomain_mask;
+    MaskAndCostAndInstantiatedModules* subdomain_mask;
     HeuristicScore heuristic_score;
 
     Module* parent_module;

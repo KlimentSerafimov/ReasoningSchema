@@ -20,6 +20,7 @@ public:
     Mask(Mask * _bitvector) : Bitvector(*_bitvector) {}
 };
 
+class MaskAndCostAndInstantiatedModules;
 
 class MaskAndCost: public Mask
 {
@@ -27,26 +28,13 @@ public:
     BittreeTaskTypeAsPartialFunction* now_canvas = nullptr;
     BittreeTaskTypeAsPartialFunction* next_canvas = nullptr;
     CanvasAndBittreeProgram* program = nullptr;
-    vector<MaskAndCost> local_variety;
+    vector<MaskAndCostAndInstantiatedModules*> local_variety;
     pair<MaskAndCost*, int> best_edge;
     bool mask_cost_defined = false;
     int mask_cost;
     MaskAndCost() = default;
-    MaskAndCost(MaskAndCost * to_copy) : Mask(to_copy)
-    {
-        local_variety = to_copy->local_variety;
-        program = to_copy->program;
-        now_canvas = to_copy->now_canvas;
-        next_canvas = to_copy->next_canvas;
-        best_edge = make_pair(nullptr, -1);
-        mask_cost_defined = to_copy->mask_cost_defined;
-        mask_cost = to_copy->mask_cost;
-    }
-    MaskAndCost(int _cost, Bitvector _bitvector) : Mask(_bitvector)
-    {
-        set_mask_cost(_cost);
-        best_edge = make_pair(nullptr, -1);
-    }
+    MaskAndCost(MaskAndCost * to_copy);
+    MaskAndCost(int _cost, Bitvector _bitvector);
     MaskAndCost(CanvasAndBittreeProgram* _program);
 
     void set_mask_cost(float _mask_cost)
@@ -60,44 +48,17 @@ public:
         return mask_cost;
     }
 
-    AutomatonRuleCost get_cost()
-    {
-        return program->get_cost();
-    }
+    AutomatonRuleCost get_cost();
 
-    virtual bool operator < (const MaskAndCost & other) const
-    {
-        if(program == nullptr || other.program == nullptr)
-        {
-            if(get_mask_cost() == other.get_mask_cost())
-            {
-                return Mask::operator<(other);
-            }
-            else
-            {
-                return get_mask_cost() < other.get_mask_cost();
-            }
-        }
-        else {
-            if (program->get_cost() != other.program->get_cost()) {
-                return program->get_cost() < other.program->get_cost();
-            } else {
-                return Mask::operator<(other);
-            }
-        }
-    }
-    void set_local_variety(vector<MaskAndCost> _local_variety)
-    {
-        local_variety = std::move(_local_variety);
-    }
-    string to_string()
-    {
-        return Mask::to_string();
-    }
-    void set_next_bittree_as_partial(BittreeTaskTypeAsPartialFunction* bittree_as_partial)
-    {
-        next_canvas = bittree_as_partial;
-    }
+    virtual bool operator < (const MaskAndCost & other) const;
+
+    bool operator<(const MaskAndCost* &other) const;
+
+    void set_local_variety(vector<MaskAndCostAndInstantiatedModules*> _local_variety);
+
+    string to_string();
+
+    void set_next_bittree_as_partial(BittreeTaskTypeAsPartialFunction* bittree_as_partial);
 
     void set_now_bittree_as_partial(BittreeTaskTypeAsPartialFunction *pFunction);
 

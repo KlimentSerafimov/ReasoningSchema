@@ -6,6 +6,8 @@
 #define COMPACTPOSET_METAEXAMPLE_H
 
 #include "PartialFunction.h"
+#include "MaskAndCostAndInstantiatedModules.h"
+#include "Prior.h"
 #include <string>
 
 using namespace std;
@@ -134,9 +136,9 @@ public:
         return true;
     }
 
-    vector<vector<MaskAndCost>> get_masks(int min_mask_size, int max_mask_size, int num_first_in_prior);
+    Prior get_masks(int min_mask_size, int max_mask_size, int num_first_in_prior);
 
-    void append_to_masks(int min_mask_size, int max_mask_size, vector<vector<MaskAndCost> > &ret);
+    void append_to_masks(int min_mask_size, int max_mask_size, Prior &ret);
 
 };
 

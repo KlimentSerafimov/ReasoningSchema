@@ -407,7 +407,7 @@ TraceNode::TraceNode(TraceOperation *parent, vector<MetaExample> meta_examples)
 }
 
 
-TraceVersionSpace::TraceVersionSpace(vector<MetaExample> _meta_examples, vector<MaskAndCost> masks)
+TraceVersionSpace::TraceVersionSpace(vector<MetaExample> _meta_examples, vector<MaskAndCostAndInstantiatedModules*> masks)
 {
     cout << endl;
     cout << "meta_examples" << endl;
@@ -426,7 +426,7 @@ TraceVersionSpace::TraceVersionSpace(vector<MetaExample> _meta_examples, vector<
     multiset<HeuristicScoreAndSolution> fronteer;
 
     for(int i = 0;i<masks.size();i++) {
-        fronteer.insert(HeuristicScoreAndSolution(masks[i].count(), masks[i].count(), root->trace_state.num_missing_bits, root, i));
+        fronteer.insert(HeuristicScoreAndSolution(masks[i]->count(), masks[i]->count(), root->trace_state.num_missing_bits, root, i));
     }
 
     int num_inserts = 0;
@@ -464,7 +464,7 @@ TraceVersionSpace::TraceVersionSpace(vector<MetaExample> _meta_examples, vector<
         }
 
         pair<TraceOperation*, bool> operation_with_bool =
-                get_trace_operation(compact_poset_operation, at.at, masks[at.next_mask_id], true);
+                get_trace_operation(compact_poset_operation, at.at, *masks[at.next_mask_id], true);
         TraceOperation* operation = operation_with_bool.first;
         bool is_new = operation_with_bool.second;
         bool skip = false;
@@ -534,8 +534,8 @@ TraceVersionSpace::TraceVersionSpace(vector<MetaExample> _meta_examples, vector<
                 for (int i = 0; i < masks.size(); i++) {
                     fronteer.insert(
                             HeuristicScoreAndSolution(
-                                    max(at.max_width, (int) masks[i].count()),
-                                    at.sum_width + masks[i].count(),
+                                    max(at.max_width, (int) masks[i]->count()),
+                                    at.sum_width + masks[i]->count(),
                                     output->trace_state.num_missing_bits,
                                     output, i));
                     num_inserts++;

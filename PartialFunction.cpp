@@ -355,7 +355,7 @@ void BittreeTaskTypeAsPartialFunction::update_bitvector() {
     init_via_bits(bits);
 }
 
-vector<MaskAndCost>
+vector<MaskAndCostAndInstantiatedModules*>
 BittreeTaskTypeAsPartialFunction::generate_variety(ofstream *fout, AutomatonRuleCost max_automaton_rule_cost) {
     return bittree_task_type->generate_variety(subtask_depth, fout, max_automaton_rule_cost);
 }

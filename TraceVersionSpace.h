@@ -191,7 +191,7 @@ class TraceVersionSpace
 public:
     TraceNode* root;
 
-    TraceVersionSpace(vector<MetaExample> _meta_examples, vector<MaskAndCost> masks);
+    TraceVersionSpace(vector<MetaExample> _meta_examples, vector<MaskAndCostAndInstantiatedModules*> masks);
 
 
 //    void main() {

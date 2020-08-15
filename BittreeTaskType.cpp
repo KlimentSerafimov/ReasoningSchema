@@ -1176,7 +1176,7 @@ BittreeNode* copy_bittree(BittreeNode* parent, Name name, BittreeNode* to_copy)
     return new BittreeNode(parent, name, to_copy, true);
 }
 
-vector<MaskAndCost>
+vector<MaskAndCostAndInstantiatedModules*>
 BittreeTaskType::generate_variety(int subtask_depth, ofstream *fout, AutomatonRuleCost max_automaton_rule_cost)
 {
     BittreeNode* local_parent = new BittreeNode(nullptr, Name("local_parent"), internal_node);
@@ -1256,13 +1256,13 @@ BittreeTaskType::generate_variety(int subtask_depth, ofstream *fout, AutomatonRu
                         new MaskAndCost(all_programs[i])));
     }
 
-    vector<MaskAndCost> ret;
+    vector<MaskAndCostAndInstantiatedModules*> ret;
 
     cout << "HOPE: " << endl;
     int prev = -1;
     for(auto bitvector : ret_set)
     {
-        ret.push_back(bitvector);
+        ret.push_back(new MaskAndCostAndInstantiatedModules(&bitvector));
         cout << bitvector.to_string() << endl;
     }
 

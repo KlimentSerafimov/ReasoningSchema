@@ -1688,7 +1688,6 @@ vector<MetaExample> get_meta_examples_that_are_individually_consistent_with_all_
 {
     vector<MetaExample> consistent_meta_examples;
 
-
     bool on_reduced_domain = true;
 
     if(on_reduced_domain)
