@@ -381,8 +381,8 @@ void modeling_of_bitvector_functions() {
 
         Task * task = new Task__sum_of_n_k_bit_integers_with_second_order_intermediate_state(2);
 
-        int init_iter = 3;
-        int num_iter = 5;
+        int init_iter = 2;
+        int num_iter = 4;
         ModeType mode_type = progressive_prior_mode;
         MetricType metric_type = most_progress; //min_imp_set;
         int recursive_rep_set_depth = 0;

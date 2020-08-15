@@ -17,7 +17,7 @@ using namespace std;
 
 #define NUM_BITS_IN_BLOCK_SIZE 5
 #define BLOCK_SIZE (1<<NUM_BITS_IN_BLOCK_SIZE)
-#define MAX_BITVECTOR_SIZE BLOCK_SIZE*4
+#define MAX_BITVECTOR_SIZE BLOCK_SIZE*32
 
 #define MAX_NUM_BLOCKS MAX_BITVECTOR_SIZE/BLOCK_SIZE + (MAX_BITVECTOR_SIZE % BLOCK_SIZE != 0)
 
@@ -47,7 +47,7 @@ public:
 
     Bitvector()
     {
-        set_size(MAX_BITVECTOR_SIZE);
+//        set_size(0);
         if(CONTROL) {
             control = bitset<CONTROL_BITVECTOR_SIZE>(0);
             for (int i = 0; i < size; i++) {
@@ -103,22 +103,42 @@ public:
         return idx >> NUM_BITS_IN_BLOCK_SIZE;
         return idx / BLOCK_SIZE;
     }
+
+    void place_block(int idx, unsigned long long bits);
+
+    Bitvector operator + (const Bitvector& other) const
+    {
+        Bitvector ret = Bitvector();
+        ret.set_size(max(other.get_size(), get_size())+1);
+        int carry = 0;
+        for(int i = 0;i<num_blocks;i++)
+        {
+            cout << ((1ull<<BLOCK_SIZE)-1) << endl;
+            cout << (other.blocks[i] & (((1ull<<(64-BLOCK_SIZE))-1) << BLOCK_SIZE)) << endl;
+            assert((other.blocks[i] & (((1ull<<(64-BLOCK_SIZE))-1) << BLOCK_SIZE)) == 0);
+            assert((blocks[i] & (((1ull<<(64-BLOCK_SIZE))-1) << BLOCK_SIZE)) == 0);
+            unsigned long long block_sum = blocks[i]+other.blocks[i]+carry;
+            carry = ((block_sum & (1ull<<BLOCK_SIZE)) != 0);
+            if(carry)
+            {
+                block_sum &= (unsigned long long)((1ull<<BLOCK_SIZE)-1);
+            }
+            ret.place_block(i, block_sum);
+        }
+        return ret;
+    }
     
     bool operator == (const Bitvector other) const
     {
-//        assert(get_size() == other.get_size());
-
-        int begin = 0;
         int end = min(get_size()-1, other.get_size()-1);
 
         int init_block = idx_to_block(0);
         int end_block = idx_to_block(end);
 
         bool ret = true;
-        int offset = 0;
         for(int i = init_block; i<=end_block;i++)
         {
-            if( blocks[i] != other.blocks[i])
+            if(blocks[i] != other.blocks[i])
             {
                 ret = false;
                 break;
@@ -754,6 +774,7 @@ public:
 
     unsigned long long to_ullong() const;
 
+    Bitvector get_prefix(const int &i);
 };
 
 

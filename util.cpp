@@ -232,6 +232,7 @@ int Bitvector::get_bit(int idx) const {
 }
 
 unsigned long long Bitvector::to_ullong() const {
+    assert(get_size() < 64);
     increment_op_counter();
     bitset<MAX_BITVECTOR_SIZE> local_bitset;
     for(int i = 0;i<get_size();i++)
@@ -239,6 +240,22 @@ unsigned long long Bitvector::to_ullong() const {
         local_bitset.set(i, get_bit(i));
     }
     return local_bitset.to_ullong();
+}
+
+Bitvector Bitvector::get_prefix(const int &new_size) {
+    assert(new_size <= get_size());
+    Bitvector ret = Bitvector(this, true, true);
+    for(int i = new_size;i<get_size();i++)
+    {
+        ret.set(i, 0);
+    }
+    ret.set_size(new_size);
+    return ret;
+}
+
+void Bitvector::place_block(int idx, unsigned long long bits) {
+
+    blocks[idx] = bits;
 }
 
 string vector_of_vector_of_int_to_string(vector<vector<int> > to_print, string title)

@@ -985,7 +985,7 @@ BitvectorTasks::BitvectorTasks(Task *_task_name, int _init_iter, int _num_iter, 
                                string _dir_path,
                                bool _train_set_minimization, int _seed_train_set, int _num_minimization_steps,
                                double _init_minimization_fraction, double _end_minimization_fraction,
-                               AutomatonRuleCost max_automaton_rule_cost)
+                               AutomatonRuleCost _max_automaton_rule_cost)
 {
     task_name = _task_name;
     init_iter = _init_iter;
@@ -1002,7 +1002,7 @@ BitvectorTasks::BitvectorTasks(Task *_task_name, int _init_iter, int _num_iter, 
     num_minimization_steps = _num_minimization_steps;
     init_minimization_fraction = _init_minimization_fraction;
     end_minimization_fraction = _end_minimization_fraction;
-    max_automaton_rule_cost = max_automaton_rule_cost;
+    max_automaton_rule_cost = _max_automaton_rule_cost;
 
     //set up type expression
     IncrementalTypeExpression type_expression_for_multi_task_set = IncrementalTypeExpression(task_name);
@@ -1146,7 +1146,7 @@ void BitvectorTasks::set_up_directory() {
 
     dir_path =
             "task=" + task_name->get_task_name() +
-            "-gen=74-iter_range=[" + std::to_string(init_iter) + "," + std::to_string(num_iter) + "]"
+            "-gen=76-iter_range=[" + std::to_string(init_iter) + "," + std::to_string(num_iter) + "]"
             "-num_subtask=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +
             "-metric=" + metric_type_name[metric]+

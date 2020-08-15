@@ -35,6 +35,11 @@ public:
     //if leaf_node_type == bit_node;
     BitInBittree *bit = nullptr;
 
+    bool is_bit() const
+    {
+        return node_type == leaf_node && leaf_node_type == bit_node;
+    }
+
     //if leaf_node_type == double_node;
 
     //if leaf_nod_type == delta_node;
@@ -103,6 +108,24 @@ public:
     BittreeNode * get_node(const vector<int> * path);
 
     int calc_subtree_sums();
+
+    Bitvector to_bitvector()
+    {
+        assert(node_type == internal_node);
+        for(int i = 0;i<children.size();i++)
+        {
+            assert(children[i]->is_bit());
+        }
+        Bitvector ret = Bitvector(0, children.size());
+        for(int i = 0;i<children.size();i++)
+        {
+            assert(children[i]->is_bit());
+            assert(children[i]->bit->is_bit_set);
+
+            ret.set(i, children[i]->bit->bit_val);
+        }
+        return ret;
+    }
 };
 
     void add_child(NodeType type, BitInBittreeType type1);
