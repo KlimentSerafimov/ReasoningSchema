@@ -550,7 +550,7 @@ void BitvectorTasks::delta_wiring(vector<MaskAndCostAndInstantiatedModules*> &su
             mask_propagation_fout << subdomains[now_id]->now_canvas->to_string__one_line() << " :: ";
             for (int prev_id = 0; prev_id < prev_subdomains.size(); prev_id++) {
                 for (int edge_id = 0; edge_id < prev_subdomains[prev_id]->local_variety.size(); edge_id++) {
-                    if (subdomains[now_id] == prev_subdomains[prev_id]->local_variety[edge_id]) {
+                    if (*subdomains[now_id] == *prev_subdomains[prev_id]->local_variety[edge_id]) {
                         mask_propagation_fout <<
                                               prev_subdomains[prev_id]->now_canvas->to_string__one_line()
                                               << " -> " <<
@@ -570,7 +570,7 @@ void BitvectorTasks::delta_wiring(vector<MaskAndCostAndInstantiatedModules*> &su
             pair<AutomatonRuleCost, pair<int, int> > best_mask = make_pair(AutomatonRuleCost(), make_pair(-1, -1));
             for (int prev_id = 0; prev_id < prev_subdomains.size(); prev_id++) {
                 for (int edge_id = 0; edge_id < prev_subdomains[prev_id]->local_variety.size(); edge_id++) {
-                    if (subdomains[now_id] == prev_subdomains[prev_id]->local_variety[edge_id]) {
+                    if (*subdomains[now_id] == *prev_subdomains[prev_id]->local_variety[edge_id]) {
                         if(!best_mask.first.get_defined())
                         {
                             assert(prev_subdomains[prev_id]->local_variety[edge_id]->get_cost().get_defined());
@@ -1155,7 +1155,7 @@ void BitvectorTasks::set_up_directory() {
 
     dir_path =
             "task=" + task_name->get_task_name() +
-            "-gen=77.25-iter_range=[" + std::to_string(init_iter) + "," + std::to_string(num_iter) + "]"
+            "-gen=77.26-iter_range=[" + std::to_string(init_iter) + "," + std::to_string(num_iter) + "]"
             "-num_subtask=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +
             "-metric=" + metric_type_name[metric]+
