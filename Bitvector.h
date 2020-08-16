@@ -113,8 +113,8 @@ public:
         int carry = 0;
         for(int i = 0;i<num_blocks;i++)
         {
-            cout << ((1ull<<BLOCK_SIZE)-1) << endl;
-            cout << (other.blocks[i] & (((1ull<<(64-BLOCK_SIZE))-1) << BLOCK_SIZE)) << endl;
+//            cout << ((1ull<<BLOCK_SIZE)-1) << endl;
+//            cout << (other.blocks[i] & (((1ull<<(64-BLOCK_SIZE))-1) << BLOCK_SIZE)) << endl;
             assert((other.blocks[i] & (((1ull<<(64-BLOCK_SIZE))-1) << BLOCK_SIZE)) == 0);
             assert((blocks[i] & (((1ull<<(64-BLOCK_SIZE))-1) << BLOCK_SIZE)) == 0);
             unsigned long long block_sum = blocks[i]+other.blocks[i]+carry;

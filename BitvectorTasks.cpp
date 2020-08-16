@@ -1155,7 +1155,7 @@ void BitvectorTasks::set_up_directory() {
 
     dir_path =
             "task=" + task_name->get_task_name() +
-            "-gen=77.26-iter_range=[" + std::to_string(init_iter) + "," + std::to_string(num_iter) + "]"
+            "-gen=77.32-iter_range=[" + std::to_string(init_iter) + "," + std::to_string(num_iter) + "]"
             "-num_subtask=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +
             "-metric=" + metric_type_name[metric]+

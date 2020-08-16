@@ -1581,7 +1581,7 @@ void Task__sum_of_n_k_bit_integers_with_intermediate_state::solve(BittreeInputOu
         holder->output->children[1]->children[i]->bit->bit_val = get_bit(sums[sums.size()-1], i);
     }
 
-    cout << holder->input->to_string__one_line() <<" -> " << holder->output->to_string__one_line() << endl;
+//    cout << holder->input->to_string__one_line() <<" -> " << holder->output->to_string__one_line() << endl;
 
 }
 
@@ -1663,14 +1663,14 @@ void Task__sum_of_n_k_bit_integers_with_second_order_intermediate_state::solve(B
         partial_sums.push_back(get_partial_sums(sums[i], input_list[i]));
     }
 
-    for(int i = 0;i<partial_sums.size();i++)
-    {
-        for(int j = 0;j<partial_sums[i].size();j++)
-        {
-            cout << partial_sums[i][j].to_string() << " ";
-        }
-        cout << endl;
-    }
+//    for(int i = 0;i<partial_sums.size();i++)
+//    {
+//        for(int j = 0;j<partial_sums[i].size();j++)
+//        {
+//            cout << partial_sums[i][j].to_string() << " ";
+//        }
+//        cout << endl;
+//    }
 
     BittreeNode* see_output = holder->output;
     assert(holder->output->children.size() == partial_sums.size());
@@ -1689,5 +1689,5 @@ void Task__sum_of_n_k_bit_integers_with_second_order_intermediate_state::solve(B
             }
         }
     }
-    cout << holder->input->to_string__one_line() <<" -> " << holder->output->to_string__one_line() << endl;
+//    cout << holder->input->to_string__one_line() <<" -> " << holder->output->to_string__one_line() << endl;
 }

@@ -700,7 +700,10 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
             calc_module(masks[best_bucket_id][best_mask_id], (&best_module));
 
             HeuristicScore best_heuristic = calculate_heuristic((&best_module));
-            assert(best_heuristic == mask_ids_by_heuristic[0].get_score());
+            if(!(best_heuristic == mask_ids_by_heuristic[0].get_score()))
+            {
+                assert(best_module.repeats_module_pointers.size()>=1);
+            }
             best_module.set_heuristic_score(best_heuristic);
 
             fout << best_module.print_module_sketch(time(nullptr) - init_time) << std::flush;
