@@ -41,6 +41,7 @@ public:
 
     void build_type__add_leafs(int num_input_operands, int init_output_size, int delta_output_size);
 
+    void generate_deltas();
 };
 
 

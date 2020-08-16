@@ -120,3 +120,12 @@ void IncrementalTypeExpression::build_input_type(int num_input_operands) {
     }
     build_input_type(num_input_operands, init_input_sizes, delta_input_sizes);
 }
+
+void IncrementalTypeExpression::generate_deltas() {
+    assert(deltas.size() == 0);
+    deltas.push_back(init_delta_task_type);
+    for(int i = 0;i<10;i++)
+    {
+        deltas.push_back(delta_task_type);
+    }
+}

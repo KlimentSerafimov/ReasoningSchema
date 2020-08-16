@@ -1682,6 +1682,15 @@ vector<MetaExample> CompactPoset::get_all_meta_examples_without_duplicates() {
     return ret;
 }
 
+Bitvector CompactPoset::get_generalization_mask() {
+    Bitvector ret = Bitvector(0, function_size);
+    for(int i = 0;i<delta_stack.size();i++)
+    {
+        ret |= delta_stack[i].meta_example.get_generalization_mask();
+    }
+    return ret;
+}
+
 
 vector<MetaExample> get_meta_examples_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(
         Bitvector subdomain_mask, vector<MetaExample> meta_examples)

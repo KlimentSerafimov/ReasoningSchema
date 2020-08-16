@@ -51,7 +51,7 @@ class ReasoningSchemaOptimizer
     Prior masks;
     int module_id;
     vector<MaskIdAndHeuristicScore> mask_ids_by_heuristic;
-    vector<vector<HeuristicScore> > heuristic_score_by_bucket_id_by_mask_id;
+//    vector<vector<HeuristicScore> > heuristic_score_by_bucket_id_by_mask_id;
 
     ReasoningSchemaOptimizer* next = nullptr;
 
@@ -70,6 +70,8 @@ class ReasoningSchemaOptimizer
     void main__minimal_factoring_schema(vector<MetaExample> _meta_examples);
 
     bool skip_mask(MaskAndCost subdomain_mask);
+
+
 
 public:
 

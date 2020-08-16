@@ -292,6 +292,10 @@ BitvectorTasks::get_multi_task_type(IncrementalTypeExpression *type_expression, 
     for (int i = 0; i < num_iter; i++) {
         if(i == 0)
         {
+            if(type_expression->deltas.size() == 0)
+            {
+                type_expression->generate_deltas();
+            }
             multi_task_type.push_back(type_expression->base_task_type->get_supertask_type(type_expression->deltas[0]));
         } else{
             multi_task_type.push_back(multi_task_type[i-1]->get_supertask_type(type_expression->deltas[i]));
@@ -358,6 +362,10 @@ BitvectorTasks::get_meta_examples(IncrementalTypeExpression *type_expression, Ta
 
     int at_delta = 0;
     instance_tree = InstanceTree(type_expression->base_task_type, task_name);
+    if(type_expression->deltas.size() == 0)
+    {
+        type_expression->generate_deltas();
+    }
     instance_tree.prepare_for_deepening(type_expression->deltas[at_delta++]);
 
     for(int iter = 0;iter<num_iter;iter++)
@@ -1147,7 +1155,7 @@ void BitvectorTasks::set_up_directory() {
 
     dir_path =
             "task=" + task_name->get_task_name() +
-            "-gen=77.1-iter_range=[" + std::to_string(init_iter) + "," + std::to_string(num_iter) + "]"
+            "-gen=77.25-iter_range=[" + std::to_string(init_iter) + "," + std::to_string(num_iter) + "]"
             "-num_subtask=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +
             "-metric=" + metric_type_name[metric]+

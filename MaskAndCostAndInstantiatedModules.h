@@ -9,16 +9,23 @@
 #include "Mask.h"
 
 class Module;
+class HeuristicScore;
 
 class MaskAndCostAndInstantiatedModules: public MaskAndCost
 {
-    vector<Module*> instantiated_modules_per_mask;
+    vector<Module*> modules; //instantiated_modules_per_mask;
+    bool unseen_outputs_defined = false;
+    Bitvector unseen_outputs;
 public:
     MaskAndCostAndInstantiatedModules(MaskAndCost* mask_and_cost): MaskAndCost(mask_and_cost)
     {
-
     }
+    void add_unseen_output(Bitvector new_unseen_output);
     void push_back(Module* new_module);
+    HeuristicScore get_most_receint_heuristic();
+    bool has_most_receint_heuristic();
+    Bitvector get_unseen_outputs();
+    void reset_unseen_output();
 };
 
 class Pointer_MaskAndCostAndInstantiatedModules

@@ -140,6 +140,8 @@ public:
 
     void append_to_masks(int min_mask_size, int max_mask_size, Prior &ret);
 
+    Bitvector get_generalization_mask();
+    Bitvector get_output_mask();
 };
 
 int get_num_missing_bits(vector<MetaExample> meta_examples);

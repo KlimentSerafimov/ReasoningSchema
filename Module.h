@@ -17,6 +17,12 @@ public:
     int num_input_bits;
     double heuristic;
 
+
+
+    bool operator == (const HeuristicScore& other) const
+    {
+        return defined == other.defined && num_input_bits == other.num_input_bits && heuristic == other.heuristic;
+    }
     bool operator < (const HeuristicScore& other) const
     {
         if(defined && other.defined) {
@@ -65,10 +71,11 @@ class ReasoningSchemaOptimizer;
 
 class Module
 {
+    bool defined_heuristic_score = false;
+    HeuristicScore heuristic_score;
 public:
     int function_size;
     MaskAndCostAndInstantiatedModules* subdomain_mask;
-    HeuristicScore heuristic_score;
 
     Module* parent_module;
 
@@ -106,6 +113,31 @@ public:
     string subdomain_mask_to_string(MaskAndCost subdomain_mask);
 
     string meta_example_to_string(MetaExample meta_example);
+
+    Bitvector get_generalization_mask()
+    {
+        assert(compact_poset != nullptr);
+        Bitvector ret = compact_poset->get_generalization_mask();
+        for(int i = 0;i<repeats_module_pointers.size();i++)
+        {
+            ret |= repeats_module_pointers[i]->get_generalization_mask();
+        }
+        return ret;
+    }
+    HeuristicScore get_heuristic_score()
+    {
+        assert(defined_heuristic_score);
+        return heuristic_score;
+    }
+    void set_heuristic_score(HeuristicScore _heuristic_score)
+    {
+        assert(!defined_heuristic_score);
+        heuristic_score = _heuristic_score;
+        subdomain_mask->push_back(this);
+
+        defined_heuristic_score = true;
+    }
+
 };
 
 #endif //COMPACTPOSET_MODULE_H

@@ -199,6 +199,8 @@ public:
     void add_edges_back();
 
     void compare_nodes();
+
+    Bitvector get_generalization_mask();
 };
 
 vector<MetaExample> get_meta_examples_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(

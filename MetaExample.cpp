@@ -328,6 +328,21 @@ void MetaExample::append_to_masks(int min_mask_size, int max_mask_size, Prior &r
     cout << endl;
 }
 
+Bitvector MetaExample::get_generalization_mask() {
+    assert((partial_function.partition & generalization.partition) == partial_function.partition);
+    return generalization.partition;
+//    Bitvector input_mask = partial_function.partition & generalization.partition;
+//    Bitvector output_mask = generalization.partition ^ input_mask;
+//    return output_mask;
+}
+
+Bitvector MetaExample::get_output_mask()
+{
+    Bitvector input_mask = partial_function.partition & generalization.partition;
+    Bitvector output_mask = generalization.partition ^ input_mask;
+    return output_mask;
+}
+
 int get_num_missing_bits(vector<MetaExample> meta_examples)
 {
     int ret = 0;
