@@ -386,9 +386,11 @@ vector<MaskAndCostAndInstantiatedModules*> BitvectorTasks::get_next_subdomains(
         MetricType metric, string dir_path, string init_language_name,
         vector<MaskAndCostAndInstantiatedModules*> & subdomains, BittreeTaskType * current_bittree, BittreeTaskType * next_bittree, int num_prev_subtasks, int task_id)
 {
-    ofstream fout;
+    ofstream fout, fout_all_automaton_rules;
 
-    string fout_name = "subdomains__metric=" + metric_type_name[metric];
+    fout_all_automaton_rules.open(dir_path + "/"+"all_automaton_rules__task_id="+std::to_string(task_id));
+
+    string fout_name = "next_subdomains__task_id="+std::to_string(task_id);
     fout.open(dir_path + "/" + fout_name + init_language_name);
     for (int j = 0; j < subdomains.size(); j++) {
         fout << subdomains[j]->to_string() << endl;
@@ -446,7 +448,8 @@ vector<MaskAndCostAndInstantiatedModules*> BitvectorTasks::get_next_subdomains(
 
             next_bittree_as_partial->update_bitvector();
 
-            vector<MaskAndCostAndInstantiatedModules*> local_variety = next_bittree_as_partial->generate_variety(&fout, max_automaton_rule_cost);
+            vector<MaskAndCostAndInstantiatedModules*> local_variety = next_bittree_as_partial->generate_variety(
+                    &fout_all_automaton_rules, max_automaton_rule_cost);
 
             subdomains[subdomain_id]->set_next_bittree_as_partial(next_bittree_as_partial);
             subdomains[subdomain_id]->set_local_variety(local_variety);
@@ -470,6 +473,7 @@ vector<MaskAndCostAndInstantiatedModules*> BitvectorTasks::get_next_subdomains(
     }
 
     fout.close();
+    fout_all_automaton_rules.close();
     return next_subdomains;
 }
 
@@ -853,7 +857,7 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
                         train_meta_examples.back().idx = train_meta_examples.size() - 1;
                         all_solved = false;
                         num_added += 1;
-                        if (num_added >= seed_train_set) {
+                        if (seed_train_set != -1 && num_added >= seed_train_set) {
                             cout << "break" << endl;
                             break;
                         }
@@ -1155,7 +1159,7 @@ void BitvectorTasks::set_up_directory() {
 
     dir_path =
             "task=" + task_name->get_task_name() +
-            "-gen=77.32-iter_range=[" + std::to_string(init_iter) + "," + std::to_string(num_iter) + "]"
+            "-gen=78-iter_range=[" + std::to_string(init_iter) + "," + std::to_string(num_iter) + "]"
             "-num_subtask=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +
             "-metric=" + metric_type_name[metric]+

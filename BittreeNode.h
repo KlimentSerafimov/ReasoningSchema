@@ -8,6 +8,8 @@
 #include "util.h"
 #include "BitInBittree.h"
 #include "AutomatonRuleCost.h"
+#include "CanvasAndBittreeProgram.h"
+#include "PrimitiveRule.h"
 
 class PartialFunction;
 class BittreeTaskTypeAsPartialFunction;
@@ -15,6 +17,8 @@ class MetaExample;
 class BittreeNode;
 class BittreeTaskType;
 class CanvasAndBittreeProgram;
+class SequenceOfPrimitiveRules;
+class PrimitiveRuleContext;
 
 enum BitTypeOverride {};
 
@@ -86,18 +90,25 @@ public:
 
     BittreeNode * push_back_child(BittreeNode* child);
 
-    string to_string__one_line();
+    string to_string__one_line() const;
 
     void populate_leaf_internals_and_bit_ids(vector<BittreeNode*> path, vector<pair<BittreeNode *, vector<int> > > & vector);
 
     string slim_tree_to_string(int tab) const;
 
-    void populate_programs(vector<Rule> *rules, CanvasAndBittreeProgram *canvas, int next_child, vector<int> *path,
-                           vector<CanvasAndBittreeProgram *> *all_programs, AutomatonRuleCost max_cost) const;
+    void populate_programs(
+            vector<SequenceOfPrimitiveRules> *rules,
+            CanvasAndBittreeProgram *canvas,
+            int next_child,
+            vector<int> *path,
+            vector<CanvasAndBittreeProgram *> *all_programs,
+            AutomatonRuleCost max_cost) const;
 
-    BittreeNode* produce_subtree_from_rule(Rule rule, vector<int> path);
+    BittreeNode* produce_subtree_from_rule(PrimitiveRule rule, vector<int> path);
 
-    void apply_rule(Rule rule, int child_id, const BittreeNode *canvas, int grandchild_id, int greatgrandchild_id) const;
+    void apply_rule(SequenceOfPrimitiveRules rule, const BittreeNode *canvas, const BittreeNode *pointer_on_canvas, vector<int> *path);
+
+    pair<BittreeNode*, PrimitiveRuleContext> apply_primitive_rule_to_bit(PrimitiveRule rule, int child_id, const BittreeNode *canvas, int grandchild_id, int greatgrandchild_id) const;
 
     void initialize_special_parents(BittreeNode *parent);
 

@@ -5,6 +5,9 @@
 #include "BittreeTaskType.h"
 #include "MetaExample.h"
 #include "AutomatonRuleCost.h"
+#include "CanvasAndBittreeProgram.h"
+#include "PrimitiveRule.h"
+
 #include <iostream>
 #include <set>
 #include <utility>
@@ -421,7 +424,7 @@ BittreeNode* BittreeNode::add_child(NodeType node_type, BitInBittreeType bit_in_
     return new_child;
 }
 
-string BittreeNode::to_string__one_line() {
+string BittreeNode::to_string__one_line() const {
     string ret = "";
     if(node_type == leaf_node)
     {
@@ -559,104 +562,132 @@ string BittreeNode::slim_tree_to_string(int tab) const {
 }
 
 
-void BittreeNode::apply_rule(Rule rule, int child_id, const BittreeNode *canvas, int grandchild_id,
-                             int greatgrandchild_id) const {
-    if(child_id != -1) {
-        if (get_parent() != nullptr) {
-            assert(canvas->get_parent()->children[child_id] == canvas);
-        } else {
-            assert(false);
-        }
-    }
-    if(node_type == internal_node)
+pair<BittreeNode*, PrimitiveRuleContext> BittreeNode::apply_primitive_rule_to_bit(
+        PrimitiveRule rule, int child_id, const BittreeNode *canvas, int grandchild_id, int greatgrandchild_id) const
+{
+    BittreeNode* ret_bit_on_canvas = nullptr;
+    PrimitiveRuleContext ret_context = PrimitiveRuleContext();
+    assert(canvas->leaf_node_type == bit_node);
+    assert(bit->is_bit_set);
+    if(bit->bit_val)
     {
-        assert(canvas->node_type == internal_node);
-        assert(canvas->children.size() == children.size());
-        for(int i = 0;i<children.size();i++)
+        if(get_parent()!=nullptr)
         {
-            children[i]->apply_rule(rule, i, canvas->children[i], child_id, grandchild_id);
-        }
-    }
-    else if (node_type == leaf_node)
-    {
-        assert(canvas->node_type == leaf_node);
-        if(leaf_node_type == bit_node)
-        {
-            assert(canvas->leaf_node_type == bit_node);
-            assert(bit->is_bit_set);
-            if(bit->bit_val)
-            {
-                if(get_parent()!=nullptr)
-                {
-                    assert(canvas->get_parent() != nullptr);
-                    if(rule == move_left || rule == move_right || rule == stay) {
-                        int next_id;
-                        if (rule == move_left) {
-                            if (child_id == 0) {
-                                assert(get_parent()->children.size() == canvas->get_parent()->children.size());
-                                next_id = (int) get_parent()->children.size() - 1;
-                            } else {
-                                next_id = child_id - 1;
-                            }
-                        } else if (rule == move_right) {
-                            assert(get_parent()->children.size() == canvas->get_parent()->children.size());
-                            if (child_id == (int) get_parent()->children.size() - 1) {
-                                next_id = 0;
-                            } else {
-                                next_id = child_id + 1;
-                            }
-                        } else if (rule == stay) {
-                            next_id = child_id;
-                        } else {
-                            assert(false);
-                        }
-
-                        canvas->bit->bit_val = max(0, canvas->bit->bit_val - 1);
+            assert(canvas->get_parent() != nullptr);
+            if(rule == move_left || rule == move_right || rule == stay) {
+                int next_id;
+                if (rule == move_left) {
+                    if (child_id == 0) {
                         assert(get_parent()->children.size() == canvas->get_parent()->children.size());
-                        assert(0 <= next_id && next_id < get_parent()->children.size());
-//                        cout << "prev_id = " << child_id << endl;
-//                        cout << "next_id = " << next_id << endl;
-                        BittreeNode *sibling = canvas->get_parent()->children[next_id];
-                        assert(sibling->node_type == leaf_node && sibling->leaf_node_type == bit_node &&
-                               sibling->bit->is_bit_set);
-                        sibling->bit->bit_val++;
+                        next_id = (int) get_parent()->children.size() - 1;
+                    } else {
+                        next_id = child_id - 1;
                     }
-                    else if(rule == move_up || rule == move_down) {
-                        if (get_parent()->get_parent() != nullptr) {
-                            assert(canvas->get_parent()->get_parent() != nullptr);
-                            assert(grandchild_id != -1);
-                            int next_id;
-                            if (rule == move_down) {
-                                if(grandchild_id == 0)
-                                {
-                                    next_id = canvas->get_parent()->get_parent()->children.size()-1;
-                                }
-                                else {
-                                    next_id = grandchild_id - 1;
-                                }
-                            } else if (rule == move_up) {
-                                if(grandchild_id == canvas->get_parent()->get_parent()->children.size()-1)
-                                {
-                                    next_id = 0;
-                                }
-                                else {
-                                    next_id = grandchild_id + 1;
+                } else if (rule == move_right) {
+                    assert(get_parent()->children.size() == canvas->get_parent()->children.size());
+                    if (child_id == (int) get_parent()->children.size() - 1) {
+                        next_id = 0;
+                    } else {
+                        next_id = child_id + 1;
+                    }
+                } else if (rule == stay) {
+                    next_id = child_id;
+                } else {
+                    assert(false);
+                }
+
+                canvas->bit->bit_val = max(0, canvas->bit->bit_val - 1);
+                assert(get_parent()->children.size() == canvas->get_parent()->children.size());
+                assert(0 <= next_id && next_id < get_parent()->children.size());
+                BittreeNode *sibling = canvas->get_parent()->children[next_id];
+                assert(sibling->node_type == leaf_node && sibling->leaf_node_type == bit_node && sibling->bit->is_bit_set);
+                sibling->bit->bit_val++;
+                ret_bit_on_canvas = sibling;
+                ret_context = PrimitiveRuleContext(next_id, grandchild_id, greatgrandchild_id);
+            }
+            else if(rule == move_up || rule == move_down) {
+                if (get_parent()->get_parent() != nullptr) {
+                    assert(canvas->get_parent()->get_parent() != nullptr);
+                    assert(grandchild_id != -1);
+                    int next_id;
+                    if (rule == move_down) {
+                        if(grandchild_id == 0)
+                        {
+                            next_id = canvas->get_parent()->get_parent()->children.size()-1;
+                        }
+                        else {
+                            next_id = grandchild_id - 1;
+                        }
+                    } else if (rule == move_up) {
+                        if(grandchild_id == canvas->get_parent()->get_parent()->children.size()-1)
+                        {
+                            next_id = 0;
+                        }
+                        else {
+                            next_id = grandchild_id + 1;
+                        }
+                    } else {
+                        assert(false);
+                    }
+
+                    assert(get_parent()->get_parent()->children.size() == canvas->get_parent()->get_parent()->children.size());
+                    assert(0 <= next_id && next_id < get_parent()->get_parent()->children.size());
+
+                    if(child_id < canvas->get_parent()->get_parent()->children[next_id]->children.size()) {
+                        BittreeNode *cousin = canvas->get_parent()->get_parent()->children[next_id]->children[child_id];
+                        if (cousin->node_type == leaf_node) {
+                            if (cousin->leaf_node_type == bit_node) {
+                                if (cousin->bit->is_bit_set) {
+                                    canvas->bit->bit_val = max(0, canvas->bit->bit_val - 1);
+                                    cousin->bit->bit_val++;
+                                    ret_bit_on_canvas = cousin;
+                                    ret_context = PrimitiveRuleContext(child_id, next_id, greatgrandchild_id);
                                 }
                             } else {
                                 assert(false);
                             }
+                        }
+                    }
+                }
+            }
+            else if(rule == move_front || rule == move_back) {
+                if (get_parent()->get_parent() != nullptr) {
+                    assert(canvas->get_parent()->get_parent() != nullptr);
+                    assert(grandchild_id != -1);
+                    if(get_parent()->get_parent()->get_parent() != nullptr) {
+                        assert(canvas->get_parent()->get_parent()->get_parent() != nullptr);
+                        assert(greatgrandchild_id != -1);
+                        int next_id;
+                        if (rule == move_back) {
+                            if (greatgrandchild_id == 0) {
+                                next_id = canvas->get_parent()->get_parent()->get_parent()->children.size() - 1;
+                            } else {
+                                next_id = greatgrandchild_id - 1;
+                            }
+                        } else if (rule == move_front) {
+                            if (greatgrandchild_id == canvas->get_parent()->get_parent()->get_parent()->children.size() - 1) {
+                                next_id = 0;
+                            } else {
+                                next_id = greatgrandchild_id + 1;
+                            }
+                        } else {
+                            assert(false);
+                        }
 
-                            assert(get_parent()->get_parent()->children.size() == canvas->get_parent()->get_parent()->children.size());
-                            assert(0 <= next_id && next_id < get_parent()->get_parent()->children.size());
-//                            cout << "grandchild_id = " << grandchild_id << endl;
-//                            cout << "next_id = " << next_id << endl;
-                            if(child_id < canvas->get_parent()->get_parent()->children[next_id]->children.size()) {
-                                BittreeNode *cousin = canvas->get_parent()->get_parent()->children[next_id]->children[child_id];
-                                if (cousin->node_type == leaf_node) {
-                                    if (cousin->leaf_node_type == bit_node) {
-                                        if (cousin->bit->is_bit_set) {
+                        assert(get_parent()->get_parent()->get_parent()->children.size() ==
+                               canvas->get_parent()->get_parent()->get_parent()->children.size());
+                        assert(0 <= next_id && next_id < get_parent()->get_parent()->get_parent()->children.size());
+
+                        if(grandchild_id < canvas->get_parent()->get_parent()->get_parent()->children[next_id]->children.size()) {
+                            if (child_id < canvas->get_parent()->get_parent()->get_parent()->children[next_id]->children[grandchild_id]->children.size()) {
+                                BittreeNode *second_cousin = canvas->get_parent()->get_parent()->get_parent()->children[next_id]->children[grandchild_id]->children[child_id];
+                                if (second_cousin->node_type == leaf_node) {
+                                    if (second_cousin->leaf_node_type == bit_node) {
+                                        if (second_cousin->bit->is_bit_set) {
                                             canvas->bit->bit_val = max(0, canvas->bit->bit_val - 1);
-                                            cousin->bit->bit_val++;
+                                            second_cousin->bit->bit_val++;
+                                            ret_bit_on_canvas = second_cousin;
+                                            ret_context = PrimitiveRuleContext(child_id, grandchild_id, next_id);
                                         }
                                     } else {
                                         assert(false);
@@ -665,62 +696,83 @@ void BittreeNode::apply_rule(Rule rule, int child_id, const BittreeNode *canvas,
                             }
                         }
                     }
-                    else if(rule == move_front || rule == move_back) {
-                        if (get_parent()->get_parent() != nullptr) {
-                            assert(canvas->get_parent()->get_parent() != nullptr);
-                            assert(grandchild_id != -1);
-                            if(get_parent()->get_parent()->get_parent() != nullptr) {
-                                assert(canvas->get_parent()->get_parent()->get_parent() != nullptr);
-                                assert(greatgrandchild_id != -1);
-                                int next_id;
-                                if (rule == move_front) {
-                                    if (greatgrandchild_id == 0) {
-                                        next_id = canvas->get_parent()->get_parent()->get_parent()->children.size() - 1;
-                                    } else {
-                                        next_id = greatgrandchild_id - 1;
-                                    }
-                                } else if (rule == move_back) {
-                                    if (greatgrandchild_id == canvas->get_parent()->get_parent()->get_parent()->children.size() - 1) {
-                                        next_id = 0;
-                                    } else {
-                                        next_id = greatgrandchild_id + 1;
-                                    }
-                                } else {
-                                    assert(false);
-                                }
-
-                                assert(get_parent()->get_parent()->get_parent()->children.size() ==
-                                       canvas->get_parent()->get_parent()->get_parent()->children.size());
-                                assert(0 <= next_id && next_id < get_parent()->get_parent()->get_parent()->children.size());
-//                            cout << "grandchild_id = " << grandchild_id << endl;
-//                            cout << "next_id = " << next_id << endl;
-                                if(grandchild_id < canvas->get_parent()->get_parent()->get_parent()->children[next_id]->children.size()) {
-                                    if (child_id < canvas->get_parent()->get_parent()->get_parent()->children[next_id]->children[grandchild_id]->children.size()) {
-                                        BittreeNode *second_cousin = canvas->get_parent()->get_parent()->get_parent()->children[next_id]->children[grandchild_id]->children[child_id];
-                                        if (second_cousin->node_type == leaf_node) {
-                                            if (second_cousin->leaf_node_type == bit_node) {
-                                                if (second_cousin->bit->is_bit_set) {
-                                                    canvas->bit->bit_val = max(0, canvas->bit->bit_val - 1);
-                                                    second_cousin->bit->bit_val++;
-                                                }
-                                            } else {
-                                                assert(false);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        assert(false);
-                    }
                 }
-                else
+            }
+            else
+            {
+                assert(false);
+            }
+        }
+        else
+        {
+            assert(canvas->get_parent() == nullptr);
+            assert(false);
+        }
+    }
+    return make_pair(ret_bit_on_canvas, PrimitiveRuleContext(child_id, grandchild_id, greatgrandchild_id));
+}
+void BittreeNode::apply_rule(SequenceOfPrimitiveRules sequence_of_rules, const BittreeNode *_canvas, const BittreeNode *pointer_on_canvas, vector<int> *path)
+{
+    int child_id = -1;
+    int grandchild_id = -1;
+    int greatgrandchild_id = -1;
+    if(path->size() >= 1) {
+        assert(pointer_on_canvas->get_parent() != nullptr);
+        assert(path->at(path->size() - 1) == pointer_on_canvas->get_self_as_child_id());
+        child_id = path->at(path->size()-1);
+        if(path->size()>=2)
+        {
+            assert(pointer_on_canvas->get_parent()->get_parent() != nullptr);
+            assert(path->at(path->size()-2) == pointer_on_canvas->get_parent()->get_self_as_child_id());
+            grandchild_id = path->at(path->size()-2);
+            if(path->size()>=3)
+            {
+
+                assert(pointer_on_canvas->get_parent()->get_parent()->get_parent() != nullptr);
+                assert(path->at(path->size() - 3) == pointer_on_canvas->get_parent()->get_parent()->get_self_as_child_id());
+                greatgrandchild_id = path->at(path->size()-3);
+            }
+        }
+
+    }
+
+    if(child_id != -1) {
+        if (get_parent() != nullptr) {
+            assert(pointer_on_canvas->get_parent()->children[child_id] == pointer_on_canvas);
+        } else {
+            assert(false);
+        }
+    }
+
+    BittreeNode* ret = nullptr;
+
+    if(node_type == internal_node)
+    {
+        assert(pointer_on_canvas->node_type == internal_node);
+        assert(pointer_on_canvas->children.size() == children.size());
+        for(int i = 0;i<children.size();i++)
+        {
+            path->push_back(i);
+            children[i]->apply_rule(sequence_of_rules, _canvas, pointer_on_canvas->children[i], path);
+            path->pop_back();
+        }
+    }
+    else if (node_type == leaf_node)
+    {
+        assert(pointer_on_canvas->node_type == leaf_node);
+        if(leaf_node_type == bit_node)
+        {
+            BittreeNode* _pointer_on_canvas = const_cast<BittreeNode *>(pointer_on_canvas);
+            pair<BittreeNode*, PrimitiveRuleContext> at =
+                    make_pair( _pointer_on_canvas, PrimitiveRuleContext(child_id, grandchild_id, greatgrandchild_id));
+            for(int i = 0;i<sequence_of_rules.size();i++)
+            {
+                at = at.first->apply_primitive_rule_to_bit(
+                        sequence_of_rules[i], at.second.child_id, at.first, at.second.grandchild_id, at.second.greatgrandchild_id);
+
+                if(at.first == nullptr)
                 {
-                    assert(canvas->get_parent() == nullptr);
-                    assert(false);
+                    break;
                 }
             }
         }
@@ -774,9 +826,8 @@ void BittreeNode::initialize_special_parents(BittreeNode *parent) {
     }
 }
 
-void
-BittreeNode::populate_programs(
-        vector<Rule> *rules,
+void BittreeNode::populate_programs(
+        vector<SequenceOfPrimitiveRules> *rules,
         CanvasAndBittreeProgram *canvas,
         int next_child,
         vector<int> *path,
@@ -1198,7 +1249,7 @@ string BittreeTaskType::to_string__one_line__first_part(int subtask_depth) {
 }
 
 
-bool next_rule(vector<vector<Rule> > & rules, vector<Rule> possible_rules)
+bool next_rule(vector<vector<PrimitiveRule> > & rules, vector<PrimitiveRule> possible_rules)
 {
     for(int i = 0;i<rules.size();i++)
     {
@@ -1275,14 +1326,18 @@ BittreeTaskType::generate_variety(int subtask_depth, ofstream *fout, AutomatonRu
 
     //BOZHE GOSPODE POMOGNI MI.
 
-    vector<Rule> possible_rules;
-    possible_rules.push_back(stay);
-    possible_rules.push_back(move_right);
-    possible_rules.push_back(move_left);
-    possible_rules.push_back(move_up);
-    possible_rules.push_back(move_down);
-    possible_rules.push_back(move_front);
-    possible_rules.push_back(move_back);
+    vector<SequenceOfPrimitiveRules> possible_rules;
+    possible_rules.emplace_back(stay);
+    possible_rules.emplace_back(move_right);
+    possible_rules.emplace_back(move_left);
+    possible_rules.emplace_back(move_up);
+    possible_rules.emplace_back(move_down);
+    possible_rules.emplace_back(move_front);
+    possible_rules.emplace_back(move_back);
+    possible_rules.emplace_back(move_front, move_up);
+    possible_rules.emplace_back(move_front, move_right);
+    possible_rules.emplace_back(move_up, move_right);
+    possible_rules.emplace_back(move_front, move_up, move_right);
 
     local_parent->calc_subtree_sums();
     vector<int> new_path;
@@ -1294,11 +1349,10 @@ BittreeTaskType::generate_variety(int subtask_depth, ofstream *fout, AutomatonRu
     local_parent->populate_programs(&possible_rules, new CanvasAndBittreeProgram(canvas), 0, &new_path, &all_programs,
                                     max_automaton_rule_cost);
 
-//    for(int i = 0;i<all_programs.size();i++)
-//    {
-//        (*fout) << "all_programs[" << i << "] = " << endl;
-//        (*fout) << all_programs[i]->to_string() << endl;
-//    }
+    for(int i = 0;i<all_programs.size();i++)
+    {
+        (*fout) << all_programs[i]->canvas->to_string__one_line() <<" <- " << local_parent->to_string__one_line() <<" ::: " << all_programs[i]->AutomatonRule::to_string() << endl;
+    }
 
     set<MaskAndCostSortByMask> ret_set;
 
@@ -1702,57 +1756,27 @@ BittreeTaskDecomposition::BittreeTaskDecomposition(TreeNode *parent, Name name, 
     }
 }
 
-void AutomatonRule::push_back(PathAndRule new_path_and_rule) {
+void AutomatonRule::push_back(PathAndSequenceOfRules new_path_and_rule) {
     cost.add_cost(new_path_and_rule.get_cost());
     code.push_back(new_path_and_rule);
 }
 
-CanvasAndBittreeProgram* CanvasAndBittreeProgram::produce(Rule rule, vector<int> * path) {
+CanvasAndBittreeProgram* CanvasAndBittreeProgram::produce(SequenceOfPrimitiveRules rule, vector<int> * path) {
     return new CanvasAndBittreeProgram(this, rule, path);
 }
 
-CanvasAndBittreeProgram::CanvasAndBittreeProgram(CanvasAndBittreeProgram *to_copy, Rule rule, vector<int> *path) :
+CanvasAndBittreeProgram::CanvasAndBittreeProgram(CanvasAndBittreeProgram *to_copy, SequenceOfPrimitiveRules rule, vector<int> *path) :
     AutomatonRule(to_copy)
 {
     canvas = new BittreeNode(
             nullptr, Name("next_canvas"), to_copy->canvas, true, false, true);
     const BittreeNode *next_pointer_on_canvas = canvas->get_node(path);
 
-//    cout << "START APPLY_RULE" << endl;
-//    cout << rule_names[rule] << endl;
-//    cout << canvas->slim_tree_to_string(0) << endl;
-//    cout << "subtree = " << endl;
-//    cout << next_pointer_on_canvas->slim_tree_to_string(0) << endl;
-
-    int grandchild_id = -1;
-    int greatgrandchild_id = -1;
-    if(path->size() >= 1) {
-        assert(next_pointer_on_canvas->get_parent() != nullptr);
-        assert(path->at(path->size() - 1) == next_pointer_on_canvas->get_self_as_child_id());
-        if(path->size()>=2)
-        {
-            assert(next_pointer_on_canvas->get_parent()->get_parent() != nullptr);
-            assert(path->at(path->size()-2) == next_pointer_on_canvas->get_parent()->get_self_as_child_id());
-            grandchild_id = path->at(path->size()-2);
-            if(path->size()>=3)
-            {
-
-                assert(next_pointer_on_canvas->get_parent()->get_parent()->get_parent() != nullptr);
-                assert(path->at(path->size() - 3) == next_pointer_on_canvas->get_parent()->get_parent()->get_self_as_child_id());
-                greatgrandchild_id = path->at(path->size()-3);
-            }
-        }
-
-    }
-
     to_copy->canvas->get_node(path)->apply_rule(
-            rule,
-            next_pointer_on_canvas->get_self_as_child_id(),
-            next_pointer_on_canvas,
-            grandchild_id, greatgrandchild_id);
-//    cout << canvas->slim_tree_to_string(0) << endl;
+            rule, canvas, next_pointer_on_canvas, path);
 
-    push_back(PathAndRule(*path, rule));
+    push_back(PathAndSequenceOfRules(*path, rule));
+
 }
 
 string CanvasAndBittreeProgram::to_string() {
@@ -1765,4 +1789,19 @@ string CanvasAndBittreeProgram::to_string() {
 
 AutomatonRuleCost CanvasAndBittreeProgram::get_cost() const{
     return cost;
+}
+
+SequenceOfPrimitiveRules::SequenceOfPrimitiveRules(PrimitiveRule rule, PrimitiveRule rule1) {
+    push_back(rule);
+    push_back(rule1);
+}
+
+SequenceOfPrimitiveRules::SequenceOfPrimitiveRules(PrimitiveRule rule, PrimitiveRule rule1, PrimitiveRule rule2) {
+    push_back(rule);
+    push_back(rule1);
+    push_back(rule2);
+}
+
+SequenceOfPrimitiveRules::SequenceOfPrimitiveRules(PrimitiveRule rule) {
+    push_back(rule);
 }
