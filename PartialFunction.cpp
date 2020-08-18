@@ -191,7 +191,7 @@ void PartialFunction::init_via_bits(vector<BitInBittree*> _bits)
             remaining_bits.push_back(bits[i]);
             if (bits[i]->is_bit_set) {
                 partition.set(function_size, 1);
-                total_function.set(function_size, bits[i]->bit_val);
+                total_function.set(function_size, bits[i]->bit_val >= 1);
             }
             function_size++;
         }
@@ -372,10 +372,10 @@ CanvasAsPartialFunction::CanvasAsPartialFunction(BittreeNode *_canvas)
     {
         if(partial_bits[i]->is_bit_set)
         {
-            if(partial_bits[i]->bit_val >= 1)
-            {
-                partial_bits[i]->bit_val = 1;
-            }
+//            if(partial_bits[i]->bit_val >= 1)
+//            {
+//                partial_bits[i]->bit_val = 1;
+//            }
         }
     }
 

@@ -8,12 +8,13 @@
 
 void BehaviorToProgram::push_back(CanvasAndBittreeProgram *new_canvas_and_bittree_program)
 {
-    assert(new_canvas_and_bittree_program!= nullptr);
+    assert(new_canvas_and_bittree_program != nullptr);
     Bitvector behavior = CanvasAsPartialFunction(new_canvas_and_bittree_program->get_canvas()).total_function;
     if(find(behavior) == end())
     {
         (*this)[behavior] = vector<CanvasAndBittreeProgram*>();
     }
+
     (*this)[behavior].push_back(new_canvas_and_bittree_program);
 
 
