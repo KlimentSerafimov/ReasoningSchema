@@ -86,7 +86,7 @@ void append_to_masks(int function_size, int min_mask_size, int max_mask_size, Ma
         return ;
     }
 
-    vector<Pointer_MaskAndCostAndInstantiatedModules> ret_with_cost;
+    vector<Pointer<MaskAndCostAndInstantiatedModules>> ret_with_cost;
 
     if(min_mask_size < 0 )
     {

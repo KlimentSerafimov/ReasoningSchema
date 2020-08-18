@@ -1902,7 +1902,7 @@ get_meta_examples_after_query(Bitvector subdomain_mask, CompactPoset *compact_po
 //        {
 //            if(!local_query_meta_example.active)
 //            {
-//                meta_examples_with_hints.push_back(local_meta_example);
+//                meta_examples_with_hints.my_push_back(local_meta_example);
 //                continue;
 //            }
 //        }

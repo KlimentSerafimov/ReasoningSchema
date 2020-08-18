@@ -369,7 +369,7 @@ string TraceNode::string__of__path_from_root_to_this()
     assert(at->is_result_from.size() == 1);
     TraceOperation* operation = at->is_result_from[0];
     if(operation != nullptr) {
-//        parents.push_back(operation);
+//        parents.my_push_back(operation);
         assert(operation->get_output() == at);
         if(operation->operands.size() == 1)
         {

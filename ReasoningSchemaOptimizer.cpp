@@ -328,7 +328,7 @@ void ReasoningSchemaOptimizer::calc_masks()
                     masks.emplace_back();
                     for (int j = 0; j < parent_pointer->masks[i].size(); j++) {
                         if (ids_for_new_first_bucket.find(make_pair(i, j)) == ids_for_new_first_bucket.end()) {
-                            masks[masks.size() - 1].push_back(parent_pointer->masks[i][j]);
+                            masks[masks.size() - 1].my_push_back(parent_pointer->masks[i][j]);
                         }
                     }
                 }
@@ -473,7 +473,7 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
         int next_mask_id = 0;
         int last_bucket_id = -1;
         for(int bucket_id = 0; bucket_id < masks.size(); bucket_id++) {
-//            heuristic_score_by_bucket_id_by_mask_id.push_back(vector<HeuristicScore>());
+//            heuristic_score_by_bucket_id_by_mask_id.my_push_back(vector<HeuristicScore>());
             last_bucket_id = bucket_id;
             next_mask_id = 0;
             for (int mask_id = 0; mask_id < masks[bucket_id].size(); mask_id++) {

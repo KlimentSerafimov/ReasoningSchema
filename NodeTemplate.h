@@ -128,8 +128,8 @@ public:
 //
 //    void init(NodeTemplate* _parent, Name name)
 //    {
-//        parents.push_back(_parent);
-//        names.push_back(name);
+//        parents.my_push_back(_parent);
+//        names.my_push_back(name);
 //        node_id = global_node_id++;
 //    }
 //

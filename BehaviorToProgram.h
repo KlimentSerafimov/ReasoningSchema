@@ -6,19 +6,22 @@
 #define COMPACTPOSET_BEHAVIORTOPROGRAM_H
 
 #include <map>
+#include <set>
 #include "Bitvector.h"
+#include "Pointer.h"
 
 class CanvasAndBittreeProgram;
 
-typedef map<Bitvector, vector<CanvasAndBittreeProgram*> >::iterator BehaviorToProgramIterator;
+typedef map<Bitvector, multiset<Pointer<CanvasAndBittreeProgram> > > BehaviorToProgramMap;
+typedef BehaviorToProgramMap::iterator BehaviorToProgramIterator;
 
-class BehaviorToProgram: public map<Bitvector, vector<CanvasAndBittreeProgram*> > {
+class BehaviorToProgram: public BehaviorToProgramMap {
 public:
-    void push_back(CanvasAndBittreeProgram* new_canvas_and_bittree_program);
+    void my_push_back(CanvasAndBittreeProgram* new_canvas_and_bittree_program);
     bool in_iter__all = false;
     bool in_iter__iterators = false;
     BehaviorToProgramIterator at_iterator;
-    int at_program_id;
+    multiset<Pointer<CanvasAndBittreeProgram> >::iterator at_set_iterator;
     CanvasAndBittreeProgram* init_iter__all();
     bool end_iter__all();
     CanvasAndBittreeProgram* get_next__all();

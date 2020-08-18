@@ -120,6 +120,10 @@ public:
         }
         return ret;
     }
+    bool operator < (const AutomatonRule& other) const
+    {
+        return cost < other.cost;
+    }
 };
 
 class CanvasAndBittreeProgram : public AutomatonRule

@@ -95,7 +95,7 @@ void IncrementalTypeExpression::build_type__add_leafs(int num_input_operands, in
         BittreeNode* base_task_type__output_child =
                 base_task_type->io->add_output_child(leaf_node, new_machine_bit);
 
-//        base_task_type->output->children.push_back(
+//        base_task_type->output->children.my_push_back(
 //                new BittreeNode(base_task_type->output, Name("children", base_task_type->output->children.size()),
 //                        leaf_node, new_machine_bit));
     }
@@ -106,7 +106,7 @@ void IncrementalTypeExpression::build_type__add_leafs(int num_input_operands, in
 //    delta_task_type->output->delta = new BittreeNode(delta_task_type->output, Name("delta"), internal_node);
 //    for(int i = 0;i<delta_output_size;i++)
 //    {
-//        delta_task_type->output->delta->children.push_back(
+//        delta_task_type->output->delta->children.my_push_back(
 //                new BittreeNode(delta_task_type->output->delta,
 //                        Name("children", delta_task_type->output->delta->children.size()), leaf_node, new_blanko_bit));
 //    }

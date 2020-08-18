@@ -247,8 +247,8 @@ public:
 //                    possible_candidate_found = true;
 //                }
 //
-//                mask_ids_by_heuristic.push_back(make_pair(heuristic, mask_id));
-//                heuristic_score_by_mask_id.push_back(heuristic);
+//                mask_ids_by_heuristic.my_push_back(make_pair(heuristic, mask_id));
+//                heuristic_score_by_mask_id.my_push_back(heuristic);
 //
 ////            cout << "heuristic = " << fixed << setprecision(4) << heuristic.to_string() << endl;
 //            }
@@ -307,7 +307,7 @@ public:
 //                                record_trace_of_query(
 //                                        meta_examples[i].partial_function);
 //                        assert(trace.second.first.size() + 1 == trace.second.second.size());
-//                        all_traces.push_back(trace);
+//                        all_traces.my_push_back(trace);
 //                    }
 //                    for(int i = 0;i<all_traces.size();i++)
 //                    {

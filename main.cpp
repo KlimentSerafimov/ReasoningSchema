@@ -183,8 +183,8 @@ void remainder_and_two_factors_schema(int num_inputs, int function_size, vector<
 
     int init_masks_size = masks.size();
     for (int j = 0; j < init_masks_size; j++) {
-//                masks.push_back(make_pair(masks[j].first, masks[j].second));
-//                partition_masks.push_back(make_pair((1<<function_size)-1, (1<<function_size)-1));
+//                masks.my_push_back(make_pair(masks[j].first, masks[j].second));
+//                partition_masks.my_push_back(make_pair((1<<function_size)-1, (1<<function_size)-1));
 
         masks.push_back(make_pair(masks[j].first, masks[j].second));
         partition_masks.push_back(make_pair((1 << function_size) - 1 - 1, (1 << (function_size)) - 1));
@@ -194,33 +194,33 @@ void remainder_and_two_factors_schema(int num_inputs, int function_size, vector<
             partition_masks.push_back(
                     make_pair(masks[j].first | masks[k].first, masks[j].second | masks[k].second));
 //
-//                    masks.push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
-//                    partition_masks.push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
+//                    masks.my_push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
+//                    partition_masks.my_push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
 //
-//                    masks.push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
-//                    partition_masks.push_back(make_pair((1<<function_size) - 1, (1<<function_size) - 1));
+//                    masks.my_push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
+//                    partition_masks.my_push_back(make_pair((1<<function_size) - 1, (1<<function_size) - 1));
 //
             masks.push_back(make_pair(masks[k].first, masks[k].second));
             partition_masks.push_back(
                     make_pair(masks[j].first | masks[k].first, masks[j].second | masks[k].second));
 //
-//                    masks.push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
-//                    partition_masks.push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
+//                    masks.my_push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
+//                    partition_masks.my_push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
 //
-//                    masks.push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
-//                    partition_masks.push_back(make_pair((1<<function_size) - 1, (1<<function_size) - 1));
+//                    masks.my_push_back(make_pair(masks[j].first|masks[k].first, masks[j].second|masks[k].second));
+//                    partition_masks.my_push_back(make_pair((1<<function_size) - 1, (1<<function_size) - 1));
         }
     }
 
-//            masks.push_back(make_pair((1<<function_size) - 1 - 1, (1<<(function_size-1)) - 1));
-//            partition_masks.push_back(make_pair((1<<function_size) - 1, (1<<function_size) - 1));
-//            masks.push_back(make_pair((1<<function_size) - 1, (1<<(function_size)) -1));
-//            partition_masks.push_back(make_pair((1<<function_size) - 1, (1<<function_size) - 1));
+//            masks.my_push_back(make_pair((1<<function_size) - 1 - 1, (1<<(function_size-1)) - 1));
+//            partition_masks.my_push_back(make_pair((1<<function_size) - 1, (1<<function_size) - 1));
+//            masks.my_push_back(make_pair((1<<function_size) - 1, (1<<(function_size)) -1));
+//            partition_masks.my_push_back(make_pair((1<<function_size) - 1, (1<<function_size) - 1));
 //
 //            masks.erase(masks.begin(), masks.begin()+init_masks_size);
 //            partition_masks.erase(partition_masks.begin(), partition_masks.begin()+init_masks_size);
 //
-//            masks.push_back(make_pair((1<<function_size)-1-1, (1<<(function_size-1))-1));
+//            masks.my_push_back(make_pair((1<<function_size)-1-1, (1<<(function_size-1))-1));
 
     cout << "masks & partition_masks:" << endl;
     for (int j = 0; j < masks.size(); j++) {
@@ -233,7 +233,7 @@ void remainder_and_two_factors_schema(int num_inputs, int function_size, vector<
 
 //            for(int j = 0;j<num_functions;j++)
 //            {
-//                masks.push_back(j);
+//                masks.my_push_back(j);
 //                cout << bitvector_to_str(j, function_size) << endl;
 //            }
 
@@ -385,7 +385,7 @@ void modeling_of_bitvector_functions() {
 //        Task * task = new Task__sum_of_n_k_bit_integers_with_second_order_intermediate_state(2);
 
         int init_iter = 2;
-        int num_iter = 7;
+        int num_iter = 9;
         ModeType mode_type = progressive_prior_mode;
         MetricType metric_type = most_progress; //min_imp_set;
         int recursive_rep_set_depth = 0;
@@ -397,7 +397,7 @@ void modeling_of_bitvector_functions() {
         int num_minimization_steps = 12;
         double init_minimization_fraction = 16.0/20;
         double end_minimization_fraction = 19.5/20;
-        AutomatonRuleCost max_automaton_rule_cost = AutomatonRuleCost(18);
+        AutomatonRuleCost max_automaton_rule_cost = AutomatonRuleCost(26);
 
         assert(init_minimization_fraction != 0);
         assert(end_minimization_fraction != 0);

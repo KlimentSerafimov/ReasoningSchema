@@ -930,13 +930,13 @@ void BittreeNode::populate_programs(
     {
         if(next_child == -1)
         {
-            all_programs->push_back(canvas);
+            all_programs->my_push_back(canvas);
         }
         else
         {
             if(next_child == children.size())
             {
-                all_programs->push_back(canvas);
+                all_programs->my_push_back(canvas);
             }
             else
             {
@@ -952,14 +952,14 @@ void BittreeNode::populate_programs(
             for (int i = 0; i < rules->size(); i++) {
                 CanvasAndBittreeProgram* new_program = canvas->produce(rules->at(i), path);
                 if(new_program->get_cost() <= max_cost) {
-                    all_programs->push_back(new_program);
+                    all_programs->my_push_back(new_program);
                 }
             }
         } else {
             if (node_type == internal_node) {
                 assert(next_child >= 0);
                 if (next_child == children.size()){
-                    all_programs->push_back(canvas);
+                    all_programs->my_push_back(canvas);
 //                    cout << "HERE CanvasAndBittreeProgram" << endl;
 //                    cout << canvas->to_string() << endl;
                 } else {
@@ -987,7 +987,7 @@ void BittreeNode::populate_programs(
                     {
                         if(next_child == children.size())
                         {
-                            all_programs->push_back(canvas);
+                            all_programs->my_push_back(canvas);
 //                            cout << "HERE CanvasAndBittreeProgram" << endl;
 //                            cout << canvas->to_string() << endl;
                         }
@@ -1418,14 +1418,27 @@ BittreeTaskType::generate_variety(int subtask_depth, ofstream *fout, AutomatonRu
                 max_automaton_rule_cost);
     }
     (*fout) << local_parent->to_string__one_line() << " :: " << endl;
-    for (CanvasAndBittreeProgram* at_behavior = local_behaviors.init_iter__all();
-    !local_behaviors.end_iter__all(); at_behavior = local_behaviors.get_next__all()) {
+    for (
+            CanvasAndBittreeProgram* at_behavior = local_behaviors.init_iter__all();
+            !local_behaviors.end_iter__all(); at_behavior = local_behaviors.get_next__all())
+    {
         (*fout) << "\t" << at_behavior->canvas->to_string__one_line() << " | "<< at_behavior->AutomatonRule::to_string() << endl;
     }
 
     vector<MaskAndCostAndInstantiatedModules*> ret;
-    for (CanvasAndBittreeProgram* at_behavior = local_behaviors.init_iter__all(); !local_behaviors.end_iter__all(); at_behavior = local_behaviors.get_next__all()) {
-        ret.push_back(new MaskAndCostAndInstantiatedModules(at_behavior));
+//    for (CanvasAndBittreeProgram* at_behavior = local_behaviors.init_iter__all(); !local_behaviors.end_iter__all(); at_behavior = local_behaviors.get_next__all()) {
+//        ret.my_push_back(new MaskAndCostAndInstantiatedModules(at_behavior));
+//    }
+    for (BehaviorToProgramIterator at_behavior = local_behaviors.init_iter__iterators(); !local_behaviors.end_iter__iterators(); at_behavior = local_behaviors.get_next__iterators()) {
+        assert(at_behavior->second.size() >= 1);
+        ret.push_back(new MaskAndCostAndInstantiatedModules((*(*at_behavior).second.begin()).get_pointer()));
+        int prev = -1;
+        for(multiset<Pointer<CanvasAndBittreeProgram> >::iterator it = at_behavior->second.begin(); it != at_behavior->second.end();it++)
+        {
+            assert(prev <= (*it).get_pointer()->get_cost().get_cost());
+            prev = (*it).get_pointer()->get_cost().get_cost();
+//            cout << (*it).get_pointer()->get_cost().to_string() << endxl;
+        }
     }
 
     all_behaviors->plus_equals(&local_behaviors);
@@ -1513,19 +1526,19 @@ void BittreeProgram::populate_bittree_programs()
         assert(local_bittree->io != nullptr);
         bittree_programs.push_back(get_child_bittree_program(local_bittree->io));
 //        assert(local_bittree->io->output != nullptr);
-//        bittree_programs.push_back(get_child_bittree_program(local_bittree->output));
+//        bittree_programs.my_push_back(get_child_bittree_program(local_bittree->output));
 
         if (local_bittree->decomposition != nullptr) {
             bittree_programs.push_back(get_child_bittree_program(local_bittree->decomposition));
         }
 //        if (local_bittree->delta != nullptr) {
-//            bittree_programs.push_back(get_child_bittree_program(local_bittree->delta));
+//            bittree_programs.my_push_back(get_child_bittree_program(local_bittree->delta));
 //        }
 //        if (local_bittree->subtask != nullptr) {
-//            bittree_programs.push_back(get_child_bittree_program(local_bittree->subtask));
+//            bittree_programs.my_push_back(get_child_bittree_program(local_bittree->subtask));
 //        }
 //        if (local_bittree->solution != nullptr) {
-//            bittree_programs.push_back(new BittreeProgram(local_bittree->solution, root, num_subtree_markers));
+//            bittree_programs.my_push_back(new BittreeProgram(local_bittree->solution, root, num_subtree_markers));
 //        }
     }
 

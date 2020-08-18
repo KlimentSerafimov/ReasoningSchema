@@ -328,7 +328,7 @@ RemainderAndTwoFactorsSchema::RemainderAndTwoFactorsSchema(int _function_size, v
 //                        for(int l = 0;l<right_result.size();l++)
 //                        {
 //                            PartialFunction composed_result = left_result[k].get_composition(right_result[l]);
-//                            ret.push_back(composed_result);
+//                            ret.my_push_back(composed_result);
 //                        }
 //                    }
 //
@@ -398,7 +398,7 @@ RemainderAndTwoFactorsSchema::RemainderAndTwoFactorsSchema(int _function_size, v
 //                for(int m = 0;m<right_result.size();m++)
 //                {
 //                    PartialFunction composed_result = left_result[l].get_composition(right_result[m]);
-//                    ret.push_back(composed_result);
+//                    ret.my_push_back(composed_result);
 //                }
 //            }
 //
@@ -522,7 +522,7 @@ RemainderAndTwoFactorsSchema::RemainderAndTwoFactorsSchema(int _function_size, v
 //                }
 //            }
 //            int new_mask_complement = factor_schema__masks[i]-new_mask;
-//            factor_schema__submasks[i].push_back(make_pair(new_mask, new_mask_complement));
+//            factor_schema__submasks[i].my_push_back(make_pair(new_mask, new_mask_complement));
 //            cout << bitvector_to_str(new_mask, function_size) <<" "<< bitvector_to_str(new_mask_complement, function_size) << endl;
 //        }
 //    }

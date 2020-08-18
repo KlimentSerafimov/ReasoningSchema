@@ -72,7 +72,7 @@ public:
 //                    }
 //                    MetaExample exstended_meta_example = MetaExample(function_size, output_bits, over_partition);
 //
-//                    skip_meta_examples[partition][compact_partial_outputs][local_generalization_id].push_back(
+//                    skip_meta_examples[partition][compact_partial_outputs][local_generalization_id].my_push_back(
 //                            exstended_meta_example
 //                    );
 //                }
