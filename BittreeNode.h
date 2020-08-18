@@ -8,8 +8,8 @@
 #include "util.h"
 #include "BitInBittree.h"
 #include "AutomatonRuleCost.h"
-#include "CanvasAndBittreeProgram.h"
 #include "PrimitiveRule.h"
+#include "BehaviorToProgram.h"
 
 class PartialFunction;
 class BittreeTaskTypeAsPartialFunction;
@@ -101,14 +101,13 @@ public:
             CanvasAndBittreeProgram *canvas,
             int next_child,
             vector<int> *path,
-            vector<CanvasAndBittreeProgram *> *all_programs,
+            BehaviorToProgram *all_programs,
             AutomatonRuleCost max_cost) const;
 
-    BittreeNode* produce_subtree_from_rule(PrimitiveRule rule, vector<int> path);
+    void apply_rule(SequenceOfPrimitiveRules rule, BittreeNode* &canvas, BittreeNode* &pointer_on_canvas, vector<int> *path);
 
-    void apply_rule(SequenceOfPrimitiveRules rule, const BittreeNode *canvas, const BittreeNode *pointer_on_canvas, vector<int> *path);
-
-    pair<BittreeNode*, PrimitiveRuleContext> apply_primitive_rule_to_bit(PrimitiveRule rule, int child_id, const BittreeNode *canvas, int grandchild_id, int greatgrandchild_id) const;
+    pair<BittreeNode *, vector<int> *>
+    apply_primitive_rule_to_bit(PrimitiveRule rule, const BittreeNode *pointer_on_canvas, vector<int>* path) const;
 
     void initialize_special_parents(BittreeNode *parent);
 
@@ -139,7 +138,7 @@ public:
     }
 };
 
-    void add_child(NodeType type, BitInBittreeType type1);
+void add_child(NodeType type, BitInBittreeType type1);
 
 
 #endif //COMPACTPOSET_BITTREENODE_H

@@ -22,11 +22,13 @@ void MaskAndCost::set_best_edge(MaskAndCost *prev_mask, int edge_id) {
 
 MaskAndCost::MaskAndCost(MaskAndCost *to_copy) : Mask(to_copy)
 {
-    local_variety = to_copy->local_variety;
-    program = to_copy->program;
+    source = to_copy->source;
     now_canvas = to_copy->now_canvas;
     next_canvas = to_copy->next_canvas;
-    best_edge = make_pair(nullptr, -1);
+    program = to_copy->program;
+    local_variety = to_copy->local_variety;
+    best_edge = to_copy->best_edge;
+    produced_best_edge_ids = to_copy->produced_best_edge_ids;
     mask_cost_defined = to_copy->mask_cost_defined;
     mask_cost = to_copy->mask_cost;
 }

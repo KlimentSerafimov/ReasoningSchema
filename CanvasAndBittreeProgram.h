@@ -114,7 +114,6 @@ public:
     virtual string to_string()
     {
         string ret;
-        ret += "code = ";
         for(int i = 0;i<code.size();i++)
         {
             ret += code[i].to_string() + " ";

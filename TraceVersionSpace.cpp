@@ -3,6 +3,7 @@
 //
 
 #include "TraceVersionSpace.h"
+#include "MaskAndCostAndInstantiatedModules.h"
 
 pair<TraceOperation*, bool> get_trace_operation(TraceOperationType type, TraceNode *operand, Bitvector _subdomain_mask, bool consider_union)
 {

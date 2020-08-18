@@ -394,7 +394,7 @@ void modeling_of_bitvector_functions() {
         int num_prev_subtasks = 1;
         bool train_set_minimization = true;
         int seed_train_set = -1;
-        int num_minimization_steps = 30;
+        int num_minimization_steps = 12;
         double init_minimization_fraction = 16.0/20;
         double end_minimization_fraction = 19.5/20;
         AutomatonRuleCost max_automaton_rule_cost = AutomatonRuleCost(18);

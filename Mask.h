@@ -25,11 +25,13 @@ class MaskAndCostAndInstantiatedModules;
 class MaskAndCost: public Mask
 {
 public:
+    MaskAndCostAndInstantiatedModules *source;
     BittreeTaskTypeAsPartialFunction* now_canvas = nullptr;
     BittreeTaskTypeAsPartialFunction* next_canvas = nullptr;
     CanvasAndBittreeProgram* program = nullptr;
     vector<MaskAndCostAndInstantiatedModules*> local_variety;
     pair<MaskAndCost*, int> best_edge;
+    vector<int> produced_best_edge_ids;
     bool mask_cost_defined = false;
     int mask_cost;
     MaskAndCost() = default;
@@ -75,7 +77,14 @@ public:
 
     bool operator < (const MaskAndCost & other) const override
     {
-        return Mask::operator<(other);
+        if(Mask::operator==(other))
+        {
+            return MaskAndCost::operator<(other);
+        }
+        else
+        {
+            return Mask::operator<(other);
+        }
     }
 };
 

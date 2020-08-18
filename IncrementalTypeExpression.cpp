@@ -3,6 +3,7 @@
 //
 
 #include "IncrementalTypeExpression.h"
+#include "BittreeInputOutputType.h"
 #include <iostream>
 #include <vector>
 

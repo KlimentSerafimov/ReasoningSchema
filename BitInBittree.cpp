@@ -4,6 +4,7 @@
 
 #include "BitInBittree.h"
 #include "BittreeTaskType.h"
+#include "BittreeInputOutputType.h"
 
 
 BitInBittree::BitInBittree(BittreeNode *parent, Name name, BitInBittreeType _bit_type) : TreeNode(parent, name, this)

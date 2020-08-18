@@ -133,7 +133,7 @@ void append_to_masks(int function_size, int min_mask_size, int max_mask_size, Ma
 
 
 void Prior::push_back_next_subdomains_to_masks(MaskBuckets *masks, MaskBucket next_subdomains) {
-    bool more_buckets = false;
+    bool more_buckets = true;
     if(more_buckets) {
         AutomatonRuleCost prev_cost = -1;
         MaskBucket local_subdomains;

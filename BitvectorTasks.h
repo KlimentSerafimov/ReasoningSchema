@@ -8,6 +8,7 @@
 #include "ReasoningSchemaOptimizer.h"
 #include "IncrementalTypeExpression.h"
 #include "MetricType.h"
+#include "BittreeInputOutputType.h"
 #include <fstream>
 
 class MetaExample;

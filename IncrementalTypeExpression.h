@@ -7,6 +7,7 @@
 
 #include "Task.h"
 #include "BittreeTaskType.h"
+#include "BittreeInputOutputType.h"
 
 
 class IncrementalTypeExpression

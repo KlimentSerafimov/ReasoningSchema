@@ -108,3 +108,12 @@ string Module::covered_to_string(vector<MetaExample> init_meta_examples)
     }
     return ret;
 }
+
+void Module::set_heuristic_score(HeuristicScore _heuristic_score)
+{
+    assert(!defined_heuristic_score);
+    heuristic_score = _heuristic_score;
+    subdomain_mask->push_back(this);
+
+    defined_heuristic_score = true;
+}

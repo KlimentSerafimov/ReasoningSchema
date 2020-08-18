@@ -4,6 +4,7 @@
 
 #include "Task.h"
 #include "IncrementalTypeExpression.h"
+#include "BittreeInputOutputType.h"
 
 void Task::generate_bittree_task_expression(IncrementalTypeExpression* holder)
 {

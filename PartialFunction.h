@@ -9,6 +9,7 @@
 #include <vector>
 #include "BitInBittree.h"
 #include "Mask.h"
+#include "BehaviorToProgram.h"
 
 class BittreeTaskType;
 class BittreeNode;
@@ -95,7 +96,7 @@ public:
 
     void update_bitvector();
 
-    vector<MaskAndCostAndInstantiatedModules*> generate_variety(ofstream *fout, AutomatonRuleCost max_automaton_rule_cost);
+    vector<MaskAndCostAndInstantiatedModules*> generate_variety(ofstream *fout, AutomatonRuleCost max_automaton_rule_cost, BehaviorToProgram* all_behavior);
 };
 
 class CanvasAsPartialFunction: public PartialFunction

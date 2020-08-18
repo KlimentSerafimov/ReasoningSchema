@@ -7,70 +7,12 @@
 
 #include "util.h"
 #include "BitInBittree.h"
-#include "DeltaBittreeType.h"
-//#include "BitvectorTasks.h"
+#include "BehaviorToProgram.h"
+
 #include "Task.h"
 #include "PartialFunction.h"
 #include "BittreeNode.h"
 
-
-class BittreeInputOutputType: public TreeNode
-{
-public:
-    BittreeNode* input = nullptr;
-    BittreeNode* output = nullptr;
-
-    BittreeInputOutputType(TreeNode *_parent, Name name, NodeType input_node_type, NodeType output_node_type);
-
-    BittreeInputOutputType(TreeNode *_parent, Name name, BittreeInputOutputType *to_copy, bool all_new_bits);
-
-    void append_bits(vector<BitInBittree*>& bits)
-    {
-        input->append_bits(bits);
-        output->append_bits(bits);
-    }
-
-    string to_string(int num_tabs)
-    {
-        string ret = "";
-        int next_tabs = num_tabs;
-        int next_next_tabs = next_tabs+1;
-        string open_bracket = "\n"+tabs(next_tabs) + "{\n";
-        string close_bracket = tabs(next_tabs) + "}\n";
-        ret += tabs(num_tabs)+"input"+input->TreeNode::to_string()+open_bracket + input->to_string(next_next_tabs) + close_bracket;
-        ret += tabs(num_tabs)+"output"+output->TreeNode::to_string()+open_bracket + output->to_string(next_next_tabs) + close_bracket;
-        return ret;
-    }
-
-    string bits_to_string(int num_tabs)
-    {
-        string ret = "";
-
-        int next_tabs = num_tabs;
-        int next_next_tabs = next_tabs+1;
-        string open_bracket = "{\n";
-        string close_bracket = tabs(num_tabs) + "}\n";
-        ret += tabs(next_tabs)+"input"+open_bracket + input->bits_to_string(next_next_tabs) + close_bracket;
-        ret += tabs(next_tabs)+"output"+open_bracket + output->bits_to_string(next_next_tabs) + close_bracket;
-
-        return ret;
-    }
-
-    void apply_delta(BittreeInputOutputType* delta)
-    {
-        input->apply_delta(delta->input);
-        output->apply_delta(delta->output);
-    }
-
-    BittreeNode * add_input_child(NodeType child_type);
-
-    BittreeNode * add_output_child(NodeType child_type);
-
-    BittreeNode * add_output_child(NodeType child_type, BitInBittreeType bit_in_bittree_type);
-
-    void solve(Task *task_name);
-
-};
 
 class BittreeTaskDecomposition: public TreeNode
 {
@@ -119,6 +61,8 @@ public:
 
     void solve(Task *task_name);
 
+    vector<MaskAndCostAndInstantiatedModules*> generate_variety(int subtask_depth, ofstream *fout, AutomatonRuleCost max_automaton_rule_cost, BehaviorToProgram* all_behavior);
+
     void append_bits(vector<BitInBittree*>& bits);
 
     void append_bits_of_prefix_subtree(vector<BitInBittree*>& bits, int num_subtasks);
@@ -141,47 +85,9 @@ public:
 
     MetaExample to_meta_example_of_subtask_decomposition(int id, int subtask_depth);
 
-    string to_string__one_line(int subtask_depth)
-    {
-        string ret = io->input->to_string__one_line();
-        ret += io->output->to_string__one_line();
-        int init_subtask_depth = subtask_depth;
-        if(subtask_depth > 0) {
-            BittreeTaskType* at_subtask = decomposition->subtask->solution;
-            if(at_subtask == nullptr)
-            {
-                at_subtask = decomposition->subtask;
-            }
-            while(subtask_depth>0)
-            {
-                ret += " ";
-                ret += at_subtask->io->output->to_string__one_line();
-
-                if(at_subtask->decomposition != nullptr)
-                {
-                    assert(at_subtask->decomposition->subtask != nullptr);
-                    at_subtask = at_subtask->decomposition->subtask;
-                }
-                subtask_depth-=1;
-            }
-        }
-
-        if(solution != nullptr) {
-            subtask_depth = init_subtask_depth;
-            ret += "  -->  ";
-            ret += solution->to_string__one_line(subtask_depth);
-        }
-
-//        ret += " -> ";
-//        ret += solution->io->input->to_string__one_line();
-//        ret += solution->io->output->to_string__one_line();
-
-        return ret;
-    }
+    string to_string__one_line(int subtask_depth);
 
     string to_string__one_line__first_part(int i);
-
-    vector<MaskAndCostAndInstantiatedModules*> generate_variety(int subtask_depth, ofstream *fout, AutomatonRuleCost max_automaton_rule_cost);
 
     int get_function_size();
 };

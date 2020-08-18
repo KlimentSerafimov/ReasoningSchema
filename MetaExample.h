@@ -6,7 +6,6 @@
 #define COMPACTPOSET_METAEXAMPLE_H
 
 #include "PartialFunction.h"
-#include "MaskAndCostAndInstantiatedModules.h"
 #include "Prior.h"
 #include <string>
 

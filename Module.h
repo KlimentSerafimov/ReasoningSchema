@@ -129,15 +129,7 @@ public:
         assert(defined_heuristic_score);
         return heuristic_score;
     }
-    void set_heuristic_score(HeuristicScore _heuristic_score)
-    {
-        assert(!defined_heuristic_score);
-        heuristic_score = _heuristic_score;
-        subdomain_mask->push_back(this);
-
-        defined_heuristic_score = true;
-    }
-
+    void set_heuristic_score(HeuristicScore _heuristic_score);
 };
 
 #endif //COMPACTPOSET_MODULE_H
