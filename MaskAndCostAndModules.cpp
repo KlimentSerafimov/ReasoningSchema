@@ -17,7 +17,7 @@ HeuristicScore MaskAndCostAndInstantiatedModules::get_most_receint_heuristic() {
 }
 
 bool MaskAndCostAndInstantiatedModules::has_most_receint_heuristic() {
-    return modules.size() >= 1 && modules[modules.size()-1]->get_heuristic_score().defined;
+    return modules.size() >= 1;
 }
 
 void MaskAndCostAndInstantiatedModules::add_unseen_output(Bitvector new_unseen_output) {
@@ -40,4 +40,13 @@ Bitvector MaskAndCostAndInstantiatedModules::get_unseen_outputs() {
 void MaskAndCostAndInstantiatedModules::reset_unseen_output() {
     unseen_outputs = Bitvector(all_ones, get_size());
     unseen_outputs_defined = true;
+}
+
+MaskAndNextPrior::MaskAndNextPrior(MaskAndCostAndInstantiatedModules *_mask) {
+    mask = _mask;
+}
+
+MaskAndNextPrior::MaskAndNextPrior(MaskAndCostAndInstantiatedModules *_mask, Prior *_next_prior) {
+    mask = _mask;
+    next_prior = _next_prior;
 }

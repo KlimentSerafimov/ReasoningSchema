@@ -1329,15 +1329,15 @@ BittreeTaskType::generate_variety(int subtask_depth, ofstream *fout, AutomatonRu
     vector<SequenceOfPrimitiveRules> possible_rules;
     possible_rules.emplace_back(stay);
     possible_rules.emplace_back(move_right);
-    possible_rules.emplace_back(move_left);
+//    possible_rules.emplace_back(move_left);
     possible_rules.emplace_back(move_up);
-    possible_rules.emplace_back(move_down);
-    possible_rules.emplace_back(move_front);
-    possible_rules.emplace_back(move_back);
-    possible_rules.emplace_back(move_front, move_up);
-    possible_rules.emplace_back(move_front, move_right);
+//    possible_rules.emplace_back(move_down);
+//    possible_rules.emplace_back(move_front);
+//    possible_rules.emplace_back(move_back);
+//    possible_rules.emplace_back(move_front, move_up);
+//    possible_rules.emplace_back(move_front, move_right);
     possible_rules.emplace_back(move_up, move_right);
-    possible_rules.emplace_back(move_front, move_up, move_right);
+//    possible_rules.emplace_back(move_front, move_up, move_right);
 
     local_parent->calc_subtree_sums();
     vector<int> new_path;
@@ -1363,7 +1363,7 @@ BittreeTaskType::generate_variety(int subtask_depth, ofstream *fout, AutomatonRu
                         new MaskAndCost(all_programs[i])));
     }
 
-    vector<MaskAndCostAndInstantiatedModules*> ret;
+    MaskBucket ret;
 
     cout << "HOPE: " << endl;
     int prev = -1;

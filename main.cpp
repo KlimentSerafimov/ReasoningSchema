@@ -254,8 +254,11 @@ void recursive_minimal_factoring_schema(int num_inputs, int language_id, vector<
         string language_name =
                 "HERE_language(n=" + std::to_string(num_inputs) + ",id=" + std::to_string(language_id) + ")[rec="+std::to_string(rec_id)+"]";
 
-        ReasoningSchemaOptimizer my_schema =
-                ReasoningSchemaOptimizer(local_meta_examples, language_name);
+        cout << "need to cast this in up to date format of prior and metric" << endl;
+
+        assert(false);
+        ReasoningSchemaOptimizer my_schema;// =
+//                ReasoningSchemaOptimizer(local_meta_examples, language_name);
 
         for(int i = 0;i<local_meta_examples.size();i++)
         {
@@ -330,7 +333,7 @@ void modeling_of_bitvector_functions() {
 //        Task * task = new Task__unary_sum();
 //        Task * task = new Task__least_set_bit();
 //        Task * task = new Task__strech_of_0s();
-//        Task * task = new Task__strech_of_0s_w_state();
+        Task * task = new Task__strech_of_0s_w_state();
 //        Task * task = new Task__linear_and_or_expression();
 //        Task * task = new Task__linear_and_or_nand_nor_expression();
 //        Task * task = new Task__sort_bits();
@@ -379,22 +382,22 @@ void modeling_of_bitvector_functions() {
 
 //        Task * task = new Task__sum_of_n_k_bit_integers_with_intermediate_state(2);
 
-        Task * task = new Task__sum_of_n_k_bit_integers_with_second_order_intermediate_state(2);
+//        Task * task = new Task__sum_of_n_k_bit_integers_with_second_order_intermediate_state(2);
 
-        int init_iter = 1;
-        int num_iter = 5;
+        int init_iter = 2;
+        int num_iter = 7;
         ModeType mode_type = progressive_prior_mode;
         MetricType metric_type = most_progress; //min_imp_set;
         int recursive_rep_set_depth = 0;
         int min_mask_size = 1;
         int max_mask_size = 3;
-        int num_prev_subtasks = 0;
+        int num_prev_subtasks = 1;
         bool train_set_minimization = true;
         int seed_train_set = -1;
         int num_minimization_steps = 30;
-        double init_minimization_fraction = 17.0/20;
+        double init_minimization_fraction = 16.0/20;
         double end_minimization_fraction = 19.5/20;
-        AutomatonRuleCost max_automaton_rule_cost = AutomatonRuleCost(4);
+        AutomatonRuleCost max_automaton_rule_cost = AutomatonRuleCost(18);
 
         assert(init_minimization_fraction != 0);
         assert(end_minimization_fraction != 0);

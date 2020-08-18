@@ -136,9 +136,9 @@ public:
         return true;
     }
 
-    Prior get_masks(int min_mask_size, int max_mask_size, int num_first_in_prior);
+    MaskBuckets get_masks(int min_mask_size, int max_mask_size, int num_first_in_prior);
 
-    void append_to_masks(int min_mask_size, int max_mask_size, Prior &ret);
+    void append_to_masks(int min_mask_size, int max_mask_size, MaskBuckets &ret);
 
     Bitvector get_generalization_mask();
     Bitvector get_output_mask();

@@ -43,6 +43,10 @@ public:
         }
         return ret;
     }
+    static AutomatonRuleCost get_cost()
+    {
+        return 1;
+    }
 };
 
 class PathAndSequenceOfRules
@@ -56,10 +60,7 @@ public:
     {
         path = _path;
         sequence_of_rules = _sequence_of_rules;
-        for(int i = 0;i<sequence_of_rules.size();i++)
-        {
-            cost.add_cost(AutomatonRuleCost(rule_cost[sequence_of_rules[i]]));
-        }
+        cost.add_cost(AutomatonRuleCost(_sequence_of_rules.get_cost().get_cost() << (int)_path.size()));
     }
     string to_string()
     {

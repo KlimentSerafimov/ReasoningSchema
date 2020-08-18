@@ -10,8 +10,27 @@
 using namespace std;
 
 class MaskAndCostAndInstantiatedModules;
+class MaskAndNextPrior;
 
-class Prior : public vector<vector<MaskAndCostAndInstantiatedModules*> > {};
+class MaskBucket : public vector<MaskAndCostAndInstantiatedModules*>
+{
 
+};
+
+class MaskBuckets;
+
+class Prior : public vector<vector<MaskAndNextPrior*> > {
+public:
+    Prior(MaskBuckets* masks);
+    void initialize(Prior* next_prior);
+};
+
+
+class MaskBuckets : public vector<MaskBucket>
+{
+public:
+    MaskBuckets(Prior* prior);
+    MaskBuckets() = default;
+};
 
 #endif //COMPACTPOSET_PRIOR_H

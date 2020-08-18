@@ -7,6 +7,7 @@
 
 #include "vector"
 #include "Mask.h"
+#include "Prior.h"
 
 class Module;
 class HeuristicScore;
@@ -26,6 +27,15 @@ public:
     bool has_most_receint_heuristic();
     Bitvector get_unseen_outputs();
     void reset_unseen_output();
+};
+
+class MaskAndNextPrior
+{
+public:
+    MaskAndCostAndInstantiatedModules* mask;
+    Prior* next_prior;
+    explicit MaskAndNextPrior(MaskAndCostAndInstantiatedModules* mask);
+    MaskAndNextPrior(MaskAndCostAndInstantiatedModules* mask, Prior* next_prior);
 };
 
 class Pointer_MaskAndCostAndInstantiatedModules
@@ -48,6 +58,7 @@ public:
         return pointer;
     }
 };
+
 
 
 #endif //COMPACTPOSET_MASKANDCOSTANDINSTANTIATEDMODULES_H

@@ -307,12 +307,12 @@ BitvectorTasks::get_multi_task_type(IncrementalTypeExpression *type_expression, 
 }
 
 
-vector<Prior >
+vector<MaskBuckets >
 BitvectorTasks::masks_generator(int num_subtasks, int max_masks_size, int min_mask_size, int num_first_in_prior, vector<BittreeTaskType*> multi_task_type)
 {
     if(true)
     {
-        vector<Prior > masks;
+        vector<MaskBuckets > masks;
         for (int i = 0; i < multi_task_type.size(); i++) {
             masks.push_back(multi_task_type[i]->to_meta_example(-1, num_subtasks).get_masks(min_mask_size, max_masks_size, num_first_in_prior));
         }
@@ -382,9 +382,9 @@ BitvectorTasks::get_meta_examples(IncrementalTypeExpression *type_expression, Ta
     assert(ret_inst_trees.size() == init_num_iter);
 }
 
-vector<MaskAndCostAndInstantiatedModules*> BitvectorTasks::get_next_subdomains(
+MaskBucket BitvectorTasks::get_next_subdomains(
         MetricType metric, string dir_path, string init_language_name,
-        vector<MaskAndCostAndInstantiatedModules*> & subdomains, BittreeTaskType * current_bittree, BittreeTaskType * next_bittree, int num_prev_subtasks, int task_id)
+        MaskBucket & subdomains, BittreeTaskType * current_bittree, BittreeTaskType * next_bittree, int num_prev_subtasks, int task_id)
 {
     ofstream fout, fout_all_automaton_rules;
 
@@ -406,7 +406,7 @@ vector<MaskAndCostAndInstantiatedModules*> BitvectorTasks::get_next_subdomains(
         fout << bittree_as_partial.to_string__one_line() << endl;
     }
 
-    vector<MaskAndCostAndInstantiatedModules*> next_subdomains;
+    MaskBucket next_subdomains;
     if (next_bittree != nullptr)
     {
 
@@ -502,7 +502,7 @@ void run_bittree_program(Task * task_name)
 
 }
 
-void BitvectorTasks::augment_subdomains(vector<MaskAndCostAndInstantiatedModules*>& subdomains, BittreeTaskType* current_bittree, int num_prev_subtasks, int task_id)
+void BitvectorTasks::augment_subdomains(MaskBucket& subdomains, BittreeTaskType* current_bittree, int num_prev_subtasks, int task_id)
 {
     for (int subdomain_id = 0; subdomain_id < subdomains.size(); subdomain_id++) {
         vector<BittreeTaskType*> new_current_bittree = get_multi_task_type(new IncrementalTypeExpression(task_name), task_id + 1);
@@ -520,10 +520,10 @@ void BitvectorTasks::augment_subdomains(vector<MaskAndCostAndInstantiatedModules
     }
 }
 
-void BitvectorTasks::delta_wiring(vector<MaskAndCostAndInstantiatedModules*> &subdomains, BittreeTaskType *task_type, int task_id,
-                                  vector<MaskAndCostAndInstantiatedModules*> &next_subdomains, string init_language_name,
-                                  BittreeTaskType *next_task_type, vector<MaskAndCostAndInstantiatedModules*> &prev_subdomains,
-                                  vector<MaskAndCostAndInstantiatedModules*> &new_prev_subdomains)
+void BitvectorTasks::delta_wiring(MaskBucket &subdomains, BittreeTaskType *task_type, int task_id,
+                                  MaskBucket &next_subdomains, string init_language_name,
+                                  BittreeTaskType *next_task_type, MaskBucket &prev_subdomains,
+                                  MaskBucket &new_prev_subdomains)
 {
 
     augment_subdomains(subdomains, task_type, num_prev_subtasks, task_id);
@@ -629,13 +629,13 @@ void BitvectorTasks::delta_wiring(vector<MaskAndCostAndInstantiatedModules*> &su
 
 }
 
-void remove_duplicates(Prior & masks_of_task_id)
+void remove_duplicates(MaskBuckets & masks_of_task_id)
 {
-    Prior ret_masks_of_task_id;
+    MaskBuckets ret_masks_of_task_id;
     set<Bitvector> masks;
     for(int i = 0;i<masks_of_task_id.size();i++)
     {
-        ret_masks_of_task_id.push_back(vector<MaskAndCostAndInstantiatedModules*>());
+        ret_masks_of_task_id.push_back(MaskBucket());
         for(int j = 0;j<masks_of_task_id[i].size();j++)
         {
             if(masks.find(*masks_of_task_id[i][j]) == masks.end())
@@ -653,12 +653,12 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
         int task_id,
         vector<MetaExample> meta_examples_of_task_id,
         vector<InstanceTree*> inst_trees_of_task_id,
-        vector<MaskAndCostAndInstantiatedModules*> &next_subdomains,
-        Prior masks_of_task_id,
+        MaskBucket &next_subdomains,
+        MaskBuckets masks_of_task_id,
         BittreeTaskType *task_type,
         BittreeTaskType *next_task_type,
-        vector<MaskAndCostAndInstantiatedModules*> &prev_subdomains,
-        vector<MaskAndCostAndInstantiatedModules*> &new_prev_subdomains,
+        MaskBucket &prev_subdomains,
+        MaskBucket &new_prev_subdomains,
         vector<MetaExample> prev_train_set,
         vector<InstanceTree*> prev_inst_trees,
 
@@ -681,10 +681,10 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
         }
         cout << endl;
 
-        bool more_buckets = true;
+        bool more_buckets = false;
         if(more_buckets) {
             AutomatonRuleCost prev_cost = -1;
-            vector<MaskAndCostAndInstantiatedModules*> local_subdomains;
+            MaskBucket local_subdomains;
             for (int i = 0; i < next_subdomains.size(); i++) {
             if (prev_cost != next_subdomains[i]->get_cost() && prev_cost != -1) {
                     masks_of_task_id.push_back(local_subdomains);
@@ -810,7 +810,7 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
 //        }
         string init_language_name = language_name;
 
-        vector<MaskAndCostAndInstantiatedModules*> subdomains;
+        MaskBucket subdomains;
         int min_train_set_size = test_meta_examples.size();
 
         summary << "task_id " << task_id + 1 << endl;
@@ -821,8 +821,8 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
 
         for (int minimization_step = 0; minimization_step < num_minimization_steps; minimization_step++, at_minimization_fraction+=delta_minimization_fraction) {
             bool all_solved = false;
-            vector<MaskAndCostAndInstantiatedModules*> local_subdomains;
-            vector<MaskAndCostAndInstantiatedModules*> prev_subdomains;
+            MaskBucket local_subdomains;
+            MaskBucket prev_subdomains;
             ReasoningSchemaOptimizer * local_reasoning_scema = nullptr;
 
             while (!all_solved) {
@@ -919,7 +919,7 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
             int now_meta_examples_size = (int) local_meta_examples.size();
             int rec_id = 0;
 
-            vector<MaskAndCostAndInstantiatedModules*> subdomains;
+            MaskBucket subdomains;
 
             string init_language_name = language_name;
 
@@ -992,12 +992,21 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
     }
 }
 
-BitvectorTasks::BitvectorTasks(Task *_task_name, int _init_iter, int _num_iter, int _recursive_rep_set_depth,
+BitvectorTasks::BitvectorTasks(Task *_task_name,
+                               int _init_iter,
+                               int _num_iter,
+                               int _recursive_rep_set_depth,
                                MetricType _metric,
-                               ModeType _mode, int _min_mask_size, int _max_mask_size, int _num_prev_subtasks,
+                               ModeType _mode,
+                               int _min_mask_size,
+                               int _max_mask_size,
+                               int _num_prev_subtasks,
                                string _dir_path,
-                               bool _train_set_minimization, int _seed_train_set, int _num_minimization_steps,
-                               double _init_minimization_fraction, double _end_minimization_fraction,
+                               bool _train_set_minimization,
+                               int _seed_train_set,
+                               int _num_minimization_steps,
+                               double _init_minimization_fraction,
+                               double _end_minimization_fraction,
                                AutomatonRuleCost _max_automaton_rule_cost)
 {
     task_name = _task_name;
@@ -1027,12 +1036,12 @@ BitvectorTasks::BitvectorTasks(Task *_task_name, int _init_iter, int _num_iter, 
     vector<vector<InstanceTree*> > instance_subtrees;
     get_meta_examples(&type_expression_for_meta_examples, task_name, num_iter, num_prev_subtasks, meta_examples, instance_subtrees);
 
-    vector<MaskAndCostAndInstantiatedModules*> next_subdomains;
-    Prior prev_subdomains;
-    prev_subdomains.push_back(vector<MaskAndCostAndInstantiatedModules*>());
+    MaskBucket next_subdomains;
+    MaskBuckets prev_subdomains;
+    prev_subdomains.push_back(MaskBucket());
 
-    vector<Prior > masks =
-            vector<Prior >(meta_examples.size(), Prior());
+    vector<MaskBuckets > masks =
+            vector<MaskBuckets >(meta_examples.size(), MaskBuckets());
 
     set_up_directory();
 
@@ -1055,7 +1064,7 @@ BitvectorTasks::BitvectorTasks(Task *_task_name, int _init_iter, int _num_iter, 
             next_task_type = multi_task_type[task_id+1];
         }
 
-        prev_subdomains.push_back(vector<MaskAndCostAndInstantiatedModules*>());
+        prev_subdomains.push_back(MaskBucket());
         ReasoningSchemaOptimizer * reasoning_schema = nullptr;
 
         vector<MetaExample> prev_rep_set;
@@ -1159,7 +1168,7 @@ void BitvectorTasks::set_up_directory() {
 
     dir_path =
             "task=" + task_name->get_task_name() +
-            "-gen=78-iter_range=[" + std::to_string(init_iter) + "," + std::to_string(num_iter) + "]"
+            "-gen=79-iter_range=[" + std::to_string(init_iter) + "," + std::to_string(num_iter) + "]"
             "-num_subtask=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +
             "-metric=" + metric_type_name[metric]+

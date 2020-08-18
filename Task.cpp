@@ -1591,22 +1591,22 @@ void Task__sum_of_n_k_bit_integers_with_second_order_intermediate_state::generat
     holder->base_task_type = new BittreeTaskType(
             nullptr,  Name("base_task_type"), internal_node, internal_node);
 
-    holder->base_task_type->io->output->push_back_child(new BittreeNode(
-            holder->base_task_type->io->output,
-            Name("children", 0),
-            internal_node
-            ));
-    holder->base_task_type->io->output->children[0]->push_back_child(new BittreeNode(
-            holder->base_task_type->io->output,
-            Name("children", 0),
-            internal_node
-    ));
-    holder->base_task_type->io->output->children[0]->children[0]->push_back_child(new BittreeNode(
-            holder->base_task_type->io->output->children[0],
-            Name("children", 0),
-            leaf_node,
-            new_machine_bit
-    ));
+//    holder->base_task_type->io->output->push_back_child(new BittreeNode(
+//            holder->base_task_type->io->output,
+//            Name("children", 0),
+//            internal_node
+//            ));
+//    holder->base_task_type->io->output->children[0]->push_back_child(new BittreeNode(
+//            holder->base_task_type->io->output,
+//            Name("children", 0),
+//            internal_node
+//    ));
+//    holder->base_task_type->io->output->children[0]->children[0]->push_back_child(new BittreeNode(
+//            holder->base_task_type->io->output->children[0],
+//            Name("children", 0),
+//            leaf_node,
+//            new_machine_bit
+//    ));
 
     for(int i = 0; i<10;i++)
     {
@@ -1625,7 +1625,7 @@ void Task__sum_of_n_k_bit_integers_with_second_order_intermediate_state::generat
         BittreeNode* new_intermediate_state = new BittreeNode(nullptr, Name("intermediate_state"), internal_node);
         BittreeNode* binary_sum_iner_state = new BittreeNode(new_intermediate_state, Name("children", 0), internal_node);
         new_intermediate_state->push_back_child(binary_sum_iner_state);
-        for(int j = 0; j<i+2; j++)
+        for(int j = 1; j<i+2; j++)
         {
             BittreeNode* new_second_inter_int = binary_sum_iner_state->push_back_child(
                     new BittreeNode(binary_sum_iner_state, Name("children", j), internal_node));
@@ -1673,19 +1673,19 @@ void Task__sum_of_n_k_bit_integers_with_second_order_intermediate_state::solve(B
 //    }
 
     BittreeNode* see_output = holder->output;
-    assert(holder->output->children.size() == partial_sums.size());
+    assert(holder->output->children.size() == max(0, (int)partial_sums.size()-1));
     for(int i = 0;i<holder->output->children.size();i++)
     {
         BittreeNode* partial_sums_in_bittree = holder->output->children[i];
-        assert(partial_sums_in_bittree->children.size() == partial_sums[i].size());
+        assert(partial_sums_in_bittree->children.size() == partial_sums[i+1].size()-1);
         for(int j = 0; j < holder->output->children[i]->children.size(); j++)
         {
-            assert(holder->output->children[i]->children[j]->children.size() == partial_sums[i][j].get_size());
+            assert(holder->output->children[i]->children[j]->children.size() == partial_sums[i+1][j+1].get_size());
             for(int k = 0; k < holder->output->children[i]->children[j]->children.size(); k++)
             {
                 assert(holder->output->children[i]->children[j]->children[k]->bit->is_bit_set == false);
                 holder->output->children[i]->children[j]->children[k]->bit->is_bit_set = true;
-                holder->output->children[i]->children[j]->children[k]->bit->bit_val = partial_sums[i][j].get_bit(k);
+                holder->output->children[i]->children[j]->children[k]->bit->bit_val = partial_sums[i+1][j+1].get_bit(k);
             }
         }
     }

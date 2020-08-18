@@ -199,10 +199,10 @@ float MetaExample::cost(Bitvector mask)
     return (float)sum_sum+custom_cost;
 }
 
-Prior MetaExample::get_masks(int min_mask_size, int max_mask_size, int num_first_in_prior)
+MaskBuckets MetaExample::get_masks(int min_mask_size, int max_mask_size, int num_first_in_prior)
 {
 
-    Prior ret;
+    MaskBuckets ret;
 
     append_to_masks(min_mask_size, max_mask_size, ret);
 
@@ -275,7 +275,7 @@ Prior MetaExample::get_masks(int min_mask_size, int max_mask_size, int num_first
 
 }
 
-void MetaExample::append_to_masks(int min_mask_size, int max_mask_size, Prior &ret) {
+void MetaExample::append_to_masks(int min_mask_size, int max_mask_size, MaskBuckets &ret) {
 
     if(get_function_size() == 0)
     {
@@ -316,7 +316,7 @@ void MetaExample::append_to_masks(int min_mask_size, int max_mask_size, Prior &r
 
     sort(ret_with_cost.begin(), ret_with_cost.end());
 
-    vector<MaskAndCostAndInstantiatedModules*> ret_bucket;
+    MaskBucket ret_bucket;
 
     for(int i = 0;i<ret_with_cost.size();i++)
     {

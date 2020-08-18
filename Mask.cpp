@@ -87,7 +87,8 @@ bool MaskAndCost::operator<(const MaskAndCost* &other) const
     }
 }
 
-void MaskAndCost::set_local_variety(vector<MaskAndCostAndInstantiatedModules*> _local_variety)
+void MaskAndCost::set_local_variety(
+        vector<MaskAndCostAndInstantiatedModules*> _local_variety)
 {
     local_variety = std::move(_local_variety);
 }

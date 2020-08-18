@@ -18,7 +18,6 @@ public:
     MaskIdAndHeuristicScore(pair<HeuristicScore, pair<int, int> > score_and_id)
     {
         score = score_and_id.first;
-        assert(score.defined);
         id = score_and_id.second;
     }
 
@@ -48,7 +47,8 @@ class ReasoningSchemaOptimizer
     vector<MetaExample> meta_examples;
     int init_num_missing_bits;
 
-    Prior masks;
+    MaskBuckets masks;
+    Prior* prior;
     int module_id;
     vector<MaskIdAndHeuristicScore> mask_ids_by_heuristic;
 //    vector<vector<HeuristicScore> > heuristic_score_by_bucket_id_by_mask_id;
@@ -63,14 +63,11 @@ class ReasoningSchemaOptimizer
 
     void repeat_apply_parents(Module *module);
 
-    void calc_masks(int set_init_masks_size, int set_end_masks_size);
+    void calc_masks();
 
     void calc_module(MaskAndCostAndInstantiatedModules *subdomain_mask, Module *module);
 
     void main__minimal_factoring_schema(vector<MetaExample> _meta_examples);
-
-    bool skip_mask(MaskAndCost subdomain_mask);
-
 
 
 public:
@@ -79,16 +76,14 @@ public:
 
     ReasoningSchemaOptimizer* root_pointer;
 
-    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, ReasoningSchemaOptimizer *_parent_pointer);
+    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, ReasoningSchemaOptimizer *_parent_pointer, Prior * prior);
 
-    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name);
-
-    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name, Prior mask,
+    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name, MaskBuckets mask,
                              string dir_path, MetricType metric_type);
 
     vector<MetaExample> get_necessary_meta_examples(bool print);
 
-    vector<MaskAndCostAndInstantiatedModules*> get_subdomains();
+    MaskBucket get_subdomains();
 
     PartialFunction query(PartialFunction partial_function);
 
