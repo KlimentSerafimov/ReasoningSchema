@@ -852,7 +852,7 @@ void BittreeNode::apply_rule(
 
             if(at.first == nullptr)
             {
-                assert(false);
+//                assert(false);
                 canvas = nullptr;
                 pointer_on_canvas = nullptr;
             }
@@ -951,7 +951,7 @@ void BittreeNode::populate_programs(
             }
             for (int i = 0; i < rules->size(); i++) {
                 CanvasAndBittreeProgram* new_program = canvas->produce(rules->at(i), path);
-                if(new_program->get_cost() <= max_cost) {
+                if(new_program->get_canvas() != nullptr && new_program->get_cost() <= max_cost) {
                     all_programs->my_push_back(new_program);
                 }
             }
@@ -1396,15 +1396,15 @@ BittreeTaskType::generate_variety(int subtask_depth, ofstream *fout, AutomatonRu
     vector<SequenceOfPrimitiveRules> possible_rules;
     possible_rules.emplace_back(stay);
     possible_rules.emplace_back(move_right);
-    possible_rules.emplace_back(move_left);
+//    possible_rules.emplace_back(move_left);
     possible_rules.emplace_back(move_up);
-    possible_rules.emplace_back(move_down);
-//    possible_rules.emplace_back(move_front);
+//    possible_rules.emplace_back(move_down);
+    possible_rules.emplace_back(move_front);
 //    possible_rules.emplace_back(move_back);
-//    possible_rules.emplace_back(move_front, move_up);
-//    possible_rules.emplace_back(move_front, move_right);
+    possible_rules.emplace_back(move_front, move_up);
+    possible_rules.emplace_back(move_front, move_right);
     possible_rules.emplace_back(move_up, move_right);
-//    possible_rules.emplace_back(move_front, move_up, move_right);
+    possible_rules.emplace_back(move_front, move_up, move_right);
 
     local_parent->calc_subtree_sums();
     vector<int> new_path;
