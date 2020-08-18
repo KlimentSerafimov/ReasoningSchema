@@ -43,23 +43,6 @@ public:
     void vectorize_instance_tree(vector<vector<InstanceTree*> >& ret, int at_depth);
 };
 
-class BittreeTaskInstance
-{
-public:
-
-    BittreeTaskType* initialization;
-    BittreeTaskType* delta;
-
-    BittreeTaskType curriculum[5];
-
-    BittreeTaskType* bittree_task_type;
-
-    vector<BittreeTaskType> instances;
-
-    BittreeTaskInstance(BittreeTaskType* _bittree_task_type);
-};
-
-
 class BitvectorTasks {
 
     Task *task_name;
@@ -85,17 +68,8 @@ class BitvectorTasks {
     ofstream summary;
     ofstream summary_with_times;
 
-    int num_inputs;
-    int function_size;
-
     vector<PartialFunction> ordering_over_boolean_functions;
     MetaExample get_meta_example(PartialFunction partial_function);
-
-    void populate_ordering_over_boolean_functions_with_small_sum();
-    void populate_ordering_over_boolean_functions_with_bitwise_and();
-
-    vector<MaskBuckets >
-    masks_generator(int num_subtasks, int max_masks_size, int min_mask_size, int num_first_in_prior, vector<BittreeTaskType*> multi_task_set);
 
     vector<BittreeTaskType*> get_multi_task_type(IncrementalTypeExpression *type_expression, int init_num_iter);
 

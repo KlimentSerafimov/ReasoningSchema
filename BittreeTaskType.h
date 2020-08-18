@@ -182,6 +182,8 @@ public:
     string to_string__one_line__first_part(int i);
 
     vector<MaskAndCostAndInstantiatedModules*> generate_variety(int subtask_depth, ofstream *fout, AutomatonRuleCost max_automaton_rule_cost);
+
+    int get_function_size();
 };
 
 //class BittreeTaskTypeDecomposition: public TreeNode

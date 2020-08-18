@@ -21,8 +21,11 @@ class MaskBuckets;
 
 class Prior : public vector<vector<MaskAndNextPrior*> > {
 public:
+    Prior() = default;
     Prior(MaskBuckets* masks);
+    void push_back_next_subdomains_to_masks(MaskBuckets* masks, MaskBucket next_subdomains);
     void initialize(Prior* next_prior);
+    void push_back_new_bucket_with_enumerated_masks(int function_size, int min_mask_size, int max_mask_size, MaskBuckets* masks_of_task_id);
 };
 
 

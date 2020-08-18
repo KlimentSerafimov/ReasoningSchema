@@ -20,90 +20,6 @@
 
 using namespace std;
 
-void BitvectorTasks::populate_ordering_over_boolean_functions_with_small_sum()
-{
-    assert((function_size-1)%3 == 0);
-    int operator_size = function_size/3;
-    vector<pair<int, int> > operators;
-    vector<pair<pair<int, int>, int> > operators_ids_by_heuristic;
-    int first_operand_size = operator_size;
-    int second_operand_size = operator_size;
-    for(int i = 0;i<(1<<first_operand_size); i++)
-    {
-        for(int j = 0;j<(1<<second_operand_size); j++)
-        {
-            operators.push_back(make_pair(i,  j));
-            int k = i+j;
-            operators_ids_by_heuristic.push_back(make_pair(make_pair(k, max(i, j)), operators.size()-1));
-        }
-    }
-    sort(operators_ids_by_heuristic.begin(), operators_ids_by_heuristic.end());
-    for(int i = 0;i<operators_ids_by_heuristic.size();i++)
-    {
-        int id = operators_ids_by_heuristic[i].second;
-        int total_function =
-                operators[id].first + (operators[id].second << first_operand_size) + ((operators[id].first + operators[id].second) << (first_operand_size+second_operand_size));
-        PartialFunction partial_function = PartialFunction(function_size, total_function);
-        ordering_over_boolean_functions.push_back(partial_function);
-        cout << partial_function.to_string() << endl;
-    }
-}
-
-
-void BitvectorTasks::populate_ordering_over_boolean_functions_with_bitwise_and()
-{
-    assert(function_size%3 == 0);
-    vector<pair<int, int> > operators;
-    vector<pair<pair<int, int>, int> > operators_ids_by_heuristic;
-    int first_operand_size = 5;
-    int second_operand_size = 5;
-    for(int i = 0;i<(1<<first_operand_size); i++)
-    {
-        for(int j = 0;j<(1<<second_operand_size); j++)
-        {
-            operators.push_back(make_pair(i,  j));
-            int k = i&j;
-            operators_ids_by_heuristic.push_back(make_pair(make_pair(k, max(i, j)), operators.size()-1));
-        }
-    }
-    sort(operators_ids_by_heuristic.begin(), operators_ids_by_heuristic.end());
-    for(int i = 0;i<operators_ids_by_heuristic.size();i++)
-    {
-        int id = operators_ids_by_heuristic[i].second;
-        int total_function =
-                operators[id].first + (operators[id].second << first_operand_size) + ((operators[id].first&operators[id].second) << (first_operand_size+second_operand_size));
-        PartialFunction partial_function = PartialFunction(function_size, total_function, (1<<16)-1-(1<<15));
-        ordering_over_boolean_functions.push_back(partial_function);
-        cout << partial_function.to_string() << endl;
-    }
-}
-
-
-MetaExample BitvectorTasks::get_meta_example(PartialFunction partial_function) {
-    for(int i = 0;i<ordering_over_boolean_functions.size();i++)
-    {
-        PartialFunction boolean_function = ordering_over_boolean_functions[i];
-//        is_generalization_counter += __builtin_popcount(partial_function.partition);
-        if(boolean_function.is_contained_in(partial_function))
-        {
-            return MetaExample(boolean_function.function_size, boolean_function.total_function, partial_function.partition);
-        }
-    }
-    return MetaExample(partial_function.function_size, partial_function.total_function, partial_function.partition, partial_function.partition);
-}
-
-BitvectorTasks::BitvectorTasks(int _function_size, int task_id) {
-    function_size = _function_size;
-    if(task_id == 0)
-    {
-        populate_ordering_over_boolean_functions_with_small_sum();
-    }
-    if(task_id == 1)
-    {
-        populate_ordering_over_boolean_functions_with_bitwise_and();
-    }
-}
-
 InstanceTree::InstanceTree(BittreeTaskType* _instance, Task *_task_name) {
     instance = _instance;
     task_name = _task_name;
@@ -255,37 +171,7 @@ void InstanceTree::vectorize_instance_tree(vector<vector<InstanceTree*> >& ret, 
     }
 }
 
-BittreeTaskInstance::BittreeTaskInstance(BittreeTaskType* _bittree_task_type)
-{
-    bittree_task_type = _bittree_task_type;
-
-    vector<BitInBittree*> input_bits;
-    vector<BitInBittree*> output_bits;
-
-    memset_visited(vis_bits);
-    bittree_task_type->io->input->append_bits(input_bits);
-    bittree_task_type->io->output->append_bits(output_bits);
-
-    int num_input_bits = input_bits.size();
-    int num_instances = (1<<num_input_bits);
-    for(int i = 0; i<num_instances; i++)
-    {
-        instances.push_back(BittreeTaskType(nullptr, Name("instances", instances.size()), bittree_task_type, true));
-        vector<BitInBittree*> local_input_bits;
-        memset_visited(vis_bits);
-        instances[i].io->input->append_bits(local_input_bits);
-        assert(local_input_bits.size() == num_input_bits);
-        for(int j = 0;j<local_input_bits.size();j++)
-        {
-            local_input_bits[j]->is_bit_set = true;
-            local_input_bits[j]->bit_val = get_bit(i, j);
-        }
-//        cout << instances[i].to_string() << endl;
-    }
-}
-
-vector<BittreeTaskType *>
-BitvectorTasks::get_multi_task_type(IncrementalTypeExpression *type_expression, int init_num_iter) {
+vector<BittreeTaskType *> BitvectorTasks::get_multi_task_type(IncrementalTypeExpression *type_expression, int init_num_iter) {
     int num_iter = init_num_iter;
 
     vector<BittreeTaskType *> multi_task_type;
@@ -306,55 +192,9 @@ BitvectorTasks::get_multi_task_type(IncrementalTypeExpression *type_expression, 
 
 }
 
-
-vector<MaskBuckets >
-BitvectorTasks::masks_generator(int num_subtasks, int max_masks_size, int min_mask_size, int num_first_in_prior, vector<BittreeTaskType*> multi_task_type)
-{
-    if(true)
-    {
-        vector<MaskBuckets > masks;
-        for (int i = 0; i < multi_task_type.size(); i++) {
-            masks.push_back(multi_task_type[i]->to_meta_example(-1, num_subtasks).get_masks(min_mask_size, max_masks_size, num_first_in_prior));
-        }
-
-        return masks;
-
-    }
-    else {
-        // need to refactor using multi_task_type instead of curriculum
-//        vector<vector<Bitvector> > masks;
-//
-//        vector<BittreeTaskType *> curriculum;
-//        int num_subtree_markers = 1;
-//        int max_mask_type_depth = 100;
-//        curriculum.push_back(type_expression->base_task_type);
-//
-////        memset_visited(vis_type, num_subtree_markers);
-////        BittreeProgram program = BittreeProgram(curriculum[0], nullptr, num_subtree_markers);
-////        masks.push_back(program.all_bittree_masks_as_bitvectors);
-////        num_iter--;
-//        for (int i = 0; i < num_iter; i++) {
-//            curriculum.push_back(curriculum[i]->get_supertask_type(type_expression->delta_task_type));
-////            cout << curriculum[i + 1]->to_string() << endl;
-//            memset_visited(vis_type, num_subtree_markers);
-//            BittreeProgram program = BittreeProgram(curriculum[i + 1], nullptr, num_subtree_markers, max_mask_type_depth, num_subtasks);
-//            masks.push_back(program.all_bittree_masks_as_bitvectors);
-//        }
-//
-////      BittreeTaskInstance instances = BittreeTaskInstance(curriculum[4]);
-//
-//        vector<vector<vector<Bitvector> > > ret;
-//        ret.push_back(masks);
-//
-//        return ret;
-    }
-
-}
-
-void
-BitvectorTasks::get_meta_examples(IncrementalTypeExpression *type_expression, Task *task_name, int init_num_iter,
-                                  int subtask_depth, vector<vector<MetaExample> >& ret_meta_examples,
-                                  vector<vector<InstanceTree*> >& ret_inst_trees)
+void BitvectorTasks::get_meta_examples(
+        IncrementalTypeExpression *type_expression, Task *task_name, int init_num_iter, int subtask_depth,
+        vector<vector<MetaExample> >& ret_meta_examples, vector<vector<InstanceTree*> >& ret_inst_trees)
 {
     int num_iter = init_num_iter;
     type_expression->base_task_type->solve(task_name);
@@ -395,8 +235,6 @@ MaskBucket BitvectorTasks::get_next_subdomains(
     for (int j = 0; j < subdomains.size(); j++) {
         fout << subdomains[j]->to_string() << endl;
     }
-//                assert(subdomains.s ize() == multi_task_type.size());
-
     fout << endl;
 
     for (int j = 0; j < subdomains.size(); j++) {
@@ -475,31 +313,6 @@ MaskBucket BitvectorTasks::get_next_subdomains(
     fout.close();
     fout_all_automaton_rules.close();
     return next_subdomains;
-}
-
-
-void run_bittree_program(Task * task_name)
-{
-
-    int num_subtasks = 1;
-    IncrementalTypeExpression type_expression_for_masks = IncrementalTypeExpression(task_name);
-    vector<BittreeTaskType*> curriculum;
-    int num_iter = 4;
-    int num_subtree_markers = 100;
-    int max_mask_type_depth = 100;
-    curriculum.push_back(type_expression_for_masks.base_task_type);
-
-    memset_visited(vis_type, num_subtree_markers);
-    BittreeProgram program = BittreeProgram(curriculum[0], nullptr, num_subtree_markers, max_mask_type_depth, num_subtasks);
-    for (int i = 0; i < num_iter; i++) {
-        curriculum.push_back(curriculum[i]->get_supertask_type(type_expression_for_masks.delta_task_type));
-        cout << curriculum[i + 1]->to_string() << endl;
-        memset_visited(vis_type, num_subtree_markers);
-        BittreeProgram program = BittreeProgram(curriculum[i + 1], nullptr, num_subtree_markers, max_mask_type_depth, num_subtasks);
-    }
-
-//      BittreeTaskInstance instances = BittreeTaskInstance(curriculum[4]);
-
 }
 
 void BitvectorTasks::augment_subdomains(MaskBucket& subdomains, BittreeTaskType* current_bittree, int num_prev_subtasks, int task_id)
@@ -667,50 +480,29 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
         ReasoningSchemaOptimizer* & ret_reasoning_schema
 )
 {
-    assert(masks_of_task_id.size() == 0);
-    assert(ret_train_meta_examples.size() == 0);
-    assert(ret_train_instsnace_subtrees.size() == 0);
+    assert(masks_of_task_id.empty());
+    assert(ret_train_meta_examples.empty());
+    assert(ret_train_instsnace_subtrees.empty());
     assert(ret_reasoning_schema == nullptr);
 
     assert(next_subdomains.size() != 0 || is_first);
-    if (mode == progressive_prior_mode && next_subdomains.size() != 0) {
-        cout << "with_alternative:" << endl;
 
-        for (int i = 0; i < next_subdomains.size(); i++) {
-            cout << next_subdomains[i]->to_string() << endl;
-        }
-        cout << endl;
+    int len_domain_of_meta_example = meta_examples_of_task_id[0].get_function_size();
 
-        bool more_buckets = false;
-        if(more_buckets) {
-            AutomatonRuleCost prev_cost = -1;
-            MaskBucket local_subdomains;
-            for (int i = 0; i < next_subdomains.size(); i++) {
-            if (prev_cost != next_subdomains[i]->get_cost() && prev_cost != -1) {
-                    masks_of_task_id.push_back(local_subdomains);
-                    local_subdomains.clear();
-                }
-                local_subdomains.push_back(next_subdomains[i]);
-                prev_cost = next_subdomains[i]->get_cost();
-            }
-        }
-        else
-        {
-            masks_of_task_id.push_back(next_subdomains);
-        }
+    Prior* prior = new Prior();
 
-        ofstream out_next_subdomains(dir_path + "/current_subdomains__task_id_"+std::to_string(task_id+1));
-        for(int i = 0;i<next_subdomains.size(); i++)
-        {
-            out_next_subdomains << next_subdomains[i]->to_string() << " " << next_subdomains[i]->get_cost().to_string() <<endl;
-        }
-        out_next_subdomains.close();
-
+    if (mode == progressive_prior_mode && next_subdomains.size() != 0)
+    {
+        prior->push_back_next_subdomains_to_masks(&masks_of_task_id, next_subdomains);
     }
 
-    task_type->to_meta_example(-1, num_prev_subtasks).append_to_masks(min_mask_size, max_mask_size, masks_of_task_id);
+    prior->push_back_new_bucket_with_enumerated_masks(
+            len_domain_of_meta_example, min_mask_size, max_mask_size, &masks_of_task_id);
 
     remove_duplicates(masks_of_task_id);
+
+    int len_mask = masks_of_task_id[0][0]->get_size();
+    assert(len_domain_of_meta_example == len_mask);
 
     string language_name =
             "[task_id=" + std::to_string(task_id + 1) + "]";
@@ -719,14 +511,6 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
     assert(masks_of_task_id.size() > 0);
     assert(masks_of_task_id[0].size() > 0);
 
-    int len_domain_of_meta_example = meta_examples_of_task_id[0].get_function_size();
-    int len_mask = masks_of_task_id[0][0]->get_size();
-
-    cout << meta_examples_of_task_id[0].partial_function.to_string__one_line() << endl;
-    cout << meta_examples_of_task_id[0].partial_function.to_string() << endl;
-    cout << meta_examples_of_task_id[0].to_string() << endl;
-    cout << masks_of_task_id[0][0]->to_string() << endl;
-    assert(len_domain_of_meta_example == len_mask);
 
     for (int j = 0; j < masks_of_task_id.size(); j++) {
         for (int k = 0; k < masks_of_task_id[j].size(); k++) {
@@ -788,26 +572,19 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
                 train_meta_examples.back().idx = (int) train_meta_examples.size() - 1;
             }
         }
-//        else
-//        {
 
-
-            for(int i = 0; i<prev_inst_trees.size();i++)
+        for(int i = 0; i<prev_inst_trees.size();i++)
+        {
+            for(int j = 0;j<prev_inst_trees[i]->superinstance_trees_size;j++)
             {
-                for(int j = 0;j<prev_inst_trees[i]->superinstance_trees_size;j++)
-                {
-                    InstanceTree* superinstance = prev_inst_trees[i]->superinstance_trees[j];
-                    assert(superinstance != nullptr);
-                    assert(instnace_tree_to_meta_examples.find(superinstance) != instnace_tree_to_meta_examples.end());
-                    train_meta_examples.push_back(instnace_tree_to_meta_examples[superinstance]);
-                    train_meta_examples[train_meta_examples.size()-1].idx = (int)train_meta_examples.size()-1;
-                }
+                InstanceTree* superinstance = prev_inst_trees[i]->superinstance_trees[j];
+                assert(superinstance != nullptr);
+                assert(instnace_tree_to_meta_examples.find(superinstance) != instnace_tree_to_meta_examples.end());
+                train_meta_examples.push_back(instnace_tree_to_meta_examples[superinstance]);
+                train_meta_examples[train_meta_examples.size()-1].idx = (int)train_meta_examples.size()-1;
             }
+        }
 
-
-
-
-//        }
         string init_language_name = language_name;
 
         MaskBucket subdomains;
@@ -1095,6 +872,12 @@ BitvectorTasks::BitvectorTasks(Task *_task_name,
                 reasoning_schema
             );
 
+        ofstream out_next_subdomains(dir_path + "/current_subdomains__task_id_"+std::to_string(task_id+1));
+        for(int i = 0;i<next_subdomains.size(); i++)
+        {
+            out_next_subdomains << next_subdomains[i]->to_string() << " " << next_subdomains[i]->get_cost().to_string() <<endl;
+        }
+        out_next_subdomains.close();
 
         ofstream fout_inst_trees(dir_path + "/inst_trees__task_id_"+std::to_string(task_id+1));
 
@@ -1168,7 +951,7 @@ void BitvectorTasks::set_up_directory() {
 
     dir_path =
             "task=" + task_name->get_task_name() +
-            "-gen=79-iter_range=[" + std::to_string(init_iter) + "," + std::to_string(num_iter) + "]"
+            "-gen=80.1-iter_range=[" + std::to_string(init_iter) + "," + std::to_string(num_iter) + "]"
             "-num_subtask=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +
             "-metric=" + metric_type_name[metric]+
