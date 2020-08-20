@@ -28,10 +28,17 @@ CanvasAndBittreeProgram *BehaviorToProgram::init_iter__all()
 {
     assert(!in_iter__all);
     in_iter__all = true;
-    at_iterator = begin();
-    assert(at_iterator->second.size() >= 1);
-    at_set_iterator = at_iterator->second.begin();
-    return at_set_iterator->get_pointer();
+    if(size() >= 1) {
+        at_iterator = begin();
+        assert(at_iterator->second.size() >= 1);
+        at_set_iterator = at_iterator->second.begin();
+        return at_set_iterator->get_pointer();
+    }
+    else
+    {
+        at_iterator = end();
+        return nullptr;
+    }
 }
 
 bool BehaviorToProgram::end_iter__all()

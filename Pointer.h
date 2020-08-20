@@ -23,7 +23,6 @@ public:
     }
     T* get_pointer() const
     {
-        assert(pointer != nullptr);
         return pointer;
     }
 };

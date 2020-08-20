@@ -380,7 +380,7 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
         root_pointer = this;
 
         fout_rso = new ofstream(dir_path + "/" + name);// + "__step_id=" + std::to_string(module_id));
-        (*fout_rso) << "meta_examples: "<< std::to_string((int)meta_examples.size());
+        (*fout_rso) << "meta_examples: "<< std::to_string((int)meta_examples.size()) << endl;
         for(int i = 0;i<meta_examples.size();i++)
         {
             (*fout_rso) << meta_example_to_string__one_line(meta_examples[i]) << endl << std::flush;

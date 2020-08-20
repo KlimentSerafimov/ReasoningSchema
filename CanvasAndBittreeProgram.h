@@ -124,6 +124,7 @@ public:
         {
             ret += code[i].to_string() + " ";
         }
+        ret += "("+cost.to_string()+")";
         return ret;
     }
     bool operator < (const AutomatonRule& other) const

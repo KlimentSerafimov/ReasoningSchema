@@ -650,7 +650,7 @@ BittreeNode::apply_primitive_rule_to_bit(PrimitiveRule rule, BittreeNode *pointe
                             next_id = 0;
                         }
                         else {
-                            cout << "not here" << endl;
+//                            cout << "not here" << endl;
                             next_id = grandchild_id + 1;
                         }
                     } else {
@@ -853,47 +853,60 @@ pair<BittreeNode *, BittreeNode*> BittreeNode::apply_rule(
             pair<BittreeNode*, vector<int>* > at =
                     make_pair(this, &path_copy);
 
-            vector<BitInBittree*> bits_canvas;
-            memset_visited(vis_bits);
-            canvas->append_bits(bits_canvas);
-            int count_canvas = 0;
-            for(int i =0;i<bits_canvas.size();i++)
-            {
-                count_canvas+=bits_canvas[i]->bit_val;
-            }
+//            vector<BitInBittree*> bits_canvas;
+//            memset_visited(vis_bits);
+//            canvas->append_bits(bits_canvas);
+//            int count_canvas = 0;
+//            for(int i =0;i<bits_canvas.size();i++)
+//            {
+//                count_canvas+=bits_canvas[i]->bit_val;
+//            }
             BittreeNode *next_canvas = canvas;
             BittreeNode *next_pointer_on_canvas = pointer_on_canvas;
-//            cout << "new sequence: ";
-//            for(int i = 0;i<sequence_of_rules.size();i++)
-//            {
-//                cout << rule_names[sequence_of_rules[i]] <<" ";
-//            }
-//            cout << endl;
+            bool print = sequence_of_rules.size() == 5;
+            if(print) {
+                cout << "new sequence: ";
+                for(int i = 0;i<sequence_of_rules.size();i++)
+                {
+                    cout << rule_names[sequence_of_rules[i]] <<" ";
+                }
+                for(int i = 0;i<path->size();i++){
+                    cout << path->at(i) <<" ";
+                }
+                cout << endl;
+            }
             for(int i = 0;i<sequence_of_rules.size();i++)
             {
-                cout << next_canvas->to_string__one_line() << endl;
+                if(print)
+                {
+                    cout << next_canvas->to_string__one_line() << endl;
+                }
                 at = at.first->apply_primitive_rule_to_bit(
                         sequence_of_rules[i], next_pointer_on_canvas, at.second);
 
                 if(at.first == nullptr)
                 {
-//                    cout << "break" << endl;
+                    if(print) {
+                        cout << "break" << endl;
+                    }
                     break;
                 }
-                if(i+1<sequence_of_rules.size())
+//                if(i+1<sequence_of_rules.size())
                 {
                     next_canvas = new BittreeNode(
                             nullptr, Name("next_canvas"), next_canvas, true, false, true);
                     next_pointer_on_canvas = next_canvas->get_node(at.second);
                 }
             }
-//            cout << next_canvas->to_string__one_line() << endl;
-//            cout << "end sequence" << endl;
+            if(print) {
+                cout << next_canvas->to_string__one_line() << endl;
+                cout << "end sequence" << endl;
+            }
 
             vector<BitInBittree *> bits_next_canvas;
 
-            memset_visited(vis_bits);
-            next_canvas->append_bits(bits_next_canvas);
+//            memset_visited(vis_bits);
+//            next_canvas->append_bits(bits_next_canvas);
 
 //            int count_next_canvas = 0;
 //            for (int i = 0; i < bits_next_canvas.size(); i++) {
@@ -1002,7 +1015,11 @@ void BittreeNode:: populate_programs(
             }
             for (int i = 0; i < rules->size(); i++) {
                 CanvasAndBittreeProgram* new_program = canvas->produce(rules->at(i), path);
-                if(new_program->get_canvas() != nullptr && new_program->get_cost() <= max_cost) {
+                if(new_program->get_canvas() != nullptr
+                && (false || new_program->get_cost() <= max_cost)) {
+                    cout << "all_programs->my_push_back(new_program);" << endl;
+                    cout << new_program->to_string() << endl;
+                    cout << endl;
                     all_programs->my_push_back(new_program);
                 }
             }
@@ -1013,24 +1030,44 @@ void BittreeNode:: populate_programs(
                     all_programs->my_push_back(canvas);
 //                    cout << "HERE CanvasAndBittreeProgram" << endl;
 //                    cout << canvas->to_string() << endl;
-                } else {
+                }
+                else {
                     assert(next_child < children.size());
                     if(children[next_child]->subtree_sum >= 1) {
                         path->push_back(next_child);
                         BehaviorToProgram programs_with_next_primitive = BehaviorToProgram();
-                        children[next_child]->populate_programs(rules, canvas, -1, path, &programs_with_next_primitive, max_cost);
-                        if(children[next_child]->node_type != leaf_node)
-                        {
-                            children[next_child]->populate_programs(rules, canvas, 0, path, &programs_with_next_primitive, max_cost);
+                        children[next_child]->populate_programs(rules, canvas, -1, path, &programs_with_next_primitive,
+                                                                max_cost);
+                        if (children[next_child]->node_type != leaf_node) {
+                            children[next_child]->populate_programs(rules, canvas, 0, path,
+                                                                    &programs_with_next_primitive, max_cost);
                         }
                         path->pop_back();
-                        for (CanvasAndBittreeProgram* at_behavior = programs_with_next_primitive.init_iter__all();
-                             !programs_with_next_primitive.end_iter__all();
-                             at_behavior = programs_with_next_primitive.get_next__all()) {
-                            if(at_behavior->get_cost() <= max_cost) {
-                                populate_programs(
-                                        rules, at_behavior,
-                                        next_child + 1, path, all_programs, max_cost);
+                        bool memoization = true;
+                        if (memoization) {
+                            for (BehaviorToProgramIterator at_behavior_bucket = programs_with_next_primitive.init_iter__iterators();
+                                 !programs_with_next_primitive.end_iter__iterators();
+                                 at_behavior_bucket = programs_with_next_primitive.get_next__iterators()) {
+                                CanvasAndBittreeProgram *at_canvas = (*at_behavior_bucket->second.begin()).get_pointer();
+                                if (at_canvas != nullptr) {
+                                    if (true || at_canvas->get_cost() <= max_cost) {
+                                        populate_programs(
+                                                rules, at_canvas,
+                                                next_child + 1, path, all_programs, max_cost);
+                                    }
+                                }
+                            }
+                        } else {
+                            for (CanvasAndBittreeProgram *at_canvas = programs_with_next_primitive.init_iter__all();
+                                 !programs_with_next_primitive.end_iter__all();
+                                 at_canvas = programs_with_next_primitive.get_next__all()) {
+                                if (at_canvas != nullptr) {
+                                    if (false || at_canvas->get_cost() <= max_cost) {
+                                        populate_programs(
+                                                rules, at_canvas,
+                                                next_child + 1, path, all_programs, max_cost);
+                                    }
+                                }
                             }
                         }
                     }
@@ -1448,11 +1485,11 @@ BittreeTaskType::generate_variety(int subtask_depth, ofstream *fout, AutomatonRu
     vector<SequenceOfPrimitiveRules> initial_rules;
     initial_rules.emplace_back(stay);
     initial_rules.emplace_back(move_right);
-    initial_rules.emplace_back(move_left);
+//    initial_rules.emplace_back(move_left);
     initial_rules.emplace_back(move_up);
-    initial_rules.emplace_back(move_down);
+//    initial_rules.emplace_back(move_down);
     initial_rules.emplace_back(move_front);
-    initial_rules.emplace_back(move_back);
+//    initial_rules.emplace_back(move_back);
     initial_rules.emplace_back(move_front, move_up);
     initial_rules.emplace_back(move_front, move_right);
     initial_rules.emplace_back(move_up, move_right);
@@ -1463,13 +1500,20 @@ BittreeTaskType::generate_variety(int subtask_depth, ofstream *fout, AutomatonRu
     for(int i = 0;i<initial_rules.size();i++)
     {
         all_rules.emplace_back(initial_rules[i]);
-        all_rules.emplace_back(SequenceOfPrimitiveRules(plus_one, initial_rules[i]));
-        for(int j = 0;j<initial_rules.size();j++)
-        {
-            all_rules.emplace_back(SequenceOfPrimitiveRules(initial_rules[i], SequenceOfPrimitiveRules(plus_one, initial_rules[j])));
-            all_rules.emplace_back(SequenceOfPrimitiveRules(plus_one, all_rules[all_rules.size() - 1]));
-        }
+//        all_rules.emplace_back(SequenceOfPrimitiveRules(plus_one, initial_rules[i]));
+//        for(int j = 0;j<initial_rules.size();j++)
+//        {
+//            all_rules.emplace_back(SequenceOfPrimitiveRules(initial_rules[i], SequenceOfPrimitiveRules(plus_one, initial_rules[j])));
+//            all_rules.emplace_back(SequenceOfPrimitiveRules(plus_one, all_rules[all_rules.size() - 1]));
+//        }
     }
+
+    all_rules.emplace_back(SequenceOfPrimitiveRules(move_front, plus_one), SequenceOfPrimitiveRules(move_up, plus_one, move_up));
+    all_rules.emplace_back(SequenceOfPrimitiveRules(move_front, plus_one), SequenceOfPrimitiveRules(move_up, plus_one, move_right));
+    all_rules.emplace_back(SequenceOfPrimitiveRules(move_up, plus_one), SequenceOfPrimitiveRules(move_up, plus_one, move_up));
+    all_rules.emplace_back(SequenceOfPrimitiveRules(move_up, plus_one), SequenceOfPrimitiveRules(move_up, plus_one, move_right));
+    all_rules.emplace_back(SequenceOfPrimitiveRules(move_up, plus_one), SequenceOfPrimitiveRules(move_right, plus_one, move_right));
+    all_rules.emplace_back(SequenceOfPrimitiveRules(move_right, plus_one), SequenceOfPrimitiveRules(move_right, plus_one, move_right));
 
     vector<int> new_path;
     BehaviorToProgram local_behaviors = BehaviorToProgram();
@@ -1919,8 +1963,10 @@ CanvasAndBittreeProgram::CanvasAndBittreeProgram(CanvasAndBittreeProgram *to_cop
             nullptr, Name("next_canvas"), to_copy->canvas, true, false, true);
     BittreeNode *next_pointer_on_canvas = canvas->get_node(path);
 
-    to_copy->canvas->get_node(path)->apply_rule(
+    pair<BittreeNode *, BittreeNode*> ret = to_copy->canvas->get_node(path)->apply_rule(
             rule, canvas, next_pointer_on_canvas, path);
+
+    canvas = ret.first;
 
     vector<int> copied_path = *path;
     push_back(PathAndSequenceOfRules(copied_path, rule));
