@@ -96,6 +96,10 @@ public:
 
     string slim_tree_to_string(int tab) const;
 
+    void apply_all_rules_to_subtree(
+            vector<SequenceOfPrimitiveRules> *rules, CanvasAndBittreeProgram *canvas, vector<int> *path,
+            AutomatonRuleCost max_cost, BehaviorToProgram *all_programs) const;
+
     void populate_programs(
             vector<SequenceOfPrimitiveRules> *rules,
             CanvasAndBittreeProgram *canvas,

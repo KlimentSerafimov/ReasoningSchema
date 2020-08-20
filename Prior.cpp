@@ -165,12 +165,30 @@ void append_to_masks(int function_size, int min_mask_size, int max_mask_size, Ma
 
 void Prior::push_back_next_subdomains_to_masks(MaskBuckets *masks, MaskBucket next_subdomains) {
     bool more_buckets = false;
+    bool three_buckets = true;
     if(more_buckets) {
         AutomatonRuleCost prev_cost = -1;
         MaskBucket local_subdomains;
         vector<MaskAndNextPrior*> local_subdomains_with_prior;
         for (int i = 0; i < next_subdomains.size(); i++) {
             if (prev_cost != next_subdomains[i]->get_cost() && prev_cost != -1) {
+                masks->push_back(local_subdomains);
+                local_subdomains.clear();
+            }
+            local_subdomains.push_back(next_subdomains[i]);
+            local_subdomains_with_prior.push_back(new MaskAndNextPrior(next_subdomains[i], nullptr));
+            prev_cost = next_subdomains[i]->get_cost();
+        }
+        masks->push_back(local_subdomains);
+        local_subdomains.clear();
+    }
+    else if(three_buckets)
+    {
+        AutomatonRuleCost prev_cost = -1;
+        MaskBucket local_subdomains;
+        vector<MaskAndNextPrior*> local_subdomains_with_prior;
+        for (int i = 0; i < next_subdomains.size(); i++) {
+            if (((i+1) % (next_subdomains.size()/3+1)) == 0) {
                 masks->push_back(local_subdomains);
                 local_subdomains.clear();
             }

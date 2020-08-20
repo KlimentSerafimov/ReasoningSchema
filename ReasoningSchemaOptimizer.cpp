@@ -362,7 +362,7 @@ ReasoningSchemaOptimizer::ReasoningSchemaOptimizer(
     parent_pointer = nullptr;
     masks = _masks;
     prior = new Prior(&masks);
-//    prior->initialize(prior);
+    prior->initialize(prior);
     main__minimal_factoring_schema(_meta_examples);
 }
 

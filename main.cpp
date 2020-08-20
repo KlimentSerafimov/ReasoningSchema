@@ -385,7 +385,7 @@ void modeling_of_bitvector_functions() {
         Task * task = new Task__sum_of_n_k_bit_integers_with_second_order_intermediate_state(2);
 
         int init_iter = 1;
-        int num_iter = 6;
+        int num_iter = 7;
         ModeType mode_type = progressive_prior_mode;
         MetricType metric_type = most_progress; //min_imp_set;
         int recursive_rep_set_depth = 0;
@@ -395,9 +395,9 @@ void modeling_of_bitvector_functions() {
         bool train_set_minimization = true;
         int seed_train_set = -1;
         int num_minimization_steps = 35;
-        double init_minimization_fraction = 16.5/20;
-        double end_minimization_fraction = 19.5/20;
-        AutomatonRuleCost max_automaton_rule_cost = AutomatonRuleCost(40);
+        double init_minimization_fraction = 16.0/20;
+        double end_minimization_fraction = 19.8/20;
+        AutomatonRuleCost max_automaton_rule_cost = AutomatonRuleCost(8);
 
         assert(init_minimization_fraction != 0);
         assert(end_minimization_fraction != 0);

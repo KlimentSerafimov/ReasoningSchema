@@ -49,9 +49,9 @@ public:
         }
         return ret;
     }
-    static AutomatonRuleCost get_cost()
+    AutomatonRuleCost get_cost()
     {
-        return 1;
+        return size();
     }
 };
 
@@ -66,7 +66,7 @@ public:
     {
         path = _path;
         sequence_of_rules = _sequence_of_rules;
-        cost.add_cost(AutomatonRuleCost(_sequence_of_rules.get_cost().get_cost() << (int)_path.size()));
+        cost.add_cost(AutomatonRuleCost(_sequence_of_rules.get_cost().get_cost() * (1 + (int)_path.size())));
     }
     string to_string()
     {
