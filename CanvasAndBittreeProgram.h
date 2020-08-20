@@ -33,7 +33,13 @@ public:
     SequenceOfPrimitiveRules() = default;
     SequenceOfPrimitiveRules(PrimitiveRule rule);
     SequenceOfPrimitiveRules(PrimitiveRule rule, PrimitiveRule rule1);
+    SequenceOfPrimitiveRules(PrimitiveRule rule, SequenceOfPrimitiveRules rule1);
     SequenceOfPrimitiveRules(PrimitiveRule rule, PrimitiveRule rule1, PrimitiveRule rule2);
+
+    SequenceOfPrimitiveRules(PrimitiveRule rule, PrimitiveRule rule1, PrimitiveRule rule2, PrimitiveRule rule3);
+
+    SequenceOfPrimitiveRules(SequenceOfPrimitiveRules prefix, SequenceOfPrimitiveRules suffix);
+
     string to_string()
     {
         string ret;

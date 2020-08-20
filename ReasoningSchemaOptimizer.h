@@ -41,6 +41,9 @@ class ReasoningSchemaOptimizer
     int function_size;
     MetricType metric;
 
+    string name;
+    ofstream* fout_rso;
+    string dir_path;
     time_t init_time;
     time_t local_time;
 
@@ -78,7 +81,7 @@ public:
 
     ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, ReasoningSchemaOptimizer *_parent_pointer, Prior * prior);
 
-    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string ordering_name, MaskBuckets mask,
+    ReasoningSchemaOptimizer(vector<MetaExample> _meta_examples, string name, MaskBuckets mask,
                              string dir_path, MetricType metric_type);
 
     vector<MetaExample> get_necessary_meta_examples(bool print);

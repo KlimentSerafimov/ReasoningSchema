@@ -340,8 +340,6 @@ void ReasoningSchemaOptimizer::calc_masks()
     }*/
 }
 
-static ofstream fout;
-
 ReasoningSchemaOptimizer::ReasoningSchemaOptimizer(
         vector<MetaExample> _meta_examples, ReasoningSchemaOptimizer *_parent_pointer, Prior* _prior) {
 
@@ -353,66 +351,20 @@ ReasoningSchemaOptimizer::ReasoningSchemaOptimizer(
 
 ReasoningSchemaOptimizer::ReasoningSchemaOptimizer(
         vector<MetaExample> _meta_examples,
-        string ordering_name,
+        string _name,
         MaskBuckets _masks,
-        string dir_path,
+        string _dir_path,
         MetricType metric_type)
 {
+    name = _name;
+    dir_path = _dir_path;
     metric = metric_type;
     parent_pointer = nullptr;
     masks = _masks;
     prior = new Prior(&masks);
-    prior->initialize(prior);
-    fout.open(  dir_path + "/" + ordering_name);
-    assert(fout.is_open());
+//    prior->initialize(prior);
     main__minimal_factoring_schema(_meta_examples);
-    fout.close();
 }
-
-void ReasoningSchemaOptimizer::calc_module(MaskAndCostAndInstantiatedModules *subdomain_mask, Module *module)
-{
-
-    module->function_size = function_size;
-    module->subdomain_mask = subdomain_mask;
-
-    if(parent_pointer == nullptr)
-    {
-        module->parent_module = nullptr;
-    }
-    else
-    {
-        module->parent_module = &parent_pointer->best_module;
-    }
-
-    vector<MetaExample> individually_consistent_meta_examples =
-            get_meta_examples_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(
-                    *subdomain_mask, meta_examples);
-
-    module->compact_poset =
-            new CompactPoset(
-                    function_size, *subdomain_mask, *subdomain_mask, individually_consistent_meta_examples);
-
-    bool true_meta_learning = true;
-    if(true_meta_learning) {
-        prune_globally_inconsistent_meta_examples(meta_examples, *subdomain_mask, module->compact_poset);
-        module->compact_poset->soft_delete_redundant_edges();
-    }
-
-    module->compact_poset->get_existant_meta_examples_and_equivalent_ids(
-            module->module_meta_examples, module->equivalent_ids);
-
-    module->meta_examples_after_query =
-            get_meta_examples_after_query(*subdomain_mask, module->compact_poset, meta_examples, false, false);
-
-    module->intermediate_num_missing_bits = get_num_missing_bits(module->meta_examples_after_query);
-
-    repeat_apply_parents(module);
-
-    module->num_missing_bits = get_num_missing_bits(module->meta_examples_after_query);
-
-}
-
-vector<Module*> all_modules;
 
 void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample> _meta_examples) {
 
@@ -423,20 +375,23 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
 
     if (parent_pointer == nullptr) {
 
-        fout << "meta_examples " << meta_examples.size() << endl;
-        for(int i = 0;i<meta_examples.size();i++)
-        {
-//        fout << "\t"+_meta_examples[i].to_string() << endl << std::flush;
-            fout << "\t"+meta_example_to_string__one_line(meta_examples[i]) << endl << std::flush;
-        }
+        module_id = 0;
         init_time = local_time;
         root_pointer = this;
-        module_id = 0;
+
+        fout_rso = new ofstream(dir_path + "/" + name);// + "__step_id=" + std::to_string(module_id));
+        (*fout_rso) << "meta_examples: "<< std::to_string((int)meta_examples.size());
+        for(int i = 0;i<meta_examples.size();i++)
+        {
+            (*fout_rso) << meta_example_to_string__one_line(meta_examples[i]) << endl << std::flush;
+        }
+
     } else {
         init_time = parent_pointer->init_time;
         root_pointer = parent_pointer->root_pointer;
         module_id = parent_pointer->module_id + 1;
         metric = root_pointer->metric;
+        fout_rso = root_pointer->fout_rso;
     }
 
     calc_masks();
@@ -480,7 +435,9 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
                 next_mask_id = mask_id+1;
                 HeuristicScore heuristic;
 
-                cout << "working on mask = " << bitvector_to_str(*masks[bucket_id][mask_id], function_size) << " time: "
+                cout << "working on mask = "
+                     << bitvector_to_str(*masks[bucket_id][mask_id], function_size)
+                     << " time: "
                      << (double) time(nullptr) - local_time <<" ";
 
                 if(parent_pointer != nullptr) {
@@ -490,7 +447,7 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
 //                    cout  << masks[bucket_id][mask_id]->get_unseen_outputs().to_string()<< " masks[bucket_id][mask_id]->get_unseen_outputs()" << endl;
 //                    cout  << masks[bucket_id][mask_id]->to_string()<< " masks[bucket_id][mask_id]" << endl;
 //                    cout << masks[bucket_id][mask_id]->has_most_receint_heuristic() << " masks[bucket_id][mask_id]->has_most_receint_heuristic()" << endl;
-                    if (false && masks[bucket_id][mask_id]->has_most_receint_heuristic() &&
+                    if (masks[bucket_id][mask_id]->has_most_receint_heuristic() &&
                         (overlap == Bitvector(all_zeroes, function_size))) {
                         cout << "skip" << endl;
                         heuristic = masks[bucket_id][mask_id]->get_most_receint_heuristic();
@@ -502,8 +459,7 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
 
                         cout << "calc" << endl;
                         Module* local_module = new Module(this);
-                        all_modules.push_back(local_module);
-
+                        
                         calc_module(masks[bucket_id][mask_id], local_module);
 
                         local_module->compact_poset->clear();
@@ -520,7 +476,6 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
                 {
                     cout << "calc" << endl;
                     Module* local_module = new Module(this);
-                    all_modules.push_back(local_module);
 
                     calc_module(masks[bucket_id][mask_id], local_module);
 
@@ -568,6 +523,10 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
 
         sort(mask_ids_by_heuristic.begin(), mask_ids_by_heuristic.end());
 
+        /**
+         * IMPLEMENT FOUT OF RSO OUTPUT!!!
+         */
+
         cout << "PRINT mask_ids_by_heuristic" << endl;
         for (int local_id = 0; local_id < mask_ids_by_heuristic.size(); local_id++) {
             int mask_id = mask_ids_by_heuristic[local_id].get_id().second;
@@ -591,7 +550,7 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
         if (max_num_consistent_meta_examples.defined) {
 
             if (parent_pointer == nullptr) {
-                fout << "missing_bits " << init_num_missing_bits << endl << std::flush;
+                (*fout_rso) << "missing_bits " << init_num_missing_bits << endl << std::flush;
             }
 
             best_module = Module(this);
@@ -604,11 +563,11 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
             HeuristicScore best_heuristic = calculate_heuristic((&best_module));
             if(!(best_heuristic == mask_ids_by_heuristic[0].get_score()))
             {
-                assert(best_module.repeats_module_pointers.size()>=1);
+//                assert(best_module.repeats_module_pointers.size()>=1);
             }
             best_module.set_heuristic_score(best_heuristic);
 
-            fout << best_module.print_module_sketch(time(nullptr) - init_time) << std::flush;
+            (*fout_rso) << best_module.print_module_sketch(time(nullptr) - init_time) << std::flush;
 
             bool local_test = false;
             if(local_test) {
@@ -626,10 +585,32 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
                     }
                 }
             }
+
             MaskAndNextPrior* mask_and_next_prior = prior->at(best_bucket_id)[best_mask_id];
             assert(mask_and_next_prior->mask == masks[best_bucket_id][best_mask_id]);
+
+            Prior* next_prior;
+            if(mask_and_next_prior->next_prior == nullptr)
+            {
+                next_prior = new Prior();
+                vector<MaskAndNextPrior*> next_bucket;
+
+                for(int i = 1;i<mask_ids_by_heuristic.size();i++)
+                {
+                    int bucket_id = mask_ids_by_heuristic[i].get_id().first;
+                    int mask_id = mask_ids_by_heuristic[i].get_id().second;
+                    next_bucket.push_back(prior->at(bucket_id)[mask_id]);
+                }
+                next_prior->push_back(next_bucket);
+                next_prior->push_back_prior_suffix(prior);
+                next_prior->remove_duplicates();
+            }
+            else {
+                next_prior = mask_and_next_prior->next_prior;
+            }
+
             next = new ReasoningSchemaOptimizer(
-                    best_module.meta_examples_after_query, this, mask_and_next_prior->next_prior);
+                    best_module.meta_examples_after_query, this, next_prior);
 
             if(parent_pointer == nullptr)
             {
@@ -656,7 +637,7 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
                     last = last->next;
                 }
 
-                fout << last->parent_pointer->best_module.covered_to_string(root_pointer->meta_examples) << endl;
+                (*fout_rso) << last->parent_pointer->best_module.covered_to_string(root_pointer->meta_examples) << endl;
 
                 vector<pair<vector<PartialFunction>, pair<vector<int>, vector<PartialFunction> > > > all_traces;
                 for(int i = 0;i<meta_examples.size();i++) {
@@ -670,70 +651,76 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
                 {
                     pair<vector<PartialFunction>, pair<vector<int>, vector<PartialFunction> > > trace = all_traces[i];
                     assert(trace.second.first.size()+1 == trace.second.second.size());
-                    fout << "all    : ";
+                    (*fout_rso) << "all    : ";
                     for(int j = 0;j<trace.first.size(); j++)
                     {
                         if(j != 0)
                         {
-                            fout << " -> ";
+                            (*fout_rso) << " -> ";
                         }
-                        fout << partial_function_to_string__one_line(trace.first[j]);
+                        (*fout_rso) << partial_function_to_string__one_line(trace.first[j]);
                     }
-                    fout << endl;
+                    (*fout_rso) << endl;
                 }
-                fout << endl;
+                (*fout_rso) << endl;
                 for(int i = 0;i<all_traces.size();i++)
                 {
                     pair<vector<PartialFunction>, pair<vector<int>, vector<PartialFunction> > > trace = all_traces[i];
                     assert(trace.second.first.size()+1 == trace.second.second.size());
-                    fout << "active : ";
+                    (*fout_rso) << "active : ";
                     for(int j = 0;j<trace.second.second.size(); j++)
                     {
                         if(j != 0)
                         {
-                            fout << " -> ";
+                            (*fout_rso) << " -> ";
                         }
-                        fout << partial_function_to_string__one_line(trace.second.second[j]);
+                        (*fout_rso) << partial_function_to_string__one_line(trace.second.second[j]);
                     }
-                    fout << endl;
+                    (*fout_rso) << endl;
                 }
-                fout << endl;
+                (*fout_rso) << endl;
                 for(int i = 0;i<all_traces.size();i++)
                 {
                     pair<vector<PartialFunction>, pair<vector<int>, vector<PartialFunction> > > trace = all_traces[i];
                     assert(trace.second.first.size()+1 == trace.second.second.size());
-                    fout << "masks  : ";
+                    (*fout_rso) << "masks  : ";
                     for(int j = 0;j<trace.second.first.size(); j++)
                     {
-                        fout << std::to_string(trace.second.first[j]) << " " ;
+                        (*fout_rso) << std::to_string(trace.second.first[j]) << " " ;
                     }
-                    fout << endl;
+                    (*fout_rso) << endl;
                 }
-                fout << endl;
+                (*fout_rso) << endl;
                 bool print_verbose = false;
                 if(print_verbose) {
                     for (int i = 0; i < all_traces.size(); i++) {
                         pair<vector<PartialFunction>, pair<vector<int>, vector<PartialFunction> > > trace = all_traces[i];
                         assert(trace.second.first.size() + 1 == trace.second.second.size());
-                        fout << "all    ";
+                        (*fout_rso) << "all    ";
                         for (int j = 0; j < trace.first.size(); j++) {
-                            fout << trace.first[j].to_string() << " ";
+                            (*fout_rso) << trace.first[j].to_string() << " ";
                         }
-                        fout << endl;
-                        fout << "active ";
+                        (*fout_rso) << endl;
+                        (*fout_rso) << "active ";
                         for (int j = 0; j < trace.second.second.size(); j++) {
-                            fout << trace.second.second[j].to_string() << " ";
+                            (*fout_rso) << trace.second.second[j].to_string() << " ";
                         }
-                        fout << endl;
-                        fout << "masks  ";
+                        (*fout_rso) << endl;
+                        (*fout_rso) << "masks  ";
                         for (int j = 0; j < trace.second.first.size(); j++) {
-                            fout << std::to_string(trace.second.first[j]) << " ";
+                            (*fout_rso) << std::to_string(trace.second.first[j]) << " ";
                         }
-                        fout << endl;
+                        (*fout_rso) << endl;
                     }
-                    fout << endl;
+                    (*fout_rso) << endl;
                 }
-                get_necessary_meta_examples(true);
+
+                vector<MetaExample> necessary_meta_examples = get_necessary_meta_examples(true);
+                (*fout_rso) << endl;
+                (*fout_rso) << "necessary meta_examples: " << std::to_string((int)necessary_meta_examples.size()) << endl;
+                for(int i = 0;i<necessary_meta_examples.size();i++) {
+                    (*fout_rso) << meta_example_to_string__one_line(necessary_meta_examples[i]) << endl;
+                }
 
             }
         } else
@@ -741,6 +728,53 @@ void ReasoningSchemaOptimizer::main__minimal_factoring_schema(vector<MetaExample
             assert(false);
         }
     }
+    if(parent_pointer == nullptr)
+    {
+        fout_rso->close();
+    }
+}
+
+void ReasoningSchemaOptimizer::calc_module(MaskAndCostAndInstantiatedModules *subdomain_mask, Module *module)
+{
+
+    module->function_size = function_size;
+    module->subdomain_mask = subdomain_mask;
+
+    if(parent_pointer == nullptr)
+    {
+        module->parent_module = nullptr;
+    }
+    else
+    {
+        module->parent_module = &parent_pointer->best_module;
+    }
+
+    vector<MetaExample> individually_consistent_meta_examples =
+            get_meta_examples_that_are_individually_consistent_with_all_other_meta_examples_in_subdomain(
+                    *subdomain_mask, meta_examples);
+
+    module->compact_poset =
+            new CompactPoset(
+                    function_size, *subdomain_mask, *subdomain_mask, individually_consistent_meta_examples);
+
+    bool true_meta_learning = true;
+    if(true_meta_learning) {
+        prune_globally_inconsistent_meta_examples(meta_examples, *subdomain_mask, module->compact_poset);
+        module->compact_poset->soft_delete_redundant_edges();
+    }
+
+    module->compact_poset->get_existant_meta_examples_and_equivalent_ids(
+            module->module_meta_examples, module->equivalent_ids);
+
+    module->meta_examples_after_query =
+            get_meta_examples_after_query(*subdomain_mask, module->compact_poset, meta_examples, false, false);
+
+    module->intermediate_num_missing_bits = get_num_missing_bits(module->meta_examples_after_query);
+
+    repeat_apply_parents(module);
+
+    module->num_missing_bits = get_num_missing_bits(module->meta_examples_after_query);
+
 }
 
 vector<MetaExample> ReasoningSchemaOptimizer::get_necessary_meta_examples(bool print) {
@@ -751,22 +785,12 @@ vector<MetaExample> ReasoningSchemaOptimizer::get_necessary_meta_examples(bool p
     else
     {
         vector<MetaExample> ret_meta_example;
-        if(print)
-            fout << "necessary_meta_examples " << parent_pointer->best_module.necessary_meta_example_ids.size() << endl;
         for(int i = 0;i<parent_pointer->best_module.necessary_meta_example_ids.size();i++)
         {
             int id = parent_pointer->best_module.necessary_meta_example_ids[i];
                 ret_meta_example.push_back(root_pointer->meta_examples[id]);
             ret_meta_example[ret_meta_example.size()-1].idx = i;
-            if(print) {
-//                fout << "\t" << root_pointer->meta_examples[id].to_string() << endl;
-
-                fout << "\t" << root_pointer->meta_examples[id].partial_function.to_string__one_line() << endl;
-
-//                fout << "\t" << meta_example_to_string__one_line(root_pointer->meta_examples[id]) << endl;
-            }
         }
-//        cout << "ret.size() = " << ret_meta_example.size() << endl;
         return ret_meta_example;
     }
 }

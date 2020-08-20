@@ -1592,22 +1592,6 @@ void Task__sum_of_n_k_bit_integers_with_second_order_intermediate_state::generat
     holder->base_task_type = new BittreeTaskType(
             nullptr,  Name("base_task_type"), internal_node, internal_node);
 
-//    holder->base_task_type->io->output->push_back_child(new BittreeNode(
-//            holder->base_task_type->io->output,
-//            Name("children", 0),
-//            internal_node
-//            ));
-//    holder->base_task_type->io->output->children[0]->push_back_child(new BittreeNode(
-//            holder->base_task_type->io->output,
-//            Name("children", 0),
-//            internal_node
-//    ));
-//    holder->base_task_type->io->output->children[0]->children[0]->push_back_child(new BittreeNode(
-//            holder->base_task_type->io->output->children[0],
-//            Name("children", 0),
-//            leaf_node,
-//            new_machine_bit
-//    ));
 
     for(int i = 0; i<10;i++)
     {

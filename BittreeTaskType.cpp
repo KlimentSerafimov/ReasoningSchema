@@ -114,6 +114,7 @@ BittreeNode::BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool
         : TreeNode(parent, name, this)
 {
     init();
+    subtree_sum = to_copy->subtree_sum;
     copied_from = to_copy;
     to_copy->copies.push_back(this);
     node_type = to_copy->node_type;
@@ -140,6 +141,7 @@ BittreeNode::BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool
                          bool hard_pointer_assign_bits) : TreeNode(parent, name, this)
 {
     init();
+    subtree_sum = to_copy->subtree_sum;
     copied_from = to_copy;
     to_copy->copies.push_back(this);
     node_type = to_copy->node_type;
@@ -167,6 +169,7 @@ BittreeNode::BittreeNode(TreeNode *parent, Name name, BittreeNode *to_copy, bool
                          bool hard_pointer_assign_bits, bool hard_all_new_bits) : TreeNode(parent, name, this)
 {
     init();
+    subtree_sum = to_copy->subtree_sum;
     copied_from = to_copy;
     to_copy->copies.push_back(this);
     node_type = to_copy->node_type;
@@ -564,7 +567,7 @@ string BittreeNode::slim_tree_to_string(int tab) const {
 
 
 pair<BittreeNode *, vector<int>* >
-BittreeNode::apply_primitive_rule_to_bit(PrimitiveRule rule, const BittreeNode *pointer_on_canvas, vector<int>* path) const
+BittreeNode::apply_primitive_rule_to_bit(PrimitiveRule rule, BittreeNode *pointer_on_canvas, vector<int>* path) const
 {
     int child_id = -1;
     int grandchild_id = -1;
@@ -647,6 +650,7 @@ BittreeNode::apply_primitive_rule_to_bit(PrimitiveRule rule, const BittreeNode *
                             next_id = 0;
                         }
                         else {
+                            cout << "not here" << endl;
                             next_id = grandchild_id + 1;
                         }
                     } else {
@@ -661,8 +665,12 @@ BittreeNode::apply_primitive_rule_to_bit(PrimitiveRule rule, const BittreeNode *
                         if (cousin->node_type == leaf_node) {
                             if (cousin->leaf_node_type == bit_node) {
                                 if (cousin->bit->is_bit_set) {
+//                                    cout << "pointer_on_canvas->bit->bit_val " << pointer_on_canvas->bit->bit_val << endl;
                                     pointer_on_canvas->bit->bit_val = max(0, pointer_on_canvas->bit->bit_val - 1);
+//                                    cout << "pointer_on_canvas->bit->bit_val " << pointer_on_canvas->bit->bit_val << endl;
+//                                    cout << "cousin->bit->bit_val " << cousin->bit->bit_val << endl;
                                     cousin->bit->bit_val++;
+//                                    cout << "cousin->bit->bit_val " << cousin->bit->bit_val << endl;
                                     ret_bit_on_canvas = cousin;
                                     ret_context->at(ret_context->size()-2) = next_id;
                                 }
@@ -729,6 +737,16 @@ BittreeNode::apply_primitive_rule_to_bit(PrimitiveRule rule, const BittreeNode *
                     }
                 }
             }
+            else if(rule == plus_one)
+            {
+                pointer_on_canvas->bit->bit_val++;
+                ret_bit_on_canvas = pointer_on_canvas;
+            }
+            else if(rule == minus_one)
+            {
+                pointer_on_canvas->bit->bit_val = max(0, pointer_on_canvas->bit->bit_val-1);
+                ret_bit_on_canvas = pointer_on_canvas;
+            }
             else
             {
                 assert(false);
@@ -746,9 +764,17 @@ BittreeNode::apply_primitive_rule_to_bit(PrimitiveRule rule, const BittreeNode *
     }
     return make_pair(ret_bit_on_canvas, ret_context);
 }
-void BittreeNode::apply_rule(
-        SequenceOfPrimitiveRules sequence_of_rules, BittreeNode* &canvas, BittreeNode* &pointer_on_canvas, vector<int> *path)
+pair<BittreeNode *, BittreeNode*> BittreeNode::apply_rule(
+        SequenceOfPrimitiveRules sequence_of_rules, BittreeNode *canvas, BittreeNode *pointer_on_canvas, vector<int> *path)
 {
+    BittreeNode* ret_canvas = nullptr;
+    BittreeNode* ret_pointer_on_canvas = nullptr;
+
+    if(canvas == nullptr)
+    {
+        return make_pair(ret_canvas, ret_pointer_on_canvas);
+    }
+
     int child_id = -1;
     int grandchild_id = -1;
     int greatgrandchild_id = -1;
@@ -785,12 +811,36 @@ void BittreeNode::apply_rule(
     {
         assert(pointer_on_canvas->node_type == internal_node);
         assert(pointer_on_canvas->children.size() == children.size());
+        BittreeNode* at_canvas = canvas;
+        BittreeNode* at_pointer = pointer_on_canvas;
+
         for(int i = 0;i<children.size();i++)
         {
             if(children[i]->subtree_sum >= 1) {
                 path->push_back(i);
-                children[i]->apply_rule(sequence_of_rules, canvas, pointer_on_canvas->children[i], path);
+//                cout << "ENTER i = "<< i << endl;
+                pair<BittreeNode*, BittreeNode*> new_canvas_and_child_of_pointer =
+                        children[i]->apply_rule(sequence_of_rules, at_canvas, at_pointer->children[i], path);
                 path->pop_back();
+                at_canvas = new_canvas_and_child_of_pointer.first;
+                if(at_canvas == nullptr)
+                {
+                    break;
+                }
+                BittreeNode* prev_at_pointer = at_pointer;
+                at_pointer = new_canvas_and_child_of_pointer.second->get_parent();
+                assert(at_pointer->get_self_as_child_id() == prev_at_pointer->get_self_as_child_id());
+                assert(at_pointer->children[i]->get_self_as_child_id() == prev_at_pointer->children[i]->get_self_as_child_id());
+//                cout << "EXIT i = "<< i << endl;
+            }
+            else
+            {
+//                for(int j =0;j<path->size();j++)
+//                {
+//                    cout << path->at(j) << " ";
+//                }
+//                cout << "children[i]->subtree_sum = "<<children[i]->subtree_sum << endl;
+                assert(children[i]->subtree_sum>=0);
             }
         }
     }
@@ -813,12 +863,12 @@ void BittreeNode::apply_rule(
             }
             BittreeNode *next_canvas = canvas;
             BittreeNode *next_pointer_on_canvas = pointer_on_canvas;
-            cout << "new sequence: ";
-            for(int i = 0;i<sequence_of_rules.size();i++)
-            {
-                cout << rule_names[sequence_of_rules[i]] <<" ";
-            }
-            cout << endl;
+//            cout << "new sequence: ";
+//            for(int i = 0;i<sequence_of_rules.size();i++)
+//            {
+//                cout << rule_names[sequence_of_rules[i]] <<" ";
+//            }
+//            cout << endl;
             for(int i = 0;i<sequence_of_rules.size();i++)
             {
                 cout << next_canvas->to_string__one_line() << endl;
@@ -827,39 +877,39 @@ void BittreeNode::apply_rule(
 
                 if(at.first == nullptr)
                 {
-                    cout << "break" << endl;
+//                    cout << "break" << endl;
                     break;
                 }
-                if(i+1<sequence_of_rules.size()) {
+                if(i+1<sequence_of_rules.size())
+                {
                     next_canvas = new BittreeNode(
                             nullptr, Name("next_canvas"), next_canvas, true, false, true);
                     next_pointer_on_canvas = next_canvas->get_node(at.second);
                 }
             }
-            cout << next_canvas->to_string__one_line() << endl;
-            cout << "end sequence" << endl;
+//            cout << next_canvas->to_string__one_line() << endl;
+//            cout << "end sequence" << endl;
 
             vector<BitInBittree *> bits_next_canvas;
 
             memset_visited(vis_bits);
             next_canvas->append_bits(bits_next_canvas);
 
-            int count_next_canvas = 0;
-            for (int i = 0; i < bits_next_canvas.size(); i++) {
-                count_next_canvas += bits_next_canvas[i]->bit_val;
-            }
-            assert(count_canvas == count_next_canvas);
+//            int count_next_canvas = 0;
+//            for (int i = 0; i < bits_next_canvas.size(); i++) {
+//                count_next_canvas += bits_next_canvas[i]->bit_val;
+//            }
+//            assert(count_canvas == count_next_canvas);
 
             if(at.first == nullptr)
             {
-//                assert(false);
-                canvas = nullptr;
-                pointer_on_canvas = nullptr;
+                ret_canvas = nullptr;
+                ret_pointer_on_canvas = nullptr;
             }
             else
             {
-                canvas = next_canvas;
-                pointer_on_canvas = next_pointer_on_canvas;
+                ret_canvas = next_canvas;
+                ret_pointer_on_canvas = next_canvas->get_node(path);
             }
         }
         else if(leaf_node_type == double_node)
@@ -879,6 +929,7 @@ void BittreeNode::apply_rule(
     {
         assert(false);
     }
+    return make_pair(ret_canvas, ret_pointer_on_canvas);
 }
 
 void BittreeNode::initialize_special_parents(BittreeNode *parent) {
@@ -912,7 +963,7 @@ void BittreeNode::initialize_special_parents(BittreeNode *parent) {
     }
 }
 
-void BittreeNode::populate_programs(
+void BittreeNode:: populate_programs(
         vector<SequenceOfPrimitiveRules> *rules,
         CanvasAndBittreeProgram *canvas,
         int next_child,
@@ -1389,32 +1440,45 @@ BittreeTaskType::generate_variety(int subtask_depth, ofstream *fout, AutomatonRu
     (*fout) << "LOCAL_PARENT: " << endl;
     (*fout) << local_parent->slim_tree_to_string(0) << endl << endl;
 
+    local_parent->calc_subtree_sums();
     BittreeNode * canvas = copy_bittree(nullptr, Name("canvas"), local_parent);
 
     //BOZHE GOSPODE POMOGNI MI.
 
-    vector<SequenceOfPrimitiveRules> possible_rules;
-    possible_rules.emplace_back(stay);
-    possible_rules.emplace_back(move_right);
-//    possible_rules.emplace_back(move_left);
-    possible_rules.emplace_back(move_up);
-//    possible_rules.emplace_back(move_down);
-    possible_rules.emplace_back(move_front);
-//    possible_rules.emplace_back(move_back);
-    possible_rules.emplace_back(move_front, move_up);
-    possible_rules.emplace_back(move_front, move_right);
-    possible_rules.emplace_back(move_up, move_right);
-    possible_rules.emplace_back(move_front, move_up, move_right);
+    vector<SequenceOfPrimitiveRules> initial_rules;
+    initial_rules.emplace_back(stay);
+    initial_rules.emplace_back(move_right);
+    initial_rules.emplace_back(move_left);
+    initial_rules.emplace_back(move_up);
+    initial_rules.emplace_back(move_down);
+    initial_rules.emplace_back(move_front);
+    initial_rules.emplace_back(move_back);
+    initial_rules.emplace_back(move_front, move_up);
+    initial_rules.emplace_back(move_front, move_right);
+    initial_rules.emplace_back(move_up, move_right);
+    initial_rules.emplace_back(move_front, move_up, move_right);
 
-    local_parent->calc_subtree_sums();
+    vector<SequenceOfPrimitiveRules> all_rules;
+    all_rules.push_back(minus_one);
+    for(int i = 0;i<initial_rules.size();i++)
+    {
+        all_rules.emplace_back(initial_rules[i]);
+        all_rules.emplace_back(SequenceOfPrimitiveRules(plus_one, initial_rules[i]));
+        for(int j = 0;j<initial_rules.size();j++)
+        {
+            all_rules.emplace_back(SequenceOfPrimitiveRules(initial_rules[i], SequenceOfPrimitiveRules(plus_one, initial_rules[j])));
+            all_rules.emplace_back(SequenceOfPrimitiveRules(plus_one, all_rules[all_rules.size() - 1]));
+        }
+    }
+
     vector<int> new_path;
     BehaviorToProgram local_behaviors = BehaviorToProgram();
     local_parent->populate_programs(
-            &possible_rules, new CanvasAndBittreeProgram(canvas), -1, &new_path, &local_behaviors, max_automaton_rule_cost);
+            &all_rules, new CanvasAndBittreeProgram(canvas), -1, &new_path, &local_behaviors, max_automaton_rule_cost);
     assert(new_path.size() == 0);
     if(local_parent->node_type != leaf_node) {
         local_parent->populate_programs(
-                &possible_rules, new CanvasAndBittreeProgram(canvas), 0, &new_path, &local_behaviors,
+                &all_rules, new CanvasAndBittreeProgram(canvas), 0, &new_path, &local_behaviors,
                 max_automaton_rule_cost);
     }
     (*fout) << local_parent->to_string__one_line() << " :: " << endl;
@@ -1422,7 +1486,7 @@ BittreeTaskType::generate_variety(int subtask_depth, ofstream *fout, AutomatonRu
             CanvasAndBittreeProgram* at_behavior = local_behaviors.init_iter__all();
             !local_behaviors.end_iter__all(); at_behavior = local_behaviors.get_next__all())
     {
-        (*fout) << "\t" << at_behavior->canvas->to_string__one_line() << " | "<< at_behavior->AutomatonRule::to_string() << endl;
+        (*fout) << "\t" << at_behavior->canvas->to_string__one_line() << " | " << at_behavior->get_cost().get_cost() << "\t| " << at_behavior->AutomatonRule::to_string() << endl;
     }
 
     vector<MaskAndCostAndInstantiatedModules*> ret;
@@ -1880,6 +1944,14 @@ SequenceOfPrimitiveRules::SequenceOfPrimitiveRules(PrimitiveRule rule, Primitive
     push_back(rule1);
 }
 
+SequenceOfPrimitiveRules::SequenceOfPrimitiveRules(PrimitiveRule rule, SequenceOfPrimitiveRules suffix) {
+    push_back(rule);
+    for(int i = 0;i<suffix.size();i++)
+    {
+        push_back(suffix[i]);
+    }
+}
+
 SequenceOfPrimitiveRules::SequenceOfPrimitiveRules(PrimitiveRule rule, PrimitiveRule rule1, PrimitiveRule rule2) {
     push_back(rule);
     push_back(rule1);
@@ -1888,4 +1960,23 @@ SequenceOfPrimitiveRules::SequenceOfPrimitiveRules(PrimitiveRule rule, Primitive
 
 SequenceOfPrimitiveRules::SequenceOfPrimitiveRules(PrimitiveRule rule) {
     push_back(rule);
+}
+
+SequenceOfPrimitiveRules::SequenceOfPrimitiveRules(PrimitiveRule rule, PrimitiveRule rule1, PrimitiveRule rule2,
+                                                   PrimitiveRule rule3) {
+    push_back(rule);
+    push_back(rule1);
+    push_back(rule2);
+    push_back(rule3);
+}
+
+SequenceOfPrimitiveRules::SequenceOfPrimitiveRules(SequenceOfPrimitiveRules prefix, SequenceOfPrimitiveRules suffix) {
+    for(int i = 0;i<prefix.size();i++)
+    {
+        push_back(prefix[i]);
+    }
+    for(int i = 0;i<suffix.size();i++)
+    {
+        push_back(suffix[i]);
+    }
 }

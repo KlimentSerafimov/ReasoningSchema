@@ -500,24 +500,7 @@ void BitvectorTasks::delta_wiring(MaskBucket &subdomains, BittreeTaskType *task_
 
 }
 
-void remove_duplicates(MaskBuckets & masks_of_task_id)
-{
-    MaskBuckets ret_masks_of_task_id;
-    set<Bitvector> masks;
-    for(int i = 0;i<masks_of_task_id.size();i++)
-    {
-        ret_masks_of_task_id.push_back(MaskBucket());
-        for(int j = 0;j<masks_of_task_id[i].size();j++)
-        {
-            if(masks.find(*masks_of_task_id[i][j]) == masks.end())
-            {
-                ret_masks_of_task_id[i].push_back(masks_of_task_id[i][j]);
-                masks.insert((Bitvector)*masks_of_task_id[i][j]);
-            }
-        }
-    }
-    masks_of_task_id = ret_masks_of_task_id ;
-}
+
 
 void BitvectorTasks::one_step_of_incremental_meta_generalization(
         bool is_first,
@@ -557,7 +540,7 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
     prior->push_back_new_bucket_with_enumerated_masks(
             len_domain_of_meta_example, min_mask_size, max_mask_size, &masks_of_task_id);
 
-    remove_duplicates(masks_of_task_id);
+    masks_of_task_id.remove_duplicates();
 
     int len_mask = masks_of_task_id[0][0]->get_size();
     assert(len_domain_of_meta_example == len_mask);
@@ -667,12 +650,12 @@ void BitvectorTasks::one_step_of_incremental_meta_generalization(
 
                 if(subdomains.size() != 0) {
                     masks_of_task_id.insert(masks_of_task_id.begin(), subdomains);
-                    remove_duplicates(masks_of_task_id);
+                    masks_of_task_id.remove_duplicates();
                 }
                 else if(prev_subdomains.size() != 0)
                 {
                     masks_of_task_id.insert(masks_of_task_id.begin(), prev_subdomains);
-                    remove_duplicates(masks_of_task_id);
+                    masks_of_task_id.remove_duplicates();
                 }
 
                 ReasoningSchemaOptimizer * my_reasoning_schema = new
@@ -1011,9 +994,14 @@ BitvectorTasks::BitvectorTasks(Task *_task_name,
 
 void BitvectorTasks::set_up_directory() {
 
-    dir_path =
-            "task=" + task_name->get_task_name() +
-            "-gen=80.71-iter_range=[" + std::to_string(init_iter) + "," + std::to_string(num_iter) + "]"
+    ifstream fin("folder_id.in");
+    int folder_id;
+    fin >> folder_id;
+    assert(folder_id>=0);
+
+    string first_part = "task=" + task_name->get_task_name() +
+                        "-gen=83." + std::to_string(folder_id++);
+    string second_part = "-iter_range=[" + std::to_string(init_iter) + "," + std::to_string(num_iter) + "]"
             "-num_subtask=" + std::to_string(num_prev_subtasks) +
             "-mask_size=[" +std::to_string(min_mask_size) + "," +std::to_string(max_mask_size) + "]" +
             "-metric=" + metric_type_name[metric]+
@@ -1024,16 +1012,20 @@ void BitvectorTasks::set_up_directory() {
             "-min_frac=["+std::to_string(init_minimization_fraction)+","+std::to_string(end_minimization_fraction)+"]" +
             "-max_rule_cost="+max_automaton_rule_cost.to_string();
 
-    int check_mkdir = mkdir( dir_path.c_str(), 0777);
-    if (check_mkdir == -1){
-        cerr << "Error :  " << strerror(errno) << endl;
-        assert(false);
-    }
-    else {
-        cout << "Directory created: "  << dir_path << endl;
-    }
-}
+    dir_path = first_part + second_part;
 
+    int check_mkdir = mkdir( dir_path.c_str(), 0777);
+    while (check_mkdir == -1){
+        cout << "attempting to create directory: " << dir_path << endl;
+        cout << "fail" << endl;
+        assert(false);
+        dir_path = first_part + "." + std::to_string(folder_id++) + second_part;
+        check_mkdir = mkdir( dir_path.c_str(), 0777);
+    }
+    cout << "directory created: "  << dir_path << endl;
+    ofstream fout_new_folder_id("folder_id.in");
+    fout_new_folder_id << folder_id << endl;
+}
 
 class SubdomainScore
 {

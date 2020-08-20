@@ -104,10 +104,11 @@ public:
             BehaviorToProgram *all_programs,
             AutomatonRuleCost max_cost) const;
 
-    void apply_rule(SequenceOfPrimitiveRules rule, BittreeNode* &canvas, BittreeNode* &pointer_on_canvas, vector<int> *path);
+    pair<BittreeNode *, BittreeNode*>
+    apply_rule(SequenceOfPrimitiveRules sequence_of_rules, BittreeNode *canvas, BittreeNode *pointer_on_canvas, vector<int> *path);
 
     pair<BittreeNode *, vector<int> *>
-    apply_primitive_rule_to_bit(PrimitiveRule rule, const BittreeNode *pointer_on_canvas, vector<int>* path) const;
+    apply_primitive_rule_to_bit(PrimitiveRule rule, BittreeNode *pointer_on_canvas, vector<int>* path) const;
 
     void initialize_special_parents(BittreeNode *parent);
 
