@@ -39,7 +39,14 @@ void Task__sum::solve(BittreeInputOutputType * holder) {
             pow*=2;
         }
     }
+
     int sum = operands[0] + operands[1];
+    //
+
+    //
+
+    //
+
 
     for(int i = 0;i<holder->output->children.size();i++)
     {

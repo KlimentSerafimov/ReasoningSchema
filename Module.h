@@ -116,11 +116,21 @@ public:
 
     Bitvector get_generalization_mask()
     {
+        set<Module*> passed;
+        return get_generalization_mask(passed);
+    }
+
+    Bitvector get_generalization_mask(set<Module*>& passed)
+    {
+        passed.insert(this);
         assert(compact_poset != nullptr);
         Bitvector ret = compact_poset->get_generalization_mask();
         for(int i = 0;i<repeats_module_pointers.size();i++)
         {
-            ret |= repeats_module_pointers[i]->get_generalization_mask();
+            if(passed.find(repeats_module_pointers[i]) == passed.end())
+            {
+                ret |= repeats_module_pointers[i]->get_generalization_mask(passed);
+            }
         }
         return ret;
     }

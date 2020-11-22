@@ -131,6 +131,10 @@ public:
     {
         return cost < other.cost;
     }
+    vector<PathAndSequenceOfRules> get_code()
+    {
+        return code;
+    }
 };
 
 class CanvasAndBittreeProgram : public AutomatonRule

@@ -464,27 +464,34 @@ void BitvectorTasks::delta_wiring(MaskBucket &subdomains, BittreeTaskType *task_
         }
         mask_propagation_fout << endl;
 
+        MaskBucket aggressive_prior = MaskBucket();
+
         for (int now_id = 0; now_id < subdomains.size(); now_id++) {
             mask_propagation_fout << subdomains[now_id]->now_canvas->to_string__one_line() << " :: " << endl;
 
             if(subdomains[now_id]->best_edge.first != nullptr)
             {
-                for(int best_edge_id_id = 0; best_edge_id_id < subdomains[now_id]->best_edge.first->produced_best_edge_ids.size(); best_edge_id_id++)
-                {
-                    int best_edge_id = subdomains[now_id]->best_edge.first->produced_best_edge_ids[best_edge_id_id];
-                    mask_propagation_fout << "\t"
-                                          << subdomains[now_id]->best_edge.first->local_variety[best_edge_id]->program->AutomatonRule::to_string();
-                    if(subdomains[now_id]->best_edge.first->local_variety[best_edge_id]->source->best_edge.first != nullptr) {
-                        mask_propagation_fout << " | " <<
-                                        subdomains[now_id]->best_edge.first->local_variety[best_edge_id]->source->best_edge.first->local_variety[
-                                                subdomains[now_id]->best_edge.first->local_variety[best_edge_id]->source->best_edge.second]->program->AutomatonRule::to_string();
-                    }
-                    else
-                    {
-                        mask_propagation_fout << " | no prev";
-                    }
-                    mask_propagation_fout << endl;
-                }
+                vector<PathAndSequenceOfRules> rules = subdomains[now_id]->best_edge.first->local_variety[ subdomains[now_id]->best_edge.second]->program->get_code();
+
+//                for(int best_edge_id_id = 0; best_edge_id_id < subdomains[now_id]->best_edge.first->produced_best_edge_ids.size(); best_edge_id_id++)
+//                {
+//                    int best_edge_id = subdomains[now_id]->best_edge.first->produced_best_edge_ids[best_edge_id_id];
+//                    mask_propagation_fout << "\t"
+//                                          << subdomains[now_id]->best_edge.first->local_variety[best_edge_id]->program->AutomatonRule::to_string();
+//                    if(subdomains[now_id]->best_edge.first->local_variety[best_edge_id]->source->best_edge.first != nullptr) {
+//                        mask_propagation_fout << " | " <<
+//                            subdomains[now_id]->best_edge.first->local_variety[best_edge_id]->source->best_edge.first->local_variety[
+//                                    subdomains[now_id]->best_edge.first->local_variety[best_edge_id]->source->best_edge.second]->program->AutomatonRule::to_string();
+//
+//
+//
+//                    }
+//                    else
+//                    {
+//                        mask_propagation_fout << " | no prev";
+//                    }
+//                    mask_propagation_fout << endl;
+//                }
 
             }
 

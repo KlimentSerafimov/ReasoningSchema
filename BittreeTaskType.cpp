@@ -1539,33 +1539,36 @@ BittreeTaskType::generate_variety(int subtask_depth, ofstream *fout, AutomatonRu
     vector<SequenceOfPrimitiveRules> initial_rules;
     initial_rules.emplace_back(stay);
     initial_rules.emplace_back(move_right);
-//    initial_rules.emplace_back(move_left);
+    initial_rules.emplace_back(move_left);
     initial_rules.emplace_back(move_up);
-//    initial_rules.emplace_back(move_down);
-    initial_rules.emplace_back(move_front);
+    initial_rules.emplace_back(move_down);
+//    initial_rules.emplace_back(move_front);
 //    initial_rules.emplace_back(move_back);
-    initial_rules.emplace_back(youngest_second_nephew);
-    initial_rules.emplace_back(move_front, move_up);
-    initial_rules.emplace_back(move_front, move_right);
-    initial_rules.emplace_back(move_up, move_right);
-    initial_rules.emplace_back(move_front, move_up, move_right);
-    initial_rules.emplace_back(move_front, move_up, move_up);
-    initial_rules.emplace_back(move_up, move_up, move_right);
-    initial_rules.emplace_back(move_up, move_right, move_right);
+//    initial_rules.emplace_back(youngest_second_nephew);
+//    initial_rules.emplace_back(move_front, move_up);
+//    initial_rules.emplace_back(move_front, move_right);
+//    initial_rules.emplace_back(move_up, move_right);
+//    initial_rules.emplace_back(move_up, move_left);
+//    initial_rules.emplace_back(move_down, move_right);
+//    initial_rules.emplace_back(move_down, move_left);
+//    initial_rules.emplace_back(move_front, move_up, move_right);
+//    initial_rules.emplace_back(move_front, move_up, move_up);
+//    initial_rules.emplace_back(move_up, move_up, move_right);
+//    initial_rules.emplace_back(move_up, move_right, move_right);
 
-    initial_rules.emplace_back(youngest_second_nephew, move_right);
-    initial_rules.emplace_back(youngest_second_nephew, move_up);
-    initial_rules.emplace_back(youngest_second_nephew, move_front);
-    initial_rules.emplace_back(youngest_second_nephew, move_front, move_up);
-    initial_rules.emplace_back(youngest_second_nephew, move_front, move_right);
-    initial_rules.emplace_back(youngest_second_nephew, move_up, move_right);
-    initial_rules.emplace_back(youngest_second_nephew, move_front, move_up, move_right);
-    initial_rules.emplace_back(youngest_second_nephew, move_front, move_up, move_up);
-    initial_rules.emplace_back(youngest_second_nephew, move_up, move_up, move_right);
-    initial_rules.emplace_back(youngest_second_nephew, move_up, move_right, move_right);
+//    initial_rules.emplace_back(youngest_second_nephew, move_right);
+//    initial_rules.emplace_back(youngest_second_nephew, move_up);
+//    initial_rules.emplace_back(youngest_second_nephew, move_front);
+//    initial_rules.emplace_back(youngest_second_nephew, move_front, move_up);
+//    initial_rules.emplace_back(youngest_second_nephew, move_front, move_right);
+//    initial_rules.emplace_back(youngest_second_nephew, move_up, move_right);
+//    initial_rules.emplace_back(youngest_second_nephew, move_front, move_up, move_right);
+//    initial_rules.emplace_back(youngest_second_nephew, move_front, move_up, move_up);
+//    initial_rules.emplace_back(youngest_second_nephew, move_up, move_up, move_right);
+//    initial_rules.emplace_back(youngest_second_nephew, move_up, move_right, move_right);
 
     vector<SequenceOfPrimitiveRules> all_rules;
-    all_rules.push_back(minus_one);
+//    all_rules.push_back(minus_one);
     for(int i = 0;i<initial_rules.size();i++)
     {
         all_rules.emplace_back(initial_rules[i]);
